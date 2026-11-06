@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.0
+// @version      0.2.1
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @grant        none
@@ -78,6 +78,7 @@ const raridades = { comum: 1, incomum: 2, raro: 3, rara: 3, epico: 4, epica: 4, 
 let ativo = false;
 let ultimoConjunto = '';
 let banimentoPendente = null;
+let selecaoPendente = null;
 let timer;
 const chaveStatus = 'pokebonk-auto-select-status';
 const catalogoStatus = [
@@ -165,6 +166,7 @@ painel.addEventListener('click', () => {
   ativo = !ativo;
   ultimoConjunto = '';
   banimentoPendente = null;
+  selecaoPendente = null;
   painel.textContent = ativo ? 'Auto Select: ligado (protótipo)' : 'Auto Select: desligado';
   agendar();
 });
@@ -172,6 +174,18 @@ painel.addEventListener('click', () => {
 function agendar() {
   if (timer) return;
   timer = setTimeout(() => { timer = null; observar(); }, 150);
+}
+function selecionarComTentativa(botoes, indice, assinatura) {
+  const botao = selecaoPendente?.assinatura === assinatura && botoes.includes(selecaoPendente.botao)
+    ? selecaoPendente.botao : botoes[indice];
+  const agora = Date.now();
+  if (!selecaoPendente || selecaoPendente.assinatura !== assinatura || selecaoPendente.botao !== botao) {
+    selecaoPendente = { assinatura, botao, tentativas: 0, ultima: 0 };
+  }
+  if (selecaoPendente.tentativas >= 3 || (selecaoPendente.tentativas > 0 && agora - selecaoPendente.ultima < 500)) return;
+  selecaoPendente.tentativas += 1;
+  selecaoPendente.ultima = agora;
+  botao.click();
 }
 function observar() {
   if (!ativo || modalAberto) return;
@@ -196,7 +210,6 @@ function observar() {
     return;
   }
   if (!['banir', 'atualizar', 'pular'].every((texto) => controles.some((b) => normalizar(b.textContent).startsWith(texto)))) return;
-  if (document.querySelector('.ban-warn')) return;
   const opcoes = botoes.map((botao, indice) => {
     const tipo = botao.querySelector('.top .typeicon') ? 'golpe'
       : botao.querySelector('.top img[src*="assets/items/"]') ? 'vitamina' : undefined;
@@ -208,7 +221,6 @@ function observar() {
   // Não gastar recursos se a tela estiver incompleta ou tiver um formato desconhecido.
   if (opcoes.some((item, i) => !nomes[i] || !item.tipo || !item.estado)) return;
   const assinatura = botoes.map((b) => b.outerHTML).join('|');
-  if (assinatura === ultimoConjunto) return;
   const controle = (nome) => controles.find((b) => normalizar(b.textContent).startsWith(nome));
   const banir = controle('banir');
   const atualizar = controle('atualizar');
@@ -219,8 +231,12 @@ function observar() {
   };
   const decisao = decidir({ tipo: 'build', opcoes, banimentos: usos(banir), atualizacoes: usos(atualizar), pulos: usos(pular) });
   if (decisao.acao === 'aguardar') return;
+  if (decisao.acao === 'selecionar') {
+    selecionarComTentativa(botoes, decisao.id, assinatura);
+    return;
+  }
+  if (assinatura === ultimoConjunto) return;
   ultimoConjunto = assinatura;
-  if (decisao.acao === 'selecionar') botoes[decisao.id].click();
   if (decisao.acao === 'banir') {
     banimentoPendente = { indice: decisao.id, nomes: JSON.stringify(nomes), inicio: Date.now() };
     banir.click();
@@ -240,11 +256,9 @@ function observarBencao() {
   });
   const prioridade = ordemStatus();
   const assinatura = botoes.map((b) => b.outerHTML).join('|');
-  if (assinatura === ultimoConjunto) return;
   const decisao = decidir({ tipo: 'status', opcoes }, { status: prioridade });
   if (decisao.acao !== 'selecionar') return;
-  ultimoConjunto = assinatura;
-  botoes[decisao.id].click();
+  selecionarComTentativa(botoes, decisao.id, assinatura);
 }
 function observarItens() {
   const visivel = (e) => e.getClientRects().length && !e.disabled;
@@ -253,11 +267,9 @@ function observarItens() {
   if (!nenhum || !botoes.length) { observarItemUnico(); return; }
   const opcoes = botoes.map((botao, indice) => ({ id: indice, raridade: raridades[normalizar(botao.querySelector('.rar')?.textContent)] }));
   const assinatura = botoes.map((b) => b.outerHTML).join('|');
-  if (assinatura === ultimoConjunto) return;
   const decisao = decidir({ tipo: 'powerup', opcoes });
   if (decisao.acao !== 'selecionar') return;
-  ultimoConjunto = assinatura;
-  botoes[decisao.id].click();
+  selecionarComTentativa(botoes, decisao.id, assinatura);
 }
 function observarItemUnico() {
   const visivel = (e) => e.getClientRects().length && !e.disabled;
@@ -265,7 +277,7 @@ function observarItemUnico() {
   const botoes = [...document.querySelectorAll('button')].filter(visivel);
   const pegar = botoes.find((b) => /^pegar\s*e?$/.test(normalizar(b.textContent)));
   const vender = botoes.some((b) => normalizar(b.textContent).startsWith('vender'));
-  if (!titulo || !pegar || !vender) { ultimoConjunto = ''; return; }
+  if (!titulo || !pegar || !vender) { ultimoConjunto = ''; selecaoPendente = null; return; }
   const assinatura = `item-unico:${document.querySelector('.card h3')?.textContent || ''}:${pegar.outerHTML}`;
   if (assinatura === ultimoConjunto) return;
   ultimoConjunto = assinatura;
