@@ -10,6 +10,8 @@ Em `src/decisao.mjs`, só opções do plano participam de escolhas de build. Op�
 
 Para bênçãos, prioridade configurada vem antes de raridade; a raridade desempata opções do mesmo status. Itens apresentados em conjunto usam maior raridade e sorteio no empate. `src/adaptador.js` tenta identificar a tela de item único e clicar em Pegar.
 
+O painel de prioridades oferece uma alça para arrastar e botões para mover cada status uma posição ou diretamente ao topo ou ao fim. A ordem fica salva no navegador.
+
 ## Fora do escopo e limitações
 
 Movimentação e coleta automática no mapa não fazem parte do protótipo. A lista de atributos é parcial e nomes não reconhecidos são acrescentados ao fim; o reconhecimento, as interações reais e o desempenho não foram validados de forma completa no jogo.

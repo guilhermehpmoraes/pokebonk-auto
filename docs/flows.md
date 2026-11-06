@@ -19,4 +19,6 @@ flowchart TD
 
 Se uma seleção de cartão permanecer na tela após um clique, o adaptador tenta o mesmo cartão até três vezes, com intervalo mínimo de 500 ms. Banir, atualizar e pular não recebem essa repetição automática.
 
+No painel de prioridades, `abrirPrioridades` permite reordenar com a alça ou com botões; cada movimento salva a ordem em `localStorage` imediatamente.
+
 Os seletores e etapas são dependências da interface real; a simulação em `tests/integracao.test.mjs` não confirma o comportamento do jogo.

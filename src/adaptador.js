@@ -59,28 +59,30 @@ function abrirPrioridades() {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(7,10,25,.78);display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,sans-serif;';
   overlay.innerHTML = `<section role="dialog" aria-modal="true" aria-label="Prioridade dos status" style="background:#191e32;color:#f5f6ff;width:min(540px,100%);max-height:85vh;border:1px solid #4a5374;border-radius:20px;box-shadow:0 24px 80px #0009;display:flex;flex-direction:column;overflow:hidden">
-    <header style="padding:22px 24px 12px"><div style="color:#ffcd76;font-size:12px;font-weight:800;letter-spacing:.12em">POKÉBONK · AUTO SELECT</div><h2 style="margin:8px 0;font-size:24px">Prioridade dos status</h2><div style="color:#b7c0da;font-size:14px">Arraste para ordenar. A prioridade vem primeiro; a raridade desempata.</div></header>
+    <header style="padding:22px 24px 12px"><div style="color:#ffcd76;font-size:12px;font-weight:800;letter-spacing:.12em">POKÉBONK · AUTO SELECT</div><h2 style="margin:8px 0;font-size:24px">Prioridade dos status</h2><div style="color:#b7c0da;font-size:14px">Arraste pelo símbolo ⋮⋮ ou use as setas. A prioridade vem primeiro; a raridade desempata.</div></header>
     <ol style="margin:0;padding:8px 24px;overflow:auto;list-style:none;display:grid;gap:7px"></ol>
     <footer style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #363d56"><small style="color:#aeb7d1">Salvo automaticamente neste navegador</small><button type="button" data-close style="background:#f5a953;color:#261705;border:0;border-radius:10px;padding:10px 20px;font-weight:800;cursor:pointer">Concluir</button></footer></section>`;
   overlay.addEventListener('keydown', (event) => { event.stopPropagation(); if (event.key === 'Escape') fechar(); });
   overlay.addEventListener('keyup', (event) => event.stopPropagation());
   overlay.addEventListener('click', (event) => event.stopPropagation());
+  overlay.addEventListener('pointerdown', (event) => event.stopPropagation());
+  overlay.addEventListener('pointerup', (event) => event.stopPropagation());
   const lista = overlay.querySelector('ol');
-  let arrastado = null;
-  function mover(de, para) { if (de < 0 || para < 0 || para >= ordem.length || de === para) return; const [item] = ordem.splice(de, 1); ordem.splice(para, 0, item); salvarStatus(ordem); renderizar(); }
+  function mover(de, para) { if (de < 0 || para < 0 || para >= ordem.length || de === para) return; const rolagem = lista.scrollTop; const [item] = ordem.splice(de, 1); ordem.splice(para, 0, item); salvarStatus(ordem); renderizar(); lista.scrollTop = rolagem; }
   function renderizar() {
     lista.replaceChildren();
     ordem.forEach((id, indice) => {
-      const item = document.createElement('li'); item.draggable = true;
-      item.style.cssText = 'background:#282f49;border:1px solid #414c6b;border-radius:11px;display:flex;align-items:center;gap:12px;padding:9px 12px;cursor:grab';
+      const item = document.createElement('li'); item.dataset.statusId = id;
+      item.style.cssText = 'background:#282f49;border:1px solid #414c6b;border-radius:11px;display:flex;align-items:center;gap:8px;padding:9px 12px';
       const numero = document.createElement('span'); numero.style.cssText = 'color:#ffbf69;font-size:12px;font-weight:800;min-width:24px'; numero.textContent = String(indice + 1).padStart(2, '0');
       const nome = document.createElement('span'); nome.style.cssText = 'flex:1;font-size:14px;font-weight:650'; nome.textContent = catalogoStatus.find((entrada) => entrada[0] === id)?.[1] || id;
-      const criarSeta = (texto, deslocamento) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = texto; b.setAttribute('aria-label', `${deslocamento < 0 ? 'Subir' : 'Descer'} ${nome.textContent}`); b.disabled = indice + deslocamento < 0 || indice + deslocamento >= ordem.length; b.style.cssText = 'background:#39435f;color:white;border:0;border-radius:6px;padding:4px 8px;cursor:pointer'; b.onclick = () => mover(indice, indice + deslocamento); return b; };
-      const alca = document.createElement('span'); alca.textContent = '⋮⋮'; alca.style.color = '#8995b7';
-      item.append(alca, numero, nome, criarSeta('↑', -1), criarSeta('↓', 1));
-      item.addEventListener('dragstart', (e) => { arrastado = id; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', id); });
-      item.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
-      item.addEventListener('drop', (e) => { e.preventDefault(); mover(ordem.indexOf(arrastado), ordem.indexOf(id)); arrastado = null; });
+      const criarSeta = (texto, titulo, destino) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = texto; b.title = titulo; b.setAttribute('aria-label', `${titulo}: ${nome.textContent}`); b.disabled = destino === indice; b.style.cssText = 'background:#39435f;color:white;border:0;border-radius:6px;padding:4px 7px;cursor:pointer'; b.onclick = () => mover(indice, destino); return b; };
+      const alca = document.createElement('span'); alca.textContent = '⋮⋮'; alca.title = `Arrastar ${nome.textContent}`; alca.style.cssText = 'color:#aab6d3;cursor:grab;touch-action:none;user-select:none;padding:4px';
+      let ponteiro = null;
+      alca.addEventListener('pointerdown', (event) => { if (event.button !== 0) return; event.preventDefault(); event.stopPropagation(); ponteiro = event.pointerId; alca.setPointerCapture(ponteiro); alca.style.cursor = 'grabbing'; });
+      alca.addEventListener('pointerup', (event) => { if (ponteiro !== event.pointerId) return; event.preventDefault(); event.stopPropagation(); const alvo = document.elementFromPoint(event.clientX, event.clientY)?.closest('li[data-status-id]'); ponteiro = null; alca.style.cursor = 'grab'; if (alvo && lista.contains(alvo)) mover(ordem.indexOf(id), ordem.indexOf(alvo.dataset.statusId)); });
+      alca.addEventListener('pointercancel', () => { ponteiro = null; alca.style.cursor = 'grab'; });
+      item.append(alca, numero, nome, criarSeta('⇈', 'Mover para o topo', 0), criarSeta('↑', 'Subir', Math.max(0, indice - 1)), criarSeta('↓', 'Descer', Math.min(ordem.length - 1, indice + 1)), criarSeta('⇊', 'Mover para o fim', ordem.length - 1));
       lista.append(item);
     });
   }
