@@ -168,6 +168,7 @@ function selecionarComTentativa(botoes, indice, assinatura) {
 }
 function observar() {
   if (!ativo || modalAberto) return;
+  if (observarReliquias()) return;
   const botoes = [...document.querySelectorAll('button.card.offer')].filter((e) => e.getClientRects().length && !e.disabled);
   if (!botoes.length) { banimentoPendente = null; observarBencao(); return; }
   // Reconhecer os três controles evita atuar em outras telas de escolhas.
@@ -226,6 +227,57 @@ function observar() {
   }
   if (decisao.acao === 'atualizar') atualizar.click();
   if (decisao.acao === 'pular') pular.click();
+}
+function observarReliquias() {
+  const visivel = (elemento) => !!elemento && elemento.getClientRects().length > 0;
+  const janelas = [...document.querySelectorAll('.rl-wrap')].filter(visivel);
+  if (!janelas.length) return false;
+  if (janelas.length !== 1) return true;
+  const janela = janelas[0];
+  const lerReliquia = (elemento, indice, equipado = false) => {
+    const raridadeClasse = [...elemento.classList].map((classe) => /^r([0-4])$/.exec(classe)).find(Boolean);
+    const raridadePorClasse = raridadeClasse ? Number(raridadeClasse[1]) + 1 : undefined;
+    const textoRaridade = elemento.querySelector('.rl-rar');
+    const raridadeTexto = textoRaridade ? raridades[normalizar(textoRaridade.textContent)] : undefined;
+    const stats = elemento.querySelector(equipado ? '.rl-chip-bd span' : '.rl-stats');
+    const nome = elemento.querySelector(equipado ? '.rl-chip-bd b' : '.rl-bd h3')?.textContent?.trim();
+    if (!nome || !stats || !raridadePorClasse || (textoRaridade && raridadeTexto !== raridadePorClasse)) return null;
+    return { id: indice, nome, raridade: raridadePorClasse, dano: /\bdano\b/.test(normalizar(stats.textContent)) };
+  };
+  const swaps = [...janela.querySelectorAll('button.rl-card.rl-swap')].filter(visivel);
+  const ofertas = [...janela.querySelectorAll('button.rl-card:not(.rl-swap)')].filter(visivel);
+  const acaoUnica = (texto, assinatura) => {
+    const botao = [...janela.querySelectorAll('.actions button')].find((item) => visivel(item) && !item.disabled && normalizar(item.textContent) === texto);
+    if (!botao || assinatura === ultimoConjunto) return;
+    ultimoConjunto = assinatura;
+    botao.click();
+  };
+  if (swaps.length) {
+    const previa = janela.querySelector('.rl-incoming .rl-card');
+    if (!visivel(previa) || swaps.length !== 3) return true;
+    const nova = lerReliquia(previa, 0);
+    const equipadas = swaps.map((item, indice) => lerReliquia(item, indice));
+    if (!nova || equipadas.some((item) => !item)) return true;
+    const decisao = decidir({ tipo: 'reliquia', opcoes: [nova], equipadas });
+    const assinatura = `reliquia-troca:${previa.outerHTML}:${swaps.map((item) => item.outerHTML).join('|')}`;
+    if (decisao.acao === 'dispensar') acaoUnica('ficar com as minhas', assinatura);
+    if (decisao.acao === 'selecionar' && Number.isInteger(decisao.substituir)) selecionarComTentativa(swaps, decisao.substituir, assinatura);
+    return true;
+  }
+  if (!ofertas.length) return true;
+  const subtitulo = normalizar(janela.querySelector('.rl-sub')?.textContent);
+  const livres = /\((\d+)\s*\/\s*3\s+espacos\)/.exec(subtitulo);
+  const quantidade = livres ? Number(livres[1]) : /\b3 espacos estao cheios\b/.test(subtitulo) ? 3 : undefined;
+  const chips = [...janela.querySelectorAll('.rl-mine .rl-chip')].filter(visivel);
+  if (!Number.isInteger(quantidade) || quantidade > 3 || chips.length !== quantidade) return true;
+  const equipadas = chips.map((item, indice) => lerReliquia(item, indice, true));
+  const opcoes = ofertas.map((item, indice) => lerReliquia(item, indice));
+  if (equipadas.some((item) => !item) || opcoes.some((item) => !item)) return true;
+  const decisao = decidir({ tipo: 'reliquia', opcoes, equipadas });
+  const assinatura = `reliquia-oferta:${ofertas.map((item) => item.outerHTML).join('|')}:${chips.map((item) => item.outerHTML).join('|')}`;
+  if (decisao.acao === 'dispensar') acaoUnica('nao levar nenhuma', assinatura);
+  if (decisao.acao === 'selecionar') selecionarComTentativa(ofertas, decisao.id, assinatura);
+  return true;
 }
 function observarBencao() {
   const botoes = [...document.querySelectorAll('button.card')].filter((e) => e.getClientRects().length && !e.disabled && e.querySelector('.top img[src*="assets/ui/icons/blessing.png"]'));

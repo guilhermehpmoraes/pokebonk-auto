@@ -9,6 +9,20 @@ export function decidir(tela, configuracao = {}, aleatorio = Math.random) {
   const sortear = (lista) => lista[Math.floor(aleatorio() * lista.length)];
 
   if (!opcoes.length) return { acao: 'aguardar', motivo: 'sem opções reconhecidas' };
+  if (tela.tipo === 'reliquia') {
+    const equipadas = tela.equipadas;
+    if (!Array.isArray(equipadas) || equipadas.length > 3 || [...opcoes, ...equipadas].some((item) => !Number.isFinite(item.raridade) || typeof item.dano !== 'boolean')) {
+      return { acao: 'aguardar', motivo: 'relíquias não reconhecidas' };
+    }
+    const comparar = (a, b) => a.raridade - b.raridade || Number(a.dano) - Number(b.dano);
+    const melhor = opcoes.reduce((atual, item) => comparar(item, atual) > 0 ? item : atual);
+    const melhores = opcoes.filter((item) => comparar(item, melhor) === 0);
+    if (equipadas.length < 3) return { acao: 'selecionar', id: sortear(melhores).id };
+    const pior = equipadas.reduce((atual, item) => comparar(item, atual) < 0 ? item : atual);
+    if (comparar(melhor, pior) <= 0) return { acao: 'dispensar' };
+    const piores = equipadas.filter((item) => comparar(item, pior) === 0);
+    return { acao: 'selecionar', id: sortear(melhores).id, substituir: sortear(piores).id };
+  }
   if (tela.tipo === 'build') {
     if (opcoes.some((item) => typeof item.noPlano !== 'boolean')) {
       return { acao: 'aguardar', motivo: 'indicador de plano desconhecido' };

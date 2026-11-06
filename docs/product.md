@@ -10,6 +10,8 @@ Em `src/decisao.mjs`, só opções do plano participam de escolhas de build. O a
 
 Para bênçãos, prioridade configurada vem antes de raridade; a raridade desempata opções do mesmo status. Itens apresentados em conjunto usam maior raridade e sorteio no empate. `src/adaptador.js` tenta identificar a tela de item único e clicar em Pegar.
 
+Relíquias usam maior raridade e, em caso de empate, priorizam bônus de dano nos atributos. Com três espaços cheios, uma relíquia nova só substitui a menos prioritária se aumentar a raridade ou, na mesma raridade, acrescentar bônus de dano. Caso nenhuma oferta melhore o conjunto, o script tenta escolher **Não levar nenhuma**.
+
 O painel oferece cinco presets de status com nomes editáveis. Cada preset guarda uma ordem independente; a aba selecionada determina a prioridade usada nas bênçãos. É possível copiar a ordem de outro preset para o ativo, mediante confirmação, preservando o nome do destino. Uma alça e botões movem cada status uma posição ou diretamente ao topo ou ao fim. As configurações ficam salvas no navegador. Na primeira utilização, a ordem anterior é usada como ponto de partida para os cinco presets.
 
 ## Fora do escopo e limitações

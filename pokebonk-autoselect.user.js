@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.7
+// @version      0.2.8
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -22,6 +22,20 @@ function decidir(tela, configuracao = {}, aleatorio = Math.random) {
   const sortear = (lista) => lista[Math.floor(aleatorio() * lista.length)];
 
   if (!opcoes.length) return { acao: 'aguardar', motivo: 'sem opções reconhecidas' };
+  if (tela.tipo === 'reliquia') {
+    const equipadas = tela.equipadas;
+    if (!Array.isArray(equipadas) || equipadas.length > 3 || [...opcoes, ...equipadas].some((item) => !Number.isFinite(item.raridade) || typeof item.dano !== 'boolean')) {
+      return { acao: 'aguardar', motivo: 'relíquias não reconhecidas' };
+    }
+    const comparar = (a, b) => a.raridade - b.raridade || Number(a.dano) - Number(b.dano);
+    const melhor = opcoes.reduce((atual, item) => comparar(item, atual) > 0 ? item : atual);
+    const melhores = opcoes.filter((item) => comparar(item, melhor) === 0);
+    if (equipadas.length < 3) return { acao: 'selecionar', id: sortear(melhores).id };
+    const pior = equipadas.reduce((atual, item) => comparar(item, atual) < 0 ? item : atual);
+    if (comparar(melhor, pior) <= 0) return { acao: 'dispensar' };
+    const piores = equipadas.filter((item) => comparar(item, pior) === 0);
+    return { acao: 'selecionar', id: sortear(melhores).id, substituir: sortear(piores).id };
+  }
   if (tela.tipo === 'build') {
     if (opcoes.some((item) => typeof item.noPlano !== 'boolean')) {
       return { acao: 'aguardar', motivo: 'indicador de plano desconhecido' };
@@ -244,6 +258,7 @@ function selecionarComTentativa(botoes, indice, assinatura) {
 }
 function observar() {
   if (!ativo || modalAberto) return;
+  if (observarReliquias()) return;
   const botoes = [...document.querySelectorAll('button.card.offer')].filter((e) => e.getClientRects().length && !e.disabled);
   if (!botoes.length) { banimentoPendente = null; observarBencao(); return; }
   // Reconhecer os três controles evita atuar em outras telas de escolhas.
@@ -302,6 +317,57 @@ function observar() {
   }
   if (decisao.acao === 'atualizar') atualizar.click();
   if (decisao.acao === 'pular') pular.click();
+}
+function observarReliquias() {
+  const visivel = (elemento) => !!elemento && elemento.getClientRects().length > 0;
+  const janelas = [...document.querySelectorAll('.rl-wrap')].filter(visivel);
+  if (!janelas.length) return false;
+  if (janelas.length !== 1) return true;
+  const janela = janelas[0];
+  const lerReliquia = (elemento, indice, equipado = false) => {
+    const raridadeClasse = [...elemento.classList].map((classe) => /^r([0-4])$/.exec(classe)).find(Boolean);
+    const raridadePorClasse = raridadeClasse ? Number(raridadeClasse[1]) + 1 : undefined;
+    const textoRaridade = elemento.querySelector('.rl-rar');
+    const raridadeTexto = textoRaridade ? raridades[normalizar(textoRaridade.textContent)] : undefined;
+    const stats = elemento.querySelector(equipado ? '.rl-chip-bd span' : '.rl-stats');
+    const nome = elemento.querySelector(equipado ? '.rl-chip-bd b' : '.rl-bd h3')?.textContent?.trim();
+    if (!nome || !stats || !raridadePorClasse || (textoRaridade && raridadeTexto !== raridadePorClasse)) return null;
+    return { id: indice, nome, raridade: raridadePorClasse, dano: /\bdano\b/.test(normalizar(stats.textContent)) };
+  };
+  const swaps = [...janela.querySelectorAll('button.rl-card.rl-swap')].filter(visivel);
+  const ofertas = [...janela.querySelectorAll('button.rl-card:not(.rl-swap)')].filter(visivel);
+  const acaoUnica = (texto, assinatura) => {
+    const botao = [...janela.querySelectorAll('.actions button')].find((item) => visivel(item) && !item.disabled && normalizar(item.textContent) === texto);
+    if (!botao || assinatura === ultimoConjunto) return;
+    ultimoConjunto = assinatura;
+    botao.click();
+  };
+  if (swaps.length) {
+    const previa = janela.querySelector('.rl-incoming .rl-card');
+    if (!visivel(previa) || swaps.length !== 3) return true;
+    const nova = lerReliquia(previa, 0);
+    const equipadas = swaps.map((item, indice) => lerReliquia(item, indice));
+    if (!nova || equipadas.some((item) => !item)) return true;
+    const decisao = decidir({ tipo: 'reliquia', opcoes: [nova], equipadas });
+    const assinatura = `reliquia-troca:${previa.outerHTML}:${swaps.map((item) => item.outerHTML).join('|')}`;
+    if (decisao.acao === 'dispensar') acaoUnica('ficar com as minhas', assinatura);
+    if (decisao.acao === 'selecionar' && Number.isInteger(decisao.substituir)) selecionarComTentativa(swaps, decisao.substituir, assinatura);
+    return true;
+  }
+  if (!ofertas.length) return true;
+  const subtitulo = normalizar(janela.querySelector('.rl-sub')?.textContent);
+  const livres = /\((\d+)\s*\/\s*3\s+espacos\)/.exec(subtitulo);
+  const quantidade = livres ? Number(livres[1]) : /\b3 espacos estao cheios\b/.test(subtitulo) ? 3 : undefined;
+  const chips = [...janela.querySelectorAll('.rl-mine .rl-chip')].filter(visivel);
+  if (!Number.isInteger(quantidade) || quantidade > 3 || chips.length !== quantidade) return true;
+  const equipadas = chips.map((item, indice) => lerReliquia(item, indice, true));
+  const opcoes = ofertas.map((item, indice) => lerReliquia(item, indice));
+  if (equipadas.some((item) => !item) || opcoes.some((item) => !item)) return true;
+  const decisao = decidir({ tipo: 'reliquia', opcoes, equipadas });
+  const assinatura = `reliquia-oferta:${ofertas.map((item) => item.outerHTML).join('|')}:${chips.map((item) => item.outerHTML).join('|')}`;
+  if (decisao.acao === 'dispensar') acaoUnica('nao levar nenhuma', assinatura);
+  if (decisao.acao === 'selecionar') selecionarComTentativa(ofertas, decisao.id, assinatura);
+  return true;
 }
 function observarBencao() {
   const botoes = [...document.querySelectorAll('button.card')].filter((e) => e.getClientRects().length && !e.disabled && e.querySelector('.top img[src*="assets/ui/icons/blessing.png"]'));
