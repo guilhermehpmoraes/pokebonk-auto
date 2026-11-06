@@ -78,4 +78,20 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
   novoBody.children[1].click();
   assert.equal(novoBody.children[2].nome.value, 'Especial');
   assert.equal(novoBody.children[2].lista.children[0].dataset.statusId, 'dinheiro');
+  const antigos = dados();
+  antigos.perfis[0].ordem = ['sorte', 'novo: dano em elites e chefes', 'dinheiro', 'dano elites'];
+  antigos.perfis[1].ordem = ['dano elites', 'sorte', 'novo: dano em elites e chefes'];
+  memoria.set('pokebonk-auto-select-perfis', JSON.stringify(antigos));
+  const outroBody = new Elemento('body');
+  vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
+    document: { ...document, body: outroBody }, localStorage, MutationObserver, setTimeout() {}, setInterval() {}, Math, Date,
+  });
+  outroBody.children[1].click();
+  const outroPainel = outroBody.children[2];
+  const ids = () => outroPainel.lista.children.map((item) => item.dataset.statusId);
+  assert.equal(ids()[0], 'dano elites');
+  assert.equal(ids().filter((id) => id === 'dano elites').length, 1);
+  outroPainel.abas.children[0].click();
+  assert.deepEqual(ids().slice(0, 3), ['sorte', 'dano elites', 'dinheiro']);
+  assert.equal(ids().filter((id) => id === 'dano elites').length, 1);
 });

@@ -34,7 +34,7 @@ test('bênção usa a ordem do preset ativo', () => {
     { nome: 'Físico', ordem: ['dano fisico', 'dano especial'] },
     { nome: 'Especial', ordem: ['dano especial', 'dano fisico'] },
   ] })]]);
-  let escolhido; let tarefa;
+  let escolhido; let tarefa; let gravacoes = 0;
   const controles = [];
   const criar = () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; }, click() { this.click?.(); } });
   const card = (nome) => ({ disabled: false, outerHTML: nome, getClientRects: () => [1],
@@ -44,16 +44,17 @@ test('bênção usa a ordem do preset ativo', () => {
       if (seletor === '.rar') return { textContent: 'Comum' };
       return null;
     }, click() { escolhido = nome; } });
-  const cartoes = [card('+20% de dano físico'), card('+20% de dano especial')];
+  const cartoes = [card('+20% de dano físico'), card('+20% de dano especial'), card('+20% de dano em elites e chefes')];
   const document = { body: { appendChild: (e) => controles.push(e) }, createElement: criar,
     querySelectorAll(seletor) { if (seletor === 'button.card') return cartoes; return []; } };
-  const localStorage = { getItem: (k) => memoria.get(k) ?? null, setItem: (k, v) => memoria.set(k, v) };
+  const localStorage = { getItem: (k) => memoria.get(k) ?? null, setItem: (k, v) => { gravacoes++; memoria.set(k, v); } };
   class MutationObserver { observe() {} }
   vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
     document, localStorage, MutationObserver, setTimeout(fn) { tarefa = fn; return 1; }, setInterval() {}, Math, Date,
   });
   controles[0].click(); tarefa();
   assert.equal(escolhido, '+20% de dano especial');
+  assert.equal(gravacoes, 0);
 });
 
 test('repete a escolha de Ether se o primeiro clique de level-up for ignorado', () => {
