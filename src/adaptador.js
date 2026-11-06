@@ -193,7 +193,10 @@ function observar() {
     const tipo = botao.querySelector('.top .typeicon') ? 'golpe'
       : botao.querySelector('.top img[src*="assets/items/"]') ? 'vitamina' : undefined;
     const kind = normalizar(botao.querySelector('.kind')?.textContent);
-    return { id: indice, tipo, noPlano: !!botao.querySelector('.bp-badge'),
+    const descricao = normalizar(botao.querySelector('.bd > .sub')?.textContent);
+    // Uma melhoria de fusão já equipada pode aparecer sem o selo do plano.
+    const fusaoEquipada = tipo === 'golpe' && kind === 'melhoria' && /^fusao\s*★/.test(descricao);
+    return { id: indice, tipo, noPlano: !!botao.querySelector('.bp-badge') || fusaoEquipada,
       estado: kind === 'novo' || kind === 'nova' ? 'novo' : kind === 'melhoria' ? 'melhoria' : undefined,
       raridade: raridades[normalizar(botao.querySelector('.rar')?.textContent)] };
   });

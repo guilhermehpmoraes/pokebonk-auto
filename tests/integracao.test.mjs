@@ -57,6 +57,43 @@ test('bênção usa a ordem do preset ativo', () => {
   assert.equal(gravacoes, 0);
 });
 
+test('melhoria de fusão equipada participa como golpe mesmo sem selo', () => {
+  function simular(ofertas) {
+    const cliques = []; const elementos = []; let tarefa;
+    const criar = () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; }, click() { this.click?.(); } });
+    const cartoes = ofertas.map(({ nome, tipo, raridade, selo, descricao }) => ({
+      disabled: false, outerHTML: nome, getClientRects: () => [1],
+      querySelector(seletor) {
+        if (seletor === 'h3') return { textContent: nome };
+        if (seletor === '.top .typeicon') return tipo === 'golpe' ? {} : null;
+        if (seletor.includes('assets/items/')) return tipo === 'vitamina' ? {} : null;
+        if (seletor === '.kind') return { textContent: 'MELHORIA' };
+        if (seletor === '.rar') return { textContent: raridade };
+        if (seletor === '.bd > .sub') return { textContent: descricao };
+        if (seletor === '.bp-badge') return selo ? {} : null;
+        return null;
+      }, click() { cliques.push(nome); },
+    }));
+    const botoes = ['Atualizar (0) F', 'Pular (3) X', 'Banir (1) Z'].map((textContent) => ({ textContent,
+      disabled: textContent.startsWith('Atualizar'), getClientRects: () => [1], click() { cliques.push(textContent); } }));
+    const document = { body: { appendChild: (e) => elementos.push(e) }, createElement: criar,
+      querySelectorAll(seletor) { if (seletor === 'button.card.offer') return cartoes; if (seletor === 'button') return botoes; return []; } };
+    const localStorage = { getItem: () => null, setItem() {} };
+    class MutationObserver { observe() {} }
+    vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
+      document, localStorage, MutationObserver, setTimeout(fn) { tarefa = fn; return 1; }, setInterval() {}, Math, Date,
+    });
+    elementos[0].click(); tarefa();
+    return cliques;
+  }
+  const fusao = { nome: 'Maldição Sombria', tipo: 'golpe', raridade: 'Comum', selo: false, descricao: 'Fusão ★1 → ★2 (máx. ★5)' };
+  const vitamina = { nome: 'Ether', tipo: 'vitamina', raridade: 'Comum', selo: true, descricao: 'Nível 1 → 2' };
+  assert.deepEqual(simular([fusao]), ['Maldição Sombria']);
+  assert.deepEqual(simular([vitamina, fusao]), ['Maldição Sombria']);
+  assert.deepEqual(simular([{ ...vitamina, raridade: 'Raro' }, fusao]), ['Ether']);
+  assert.deepEqual(simular([{ ...fusao, nome: 'Golpe fora do plano', descricao: 'Nível 1 → 2' }]), ['Banir (1) Z']);
+});
+
 test('repete a escolha de Ether se o primeiro clique de level-up for ignorado', () => {
   const jobs = new Map(); let next = 0; let observer; let relogio = 1000;
   const cliques = [];

@@ -2,7 +2,7 @@
 
 ## 2026-11-06
 
-Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.6` em `scripts/gerar-userscript.mjs`.
+Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.7` em `scripts/gerar-userscript.mjs`.
 
 O repositório foi publicado inicialmente com Gitflow e depois passou a trabalhar diretamente na `main`, por decisão do mantenedor.
 
@@ -27,3 +27,5 @@ Foram adicionados cinco presets de prioridade com nomes editáveis, seleção e 
 Uma variação do nome de dano a elites e chefes era cadastrada duas vezes. O reconhecimento e a leitura dos presets passaram a unificá-la, preservando a primeira posição; a correção ainda precisa de confirmação no jogo.
 
 Foi adicionada a cópia de ordem entre presets, com confirmação antes de substituir o destino. O fluxo foi testado em simulação e ainda precisa de confirmação no Firefox.
+
+O usuário relatou que uma melhoria de fusão equipada aparecia sem o selo do plano e era ignorada. O adaptador passou a tratá-la como golpe elegível; a correção ainda precisa de confirmação no jogo.
