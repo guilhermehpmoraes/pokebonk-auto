@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.3
+// @version      0.2.4
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -83,6 +83,7 @@ let banimentoPendente = null;
 let selecaoPendente = null;
 let timer;
 const chaveStatus = 'pokebonk-auto-select-status';
+const chavePerfis = 'pokebonk-auto-select-perfis';
 const catalogoStatus = [
   ['experiencia', 'Experiência', ['experiencia', 'exp']], ['dinheiro', 'Pokédólares', ['pokedolares', 'dinheiro', 'money']],
   ['sorte', 'Sorte', ['sorte', 'luck']], ['dano', 'Dano', ['dano']], ['dano fisico', 'Dano físico', ['dano fisico']],
@@ -100,12 +101,26 @@ const catalogoStatus = [
 ];
 const aliasesStatus = { exp: 'experiencia', xp: 'experiencia', money: 'dinheiro', pokedolares: 'dinheiro', luck: 'sorte' };
 const canonico = (nome) => aliasesStatus[normalizar(nome)] || normalizar(nome);
-const ordemStatus = () => {
+const ordemLegada = () => {
   let salva = [];
   try { const raw = localStorage.getItem(chaveStatus); if (raw) salva = raw.startsWith('[') ? JSON.parse(raw) : raw.split(','); } catch (_) { /* usa padrão */ }
-  return [...new Set([...salva.map(canonico).filter(Boolean), ...catalogoStatus.map(([id]) => id)])];
+  return [...new Set([...(Array.isArray(salva) ? salva : []).filter((item) => typeof item === 'string').map(canonico).filter(Boolean), ...catalogoStatus.map(([id]) => id)])];
 };
-const salvarStatus = (ordem) => { localStorage.setItem(chaveStatus, JSON.stringify(ordem)); ultimoConjunto = ''; };
+function lerPerfis() {
+  let salvo;
+  try { salvo = JSON.parse(localStorage.getItem(chavePerfis)); } catch (_) { /* usa ordem anterior */ }
+  const base = ordemLegada();
+  const perfis = Array.from({ length: 5 }, (_, indice) => {
+    const perfil = salvo?.perfis?.[indice];
+    const ordem = Array.isArray(perfil?.ordem) ? perfil.ordem.filter((item) => typeof item === 'string').map(canonico) : base;
+    return { nome: typeof perfil?.nome === 'string' && perfil.nome.trim() ? perfil.nome.trim().slice(0, 24) : `Preset ${indice + 1}`,
+      ordem: [...new Set([...ordem, ...catalogoStatus.map(([id]) => id)])] };
+  });
+  return { ativo: Number.isInteger(salvo?.ativo) && salvo.ativo >= 0 && salvo.ativo < 5 ? salvo.ativo : 0, perfis };
+}
+function gravarPerfis(dados) { localStorage.setItem(chavePerfis, JSON.stringify(dados)); ultimoConjunto = ''; selecaoPendente = null; }
+const ordemStatus = () => { const dados = lerPerfis(); return dados.perfis[dados.ativo].ordem; };
+const salvarStatus = (ordem) => { const dados = lerPerfis(); dados.perfis[dados.ativo].ordem = [...ordem]; gravarPerfis(dados); };
 function identificarStatus(texto) {
   const valor = normalizar(texto).replace(/^[+\-]?\d+(?:[.,]\d+)?\s*%?\s*(?:de\s+)?/, '').replace(/[.!]+$/, '').trim();
   if (!valor) return undefined;
@@ -136,6 +151,7 @@ function abrirPrioridades() {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(7,10,25,.78);display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,sans-serif;';
   overlay.innerHTML = `<section role="dialog" aria-modal="true" aria-label="Prioridade dos status" style="background:#191e32;color:#f5f6ff;width:min(540px,100%);max-height:85vh;border:1px solid #4a5374;border-radius:20px;box-shadow:0 24px 80px #0009;display:flex;flex-direction:column;overflow:hidden">
     <header style="padding:22px 24px 12px"><div style="color:#ffcd76;font-size:12px;font-weight:800;letter-spacing:.12em">POKÉBONK · AUTO SELECT</div><h2 style="margin:8px 0;font-size:24px">Prioridade dos status</h2><div style="color:#b7c0da;font-size:14px">Arraste pelo símbolo ⋮⋮ ou use as setas. A prioridade vem primeiro; a raridade desempata.</div></header>
+    <div style="padding:4px 24px 8px"><div data-tabs role="tablist" aria-label="Predefinições" style="display:flex;gap:5px;overflow-x:auto;padding-bottom:8px"></div><label style="display:flex;align-items:center;gap:8px;color:#b7c0da;font-size:13px">Nome do preset <input data-name maxlength="24" aria-label="Nome do preset" style="min-width:0;flex:1;background:#282f49;color:#fff;border:1px solid #4a5374;border-radius:8px;padding:7px 9px"></label></div>
     <ol style="margin:0;padding:8px 24px;overflow:auto;list-style:none;display:grid;gap:7px"></ol>
     <footer style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #363d56"><small style="color:#aeb7d1">Salvo automaticamente neste navegador</small><button type="button" data-close style="background:#f5a953;color:#261705;border:0;border-radius:10px;padding:10px 20px;font-weight:800;cursor:pointer">Concluir</button></footer></section>`;
   overlay.addEventListener('keydown', (event) => { event.stopPropagation(); if (event.key === 'Escape') fechar(); });
@@ -144,6 +160,22 @@ function abrirPrioridades() {
   overlay.addEventListener('pointerdown', (event) => event.stopPropagation());
   overlay.addEventListener('pointerup', (event) => event.stopPropagation());
   const lista = overlay.querySelector('ol');
+  const abas = overlay.querySelector('[data-tabs]');
+  const campoNome = overlay.querySelector('[data-name]');
+  function renderizarAbas() {
+    const dados = lerPerfis();
+    abas.replaceChildren();
+    dados.perfis.forEach((perfil, indice) => {
+      const botao = document.createElement('button');
+      botao.type = 'button'; botao.textContent = perfil.nome; botao.title = `Selecionar ${perfil.nome}`;
+      botao.setAttribute('role', 'tab'); botao.setAttribute('aria-selected', String(indice === dados.ativo));
+      botao.style.cssText = `white-space:nowrap;border:1px solid ${indice === dados.ativo ? '#ffc16c' : '#4a5374'};border-radius:8px;padding:7px 9px;background:${indice === dados.ativo ? '#ffbd68' : '#282f49'};color:${indice === dados.ativo ? '#261705' : '#f5f6ff'};cursor:pointer;font-weight:700`;
+      botao.addEventListener('click', () => { const atual = lerPerfis(); atual.ativo = indice; gravarPerfis(atual); ordem = ordemStatus(); renderizarAbas(); renderizar(); lista.scrollTop = 0; });
+      abas.append(botao);
+    });
+    campoNome.value = dados.perfis[dados.ativo].nome;
+  }
+  campoNome.addEventListener('change', () => { const dados = lerPerfis(); dados.perfis[dados.ativo].nome = campoNome.value.trim().slice(0, 24) || `Preset ${dados.ativo + 1}`; gravarPerfis(dados); renderizarAbas(); });
   function mover(de, para) { if (de < 0 || para < 0 || para >= ordem.length || de === para) return; const rolagem = lista.scrollTop; const [item] = ordem.splice(de, 1); ordem.splice(para, 0, item); salvarStatus(ordem); renderizar(); lista.scrollTop = rolagem; }
   function renderizar() {
     lista.replaceChildren();
@@ -164,7 +196,7 @@ function abrirPrioridades() {
   }
   function fechar() { overlay.remove(); modalAberto = false; agendar(); }
   overlay.querySelector('[data-close]').addEventListener('click', fechar);
-  document.body.appendChild(overlay); renderizar(); overlay.querySelector('[data-close]').focus();
+  document.body.appendChild(overlay); renderizarAbas(); renderizar(); overlay.querySelector('[data-close]').focus();
 }
 painel.addEventListener('click', () => {
   ativo = !ativo;

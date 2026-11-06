@@ -6,7 +6,8 @@ O artefato `pokebonk-autoselect.user.js` é instalado em um gerenciador de users
 
 | Configuração | Estado |
 | --- | --- |
-| `pokebonk-auto-select-status` | Ordem de status em `localStorage` do site no navegador |
+| `pokebonk-auto-select-status` | Ordem anterior, usada como base ao criar presets |
+| `pokebonk-auto-select-perfis` | Cinco presets e índice ativo em `localStorage` do site no navegador |
 | Estado ativo | Mantido em memória; inicia desligado |
 | Variáveis de ambiente | Nenhuma identificada no código |
 
