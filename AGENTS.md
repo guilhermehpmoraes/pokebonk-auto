@@ -9,6 +9,7 @@
 ## Precedentes locais
 
 - Regras de escolha pertencem a `src/decisao.mjs`; preserve a separação entre decisão e DOM.
+- A verificação conservadora de kits pertence a `src/kits.mjs`; preserve os bloqueios quando não for possível provar que um kit está fora dos planos.
 - Identificação de telas, controles e configurações fica em `src/adaptador.js`. Mantenha o comportamento conservador quando não for possível identificar uma tela com segurança.
 - `scripts/gerar-userscript.mjs` combina essas fontes; não edite apenas o arquivo gerado `pokebonk-autoselect.user.js`.
 - Adicione testes de decisão em `tests/decisao.test.mjs` e cenários de integração simulada em `tests/integracao.test.mjs`, quando necessários para validar mudanças.

@@ -166,6 +166,38 @@ function selecionarComTentativa(botoes, indice, assinatura) {
   selecaoPendente.ultima = agora;
   botao.click();
 }
+function lerPlanosDeBuild() {
+  try {
+    const chaves = Object.keys(localStorage).filter((chave) => /^pokebonk\.buildPlan\.(?!.*\.at$)/.test(chave)).sort();
+    if (!chaves.length) return null;
+    const bruto = chaves.map((chave) => [chave, localStorage.getItem(chave)]);
+    const planos = [];
+    for (const [, valor] of bruto) {
+      const dados = JSON.parse(valor);
+      if (!dados || typeof dados !== 'object' || Array.isArray(dados)) return null;
+      for (const plano of Object.values(dados)) {
+        if (!plano || typeof plano !== 'object' || !Array.isArray(plano.moves) || !Array.isArray(plano.fus)) return null;
+        planos.push(plano);
+      }
+    }
+    return planos.length ? { planos, assinatura: JSON.stringify(bruto) } : null;
+  } catch (_) { return null; }
+}
+async function verificarKitSeguro(nome) {
+  try {
+    const entradas = performance.getEntriesByType('resource').map((item) => item.name);
+    const urls = (prefixo) => [...new Set(entradas.flatMap((entrada) => {
+      try { const url = new URL(entrada, location.href); return url.origin === location.origin && new RegExp(`^/assets/${prefixo}-[A-Za-z0-9_-]+\\.js$`).test(url.pathname) ? [url.href] : []; }
+      catch (_) { return []; }
+    }))];
+    const kits = urls('defineProperty'); const menus = urls('menus');
+    if (kits.length !== 1 || menus.length !== 1) return null;
+    const [moduloKits, moduloMenus] = await Promise.all([import(kits[0]), import(menus[0])]);
+    const dados = lerPlanosDeBuild();
+    if (!dados || !kitPodeSerBanido(nome, moduloKits.vr, moduloMenus.ts, dados.planos)) return null;
+    return dados.assinatura;
+  } catch (_) { return null; }
+}
 function observar() {
   if (!ativo || modalAberto) return;
   if (observarReliquias()) return;
@@ -175,20 +207,39 @@ function observar() {
   const controles = [...document.querySelectorAll('button')].filter((e) => e.getClientRects().length);
   const emBanimento = controles.some((b) => normalizar(b.textContent).includes('escolha o que banir'));
   const nomes = botoes.map((b) => b.querySelector('h3')?.textContent?.trim() || '');
-  if (emBanimento) {
-    if (!banimentoPendente) return;
-    const pendente = banimentoPendente;
-    banimentoPendente = null;
-    if (Date.now() - pendente.inicio > 5000 || JSON.stringify(nomes) !== pendente.nomes ||
-        botoes.some((b) => b.querySelector('.bp-badge'))) return;
-    const alvo = botoes[pendente.indice];
-    if (alvo && !alvo.querySelector('.bp-badge')) alvo.click();
-    return;
-  }
+  const confirmacaoVisivel = controles.some((b) => normalizar(b.textContent).startsWith('banir ') && normalizar(b.textContent).includes('toque outra vez'));
   if (banimentoPendente) {
-    if (Date.now() - banimentoPendente.inicio > 5000) banimentoPendente = null;
+    const pendente = banimentoPendente;
+    if (Date.now() - pendente.inicio > 5000 || JSON.stringify(nomes) !== pendente.nomes ||
+        botoes.some((b) => b.querySelector('.bp-badge'))) { banimentoPendente = null; return; }
+    const alvo = botoes[pendente.indice];
+    if (!alvo || alvo.querySelector('.bp-badge')) { banimentoPendente = null; return; }
+    if (emBanimento && (pendente.fase === 'escolher' || (pendente.fase === 'confirmar' && pendente.tentativas < 3 && Date.now() - pendente.ultima >= 500))) {
+      pendente.fase = 'confirmar'; pendente.ultima = Date.now(); pendente.tentativas += 1;
+      alvo.click(); agendar(); return;
+    }
+    const nome = normalizar(nomes[pendente.indice]);
+    const confirmacao = controles.find((b) => normalizar(b.textContent).startsWith(`banir ${nome}?`) && normalizar(b.textContent).includes('toque outra vez'));
+    if (pendente.fase === 'confirmar' && confirmacao) {
+      const botaoKit = controles.find((b) => !b.disabled && /^banir todo o kit de\s+.+/.test(normalizar(b.textContent)));
+      if (botaoKit && pendente.kit === undefined) {
+        const nomeKit = botaoKit.textContent.trim().replace(/^banir todo o kit de\s+/i, '').trim();
+        pendente.kit = 'verificando';
+        Promise.race([verificarKitSeguro(nomeKit), new Promise((resolve) => setTimeout(() => resolve(null), 1200))]).then((assinatura) => {
+          if (banimentoPendente !== pendente) return;
+          pendente.kit = assinatura || null; agendar();
+        });
+        return;
+      }
+      if (pendente.kit === 'verificando') return;
+      const kitSeguro = botaoKit && pendente.kit && lerPlanosDeBuild()?.assinatura === pendente.kit;
+      banimentoPendente = null;
+      if (kitSeguro) botaoKit.click(); else alvo.click();
+    }
     return;
   }
+  // Confirmações iniciadas manualmente ficam sob controle do jogador.
+  if (emBanimento || confirmacaoVisivel) return;
   if (!['banir', 'atualizar', 'pular'].every((texto) => controles.some((b) => normalizar(b.textContent).startsWith(texto)))) return;
   const opcoes = botoes.map((botao, indice) => {
     const tipo = botao.querySelector('.top .typeicon') ? 'golpe'
@@ -221,7 +272,7 @@ function observar() {
   if (assinatura === ultimoConjunto) return;
   ultimoConjunto = assinatura;
   if (decisao.acao === 'banir') {
-    banimentoPendente = { indice: decisao.id, nomes: JSON.stringify(nomes), inicio: Date.now() };
+    banimentoPendente = { indice: decisao.id, nomes: JSON.stringify(nomes), inicio: Date.now(), fase: 'escolher', tentativas: 0 };
     banir.click();
     agendar();
   }

@@ -22,4 +22,4 @@ node --check pokebonk-autoselect.user.js
 node --test tests/*.test.mjs
 ```
 
-O arquivo `.user.js` é gerado a partir de `src/decisao.mjs` e `src/adaptador.js`; regenere-o após alterações nessas fontes. Consulte [desenvolvimento](docs/development.md), o [índice da documentação](docs/README.md) e [instruções para agentes](AGENTS.md).
+O arquivo `.user.js` é gerado a partir de `src/decisao.mjs`, `src/kits.mjs` e `src/adaptador.js`; regenere-o após alterações nessas fontes. Consulte [desenvolvimento](docs/development.md), o [índice da documentação](docs/README.md) e [instruções para agentes](AGENTS.md).

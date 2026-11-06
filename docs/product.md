@@ -6,7 +6,7 @@ Reduzir escolhas repetitivas no PokéBonk. **Plano** é a build marcada no jogo;
 
 ## Regras implementadas
 
-Em `src/decisao.mjs`, só opções do plano participam de escolhas de build. O adaptador também considera elegível uma melhoria de fusão já equipada identificada pelo cartão, mesmo sem o selo do plano. Opções novas precedem melhorias; golpes novos precedem vitaminas novas. Entre melhorias, prioriza-se raridade e, no empate, golpe. Entre golpes novos há sorteio. Sem opção elegível, tenta banir aleatoriamente, atualizar e pular, nessa ordem, quando disponíveis.
+Em `src/decisao.mjs`, só opções do plano participam de escolhas de build. O adaptador também considera elegível uma melhoria de fusão já equipada identificada pelo cartão, mesmo sem o selo do plano. Opções novas precedem melhorias; golpes novos precedem vitaminas novas. Entre melhorias, prioriza-se raridade e, no empate, golpe. Entre golpes novos há sorteio. Sem opção elegível, tenta banir aleatoriamente, atualizar e pular, nessa ordem, quando disponíveis. Quando o jogo oferece banir o kit, o adaptador o faz apenas se comprovar que nenhum golpe do kit aparece nos planos disponíveis; caso contrário, confirma o banimento individual.
 
 Para bênçãos, prioridade configurada vem antes de raridade; a raridade desempata opções do mesmo status. Itens apresentados em conjunto usam maior raridade e sorteio no empate. `src/adaptador.js` tenta identificar a tela de item único e clicar em Pegar.
 

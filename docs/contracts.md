@@ -14,6 +14,8 @@ Uma oferta de golpe marcada como `MELHORIA`, com subtítulo `.bd > .sub` iniciad
 
 Para relíquias, o adaptador lê `.rl-wrap`, `.rl-sub`, `.rl-card`, `.rl-stats`, `.rl-mine .rl-chip` e `.rl-swap`. Atributos separados por `·` são interpretados individualmente; os não reconhecidos não são adicionados automaticamente ao preset ao aparecerem em relíquias. A passiva não é interpretada. Classes `r0` a `r4` indicam raridade crescente.
 
+Para avaliar kits, `kitPodeSerBanido` recebe o nome, um mapa de kits, a Pokédex e os planos. O adaptador tenta acessar os módulos do próprio jogo e lê as chaves locais `pokebonk.buildPlan.*`; verifica todos os planos encontrados, não somente a tela atual. Se os dados forem ambíguos ou ausentes, se algum plano contiver fusões ou se os módulos não forem compatíveis, retorna ao banimento individual. Fusões bloqueiam o banimento de kit porque seus ingredientes ainda não são verificados.
+
 O painel lê a ordem anterior em `localStorage` sob `pokebonk-auto-select-status` e persiste os presets em `pokebonk-auto-select-perfis`, com `ativo` (índice de 0 a 4) e `perfis` (cinco entradas com `nome` e `ordem`). Não há rotas HTTP, contrato de banco ou variáveis de ambiente próprias implementadas.
 
 Ao ler as ordens, variações reconhecidas de nomes são unificadas pelo identificador do catálogo; quando aparecem duplicadas, permanece a primeira posição de cada preset.

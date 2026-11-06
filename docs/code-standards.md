@@ -2,7 +2,7 @@
 
 ## Precedente local
 
-Use a implementação mais próxima no mesmo papel: regras puras em `src/decisao.mjs`, reconhecimento e cliques em `src/adaptador.js`, montagem em `scripts/gerar-userscript.mjs`. Prefira nomes em português em continuidade ao projeto.
+Use a implementação mais próxima no mesmo papel: regras puras em `src/decisao.mjs`, proteção de kits em `src/kits.mjs`, reconhecimento e cliques em `src/adaptador.js`, montagem em `scripts/gerar-userscript.mjs`. Prefira nomes em português em continuidade ao projeto.
 
 ## Mudanças e testes
 
