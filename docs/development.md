@@ -16,4 +16,4 @@ O gerador escreve `pokebonk-autoselect.user.js`. Os testes em `tests/decisao.tes
 
 ## Git
 
-Use o WSL para operações Git e a skill global `branch-manager` para o fluxo de branches. O fluxo depende da inicialização e das branches configuradas no repositório; consulte o estado real antes de operar. Convenção de commits segue a skill global `commit-message` quando aplicável.
+Use o WSL para operações Git. Este repositório trabalha diretamente na branch `main`, sem Gitflow. A convenção de commits segue a skill global `commit-message` quando aplicável.

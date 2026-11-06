@@ -4,6 +4,8 @@
 
 Protótipo local desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.0` em `scripts/gerar-userscript.mjs`.
 
+O repositório foi publicado inicialmente com Gitflow e depois passou a trabalhar diretamente na `main`, por decisão do mantenedor.
+
 ## Estado atual
 
 O código existe no repositório local. Os testes simulados verificam regras e um cenário de bênção; não comprovam a integração completa com o jogo.

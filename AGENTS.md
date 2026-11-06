@@ -18,4 +18,4 @@
 - Execute os comandos de [development.md](docs/development.md). Teste manual no jogo não é substituído por teste simulado.
 - O userscript clica em escolhas e pode gastar banimentos, atualizações e pulos em partidas reais. Preserve a inicialização desligada e não execute ações no jogo do usuário sem necessidade da tarefa.
 - Não inclua credenciais, dados privados, tokens ou configurações locais no repositório. Não altere o salvamento do jogo como parte de testes.
-- Use o Git pelo WSL e siga a skill global `branch-manager` para Gitflow. Respeite as configurações existentes e não publique branches de trabalho.
+- Use o Git pelo WSL. Neste repositório, trabalhe e publique diretamente na branch `main`; Gitflow não é utilizado.
