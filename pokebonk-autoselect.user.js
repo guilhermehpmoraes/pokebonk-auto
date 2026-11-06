@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.5
+// @version      0.2.6
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -155,7 +155,7 @@ function abrirPrioridades() {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(7,10,25,.78);display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,sans-serif;';
   overlay.innerHTML = `<section role="dialog" aria-modal="true" aria-label="Prioridade dos status" style="background:#191e32;color:#f5f6ff;width:min(540px,100%);max-height:85vh;border:1px solid #4a5374;border-radius:20px;box-shadow:0 24px 80px #0009;display:flex;flex-direction:column;overflow:hidden">
     <header style="padding:22px 24px 12px"><div style="color:#ffcd76;font-size:12px;font-weight:800;letter-spacing:.12em">POKÉBONK · AUTO SELECT</div><h2 style="margin:8px 0;font-size:24px">Prioridade dos status</h2><div style="color:#b7c0da;font-size:14px">Arraste pelo símbolo ⋮⋮ ou use as setas. A prioridade vem primeiro; a raridade desempata.</div></header>
-    <div style="padding:4px 24px 8px"><div data-tabs role="tablist" aria-label="Predefinições" style="display:flex;gap:5px;overflow-x:auto;padding-bottom:8px"></div><label style="display:flex;align-items:center;gap:8px;color:#b7c0da;font-size:13px">Nome do preset <input data-name maxlength="24" aria-label="Nome do preset" style="min-width:0;flex:1;background:#282f49;color:#fff;border:1px solid #4a5374;border-radius:8px;padding:7px 9px"></label></div>
+    <div style="padding:4px 24px 8px"><div data-tabs role="tablist" aria-label="Predefinições" style="display:flex;gap:5px;overflow-x:auto;padding-bottom:8px"></div><label style="display:flex;align-items:center;gap:8px;color:#b7c0da;font-size:13px">Nome do preset <input data-name maxlength="24" aria-label="Nome do preset" style="min-width:0;flex:1;background:#282f49;color:#fff;border:1px solid #4a5374;border-radius:8px;padding:7px 9px"></label><div style="display:flex;align-items:center;gap:8px;margin-top:8px"><label for="pokebonk-copiar-origem" style="color:#b7c0da;font-size:13px;white-space:nowrap">Copiar de</label><select id="pokebonk-copiar-origem" data-copy-source style="min-width:0;flex:1;background:#282f49;color:#fff;border:1px solid #4a5374;border-radius:8px;padding:7px"><option value="">Selecione um preset</option></select><button type="button" data-copy disabled style="background:#39435f;color:white;border:0;border-radius:8px;padding:8px;cursor:pointer">Copiar para este</button></div></div>
     <ol style="margin:0;padding:8px 24px;overflow:auto;list-style:none;display:grid;gap:7px"></ol>
     <footer style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #363d56"><small style="color:#aeb7d1">Salvo automaticamente neste navegador</small><button type="button" data-close style="background:#f5a953;color:#261705;border:0;border-radius:10px;padding:10px 20px;font-weight:800;cursor:pointer">Concluir</button></footer></section>`;
   overlay.addEventListener('keydown', (event) => { event.stopPropagation(); if (event.key === 'Escape') fechar(); });
@@ -166,9 +166,14 @@ function abrirPrioridades() {
   const lista = overlay.querySelector('ol');
   const abas = overlay.querySelector('[data-tabs]');
   const campoNome = overlay.querySelector('[data-name]');
+  const origemCopia = overlay.querySelector('[data-copy-source]');
+  const botaoCopia = overlay.querySelector('[data-copy]');
   function renderizarAbas() {
     const dados = lerPerfis();
     abas.replaceChildren();
+    origemCopia.replaceChildren();
+    const placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = 'Selecione um preset'; origemCopia.append(placeholder);
+    origemCopia.value = ''; botaoCopia.disabled = true;
     dados.perfis.forEach((perfil, indice) => {
       const botao = document.createElement('button');
       botao.type = 'button'; botao.textContent = perfil.nome; botao.title = `Selecionar ${perfil.nome}`;
@@ -176,10 +181,20 @@ function abrirPrioridades() {
       botao.style.cssText = `white-space:nowrap;border:1px solid ${indice === dados.ativo ? '#ffc16c' : '#4a5374'};border-radius:8px;padding:7px 9px;background:${indice === dados.ativo ? '#ffbd68' : '#282f49'};color:${indice === dados.ativo ? '#261705' : '#f5f6ff'};cursor:pointer;font-weight:700`;
       botao.addEventListener('click', () => { const atual = lerPerfis(); atual.ativo = indice; gravarPerfis(atual); ordem = ordemStatus(); renderizarAbas(); renderizar(); lista.scrollTop = 0; });
       abas.append(botao);
+      if (indice !== dados.ativo) { const opcao = document.createElement('option'); opcao.value = String(indice); opcao.textContent = perfil.nome; origemCopia.append(opcao); }
     });
     campoNome.value = dados.perfis[dados.ativo].nome;
   }
   campoNome.addEventListener('change', () => { const dados = lerPerfis(); dados.perfis[dados.ativo].nome = campoNome.value.trim().slice(0, 24) || `Preset ${dados.ativo + 1}`; gravarPerfis(dados); renderizarAbas(); });
+  origemCopia.addEventListener('change', () => { botaoCopia.disabled = origemCopia.value === ''; });
+  botaoCopia.addEventListener('click', () => {
+    const dados = lerPerfis();
+    const origem = origemCopia.value === '' ? -1 : Number(origemCopia.value);
+    if (!Number.isInteger(origem) || origem < 0 || origem >= dados.perfis.length || origem === dados.ativo) return;
+    if (!confirm(`Substituir a ordem de "${dados.perfis[dados.ativo].nome}" pela de "${dados.perfis[origem].nome}"?`)) return;
+    dados.perfis[dados.ativo].ordem = [...dados.perfis[origem].ordem];
+    gravarPerfis(dados); ordem = ordemStatus(); renderizarAbas(); renderizar(); lista.scrollTop = 0;
+  });
   function mover(de, para) { if (de < 0 || para < 0 || para >= ordem.length || de === para) return; const rolagem = lista.scrollTop; const [item] = ordem.splice(de, 1); ordem.splice(para, 0, item); salvarStatus(ordem); renderizar(); lista.scrollTop = rolagem; }
   function renderizar() {
     lista.replaceChildren();

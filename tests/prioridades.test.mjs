@@ -7,6 +7,7 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
   const memoria = new Map();
   memoria.set('pokebonk-auto-select-status', JSON.stringify(['experiencia', 'dinheiro', 'sorte']));
   let alvo;
+  let permitirCopia = false;
   class Elemento {
     constructor(tag) { this.tag = tag; this.style = {}; this.dataset = {}; this.children = []; this.handlers = {}; this.scrollTop = 0; }
     addEventListener(tipo, fn) { this.handlers[tipo] = fn; }
@@ -23,9 +24,11 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
       if (selector === '[data-close]') return this.fechar;
       if (selector === '[data-tabs]') return this.abas;
       if (selector === '[data-name]') return this.nome;
+      if (selector === '[data-copy-source]') return this.origem;
+      if (selector === '[data-copy]') return this.copiar;
       return null;
     }
-    set innerHTML(_) { this.lista = new Elemento('ol'); this.fechar = new Elemento('button'); this.abas = new Elemento('div'); this.nome = new Elemento('input'); }
+    set innerHTML(_) { this.lista = new Elemento('ol'); this.fechar = new Elemento('button'); this.abas = new Elemento('div'); this.nome = new Elemento('input'); this.origem = new Elemento('select'); this.copiar = new Elemento('button'); }
     click() { if (!this.disabled) { this.onclick?.(); this.handlers.click?.({ stopPropagation() {} }); } }
   }
   const body = new Elemento('body');
@@ -33,7 +36,7 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
   const localStorage = { getItem: (chave) => memoria.get(chave) ?? null, setItem: (chave, valor) => memoria.set(chave, valor) };
   class MutationObserver { observe() {} }
   vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
-    document, localStorage, MutationObserver, setTimeout() {}, setInterval() {}, Math, Date,
+    document, localStorage, MutationObserver, setTimeout() {}, setInterval() {}, confirm: () => permitirCopia, Math, Date,
   });
   body.children[1].click();
   const lista = body.children[2].lista;
@@ -70,6 +73,21 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
   assert.equal(ordem()[0], 'dinheiro');
   assert.equal(body.children[2].nome.value, 'Especial');
   assert.equal(memoria.get('pokebonk-auto-select-status'), JSON.stringify(['experiencia', 'dinheiro', 'sorte']));
+  const painel = body.children[2];
+  assert.equal(painel.copiar.disabled, true);
+  assert.equal(painel.origem.children.some((opcao) => opcao.value === '1'), false);
+  painel.origem.value = '0'; painel.origem.handlers.change();
+  assert.equal(painel.copiar.disabled, false);
+  painel.copiar.click();
+  assert.equal(dados().perfis[1].ordem[0], 'dinheiro');
+  permitirCopia = true;
+  painel.copiar.click();
+  assert.deepEqual(dados().perfis[1].ordem, dados().perfis[0].ordem);
+  assert.equal(dados().perfis[1].nome, 'Especial');
+  assert.equal(dados().ativo, 1);
+  lista.children[0].children[6].click();
+  assert.notDeepEqual(dados().perfis[1].ordem, dados().perfis[0].ordem);
+  const primeiraPrioridadeCopiada = dados().perfis[1].ordem[0];
   const novoBody = new Elemento('body');
   const novoDocument = { ...document, body: novoBody };
   vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
@@ -77,7 +95,7 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
   });
   novoBody.children[1].click();
   assert.equal(novoBody.children[2].nome.value, 'Especial');
-  assert.equal(novoBody.children[2].lista.children[0].dataset.statusId, 'dinheiro');
+  assert.equal(novoBody.children[2].lista.children[0].dataset.statusId, primeiraPrioridadeCopiada);
   const antigos = dados();
   antigos.perfis[0].ordem = ['sorte', 'novo: dano em elites e chefes', 'dinheiro', 'dano elites'];
   antigos.perfis[1].ordem = ['dano elites', 'sorte', 'novo: dano em elites e chefes'];
