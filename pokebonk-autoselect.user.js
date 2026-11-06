@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.8
+// @version      0.2.9
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -24,10 +24,12 @@ function decidir(tela, configuracao = {}, aleatorio = Math.random) {
   if (!opcoes.length) return { acao: 'aguardar', motivo: 'sem opções reconhecidas' };
   if (tela.tipo === 'reliquia') {
     const equipadas = tela.equipadas;
-    if (!Array.isArray(equipadas) || equipadas.length > 3 || [...opcoes, ...equipadas].some((item) => !Number.isFinite(item.raridade) || typeof item.dano !== 'boolean')) {
+    const ordem = configuracao.status;
+    if (!Array.isArray(ordem) || !Array.isArray(equipadas) || equipadas.length > 3 || [...opcoes, ...equipadas].some((item) => !Number.isFinite(item.raridade) || !Array.isArray(item.status) || !item.status.length || item.status.some((status) => typeof status !== 'string' || !status))) {
       return { acao: 'aguardar', motivo: 'relíquias não reconhecidas' };
     }
-    const comparar = (a, b) => a.raridade - b.raridade || Number(a.dano) - Number(b.dano);
+    const prioridade = (item) => Math.min(...item.status.map((status) => { const indice = ordem.indexOf(status); return indice < 0 ? ordem.length : indice; }));
+    const comparar = (a, b) => a.raridade - b.raridade || prioridade(b) - prioridade(a);
     const melhor = opcoes.reduce((atual, item) => comparar(item, atual) > 0 ? item : atual);
     const melhores = opcoes.filter((item) => comparar(item, melhor) === 0);
     if (equipadas.length < 3) return { acao: 'selecionar', id: sortear(melhores).id };
@@ -102,7 +104,7 @@ const catalogoStatus = [
   ['experiencia', 'Experiência', ['experiencia', 'exp']], ['dinheiro', 'Pokédólares', ['pokedolares', 'dinheiro', 'money']],
   ['sorte', 'Sorte', ['sorte', 'luck']], ['dano', 'Dano', ['dano']], ['dano fisico', 'Dano físico', ['dano fisico']],
   ['dano especial', 'Dano especial', ['dano especial']], ['dano critico', 'Dano crítico', ['dano critico']],
-  ['chance critica', 'Chance de crítico', ['chance de critico', 'chance critica', 'critico']],
+  ['chance critica', 'Chance de crítico', ['chance de critico', 'chance critica', 'chance crit', 'chance critico', 'critico']],
   ['vida', 'HP máximo', ['hp maximo', 'hp max', 'vida maxima']], ['regeneracao', 'Regeneração', ['regeneracao', 'regen']],
   ['armadura', 'Armadura', ['armadura', 'defesa']], ['evasao', 'Evasão', ['evasao']],
   ['velocidade', 'Velocidade de movimento', ['velocidade de movimento', 'velocidade movimento', 'velocidade']],
@@ -139,14 +141,14 @@ function lerPerfis() {
 function gravarPerfis(dados) { localStorage.setItem(chavePerfis, JSON.stringify(dados)); ultimoConjunto = ''; selecaoPendente = null; }
 const ordemStatus = () => { const dados = lerPerfis(); return dados.perfis[dados.ativo].ordem; };
 const salvarStatus = (ordem) => { const dados = lerPerfis(); dados.perfis[dados.ativo].ordem = [...ordem]; gravarPerfis(dados); };
-function identificarStatus(texto) {
+function identificarStatus(texto, registrar = true) {
   const valor = normalizar(texto).replace(/^[+\-]?\d+(?:[.,]\d+)?\s*%?\s*(?:de\s+)?/, '').replace(/[.!]+$/, '').trim();
   if (!valor) return undefined;
   const conhecido = catalogoStatus.find(([, , termos]) => termos.includes(valor));
   if (conhecido) return conhecido[0];
   const novo = `novo: ${valor}`;
   const ordem = ordemStatus();
-  if (!ordem.includes(novo)) salvarStatus([...ordem, novo]);
+  if (registrar && !ordem.includes(novo)) salvarStatus([...ordem, novo]);
   return novo;
 }
 const painel = document.createElement('button');
@@ -332,7 +334,9 @@ function observarReliquias() {
     const stats = elemento.querySelector(equipado ? '.rl-chip-bd span' : '.rl-stats');
     const nome = elemento.querySelector(equipado ? '.rl-chip-bd b' : '.rl-bd h3')?.textContent?.trim();
     if (!nome || !stats || !raridadePorClasse || (textoRaridade && raridadeTexto !== raridadePorClasse)) return null;
-    return { id: indice, nome, raridade: raridadePorClasse, dano: /\bdano\b/.test(normalizar(stats.textContent)) };
+    const status = stats.textContent.split(/\s*[·•]\s*/).map((trecho) => identificarStatus(trecho, false));
+    if (!status.length || status.some((item) => !item)) return null;
+    return { id: indice, nome, raridade: raridadePorClasse, status };
   };
   const swaps = [...janela.querySelectorAll('button.rl-card.rl-swap')].filter(visivel);
   const ofertas = [...janela.querySelectorAll('button.rl-card:not(.rl-swap)')].filter(visivel);
@@ -348,7 +352,7 @@ function observarReliquias() {
     const nova = lerReliquia(previa, 0);
     const equipadas = swaps.map((item, indice) => lerReliquia(item, indice));
     if (!nova || equipadas.some((item) => !item)) return true;
-    const decisao = decidir({ tipo: 'reliquia', opcoes: [nova], equipadas });
+    const decisao = decidir({ tipo: 'reliquia', opcoes: [nova], equipadas }, { status: ordemStatus() });
     const assinatura = `reliquia-troca:${previa.outerHTML}:${swaps.map((item) => item.outerHTML).join('|')}`;
     if (decisao.acao === 'dispensar') acaoUnica('ficar com as minhas', assinatura);
     if (decisao.acao === 'selecionar' && Number.isInteger(decisao.substituir)) selecionarComTentativa(swaps, decisao.substituir, assinatura);
@@ -363,7 +367,7 @@ function observarReliquias() {
   const equipadas = chips.map((item, indice) => lerReliquia(item, indice, true));
   const opcoes = ofertas.map((item, indice) => lerReliquia(item, indice));
   if (equipadas.some((item) => !item) || opcoes.some((item) => !item)) return true;
-  const decisao = decidir({ tipo: 'reliquia', opcoes, equipadas });
+  const decisao = decidir({ tipo: 'reliquia', opcoes, equipadas }, { status: ordemStatus() });
   const assinatura = `reliquia-oferta:${ofertas.map((item) => item.outerHTML).join('|')}:${chips.map((item) => item.outerHTML).join('|')}`;
   if (decisao.acao === 'dispensar') acaoUnica('nao levar nenhuma', assinatura);
   if (decisao.acao === 'selecionar') selecionarComTentativa(ofertas, decisao.id, assinatura);

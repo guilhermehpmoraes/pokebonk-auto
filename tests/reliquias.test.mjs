@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
-function executar({ ofertas, equipadas, subtitulo, escolherManualmente }) {
+function executar({ ofertas, equipadas, subtitulo, escolherManualmente, prioridade }) {
   let fase = escolherManualmente == null ? 'oferta' : 'troca';
   let escolhida = escolherManualmente == null ? null : ofertas[escolherManualmente];
   let tarefa; let intervalo; let relogio = 1000;
@@ -43,7 +43,7 @@ function executar({ ofertas, equipadas, subtitulo, escolherManualmente }) {
     } };
   const document = { body: { appendChild: (item) => controles.push(item) }, createElement: elemento,
     querySelectorAll(seletor) { return seletor === '.rl-wrap' ? [janela] : []; } };
-  const localStorage = { getItem: () => null, setItem() {} };
+  const localStorage = { getItem: (chave) => chave === 'pokebonk-auto-select-perfis' && prioridade ? JSON.stringify({ ativo: 0, perfis: [{ nome: 'Teste', ordem: prioridade }] }) : null, setItem() {} };
   class MutationObserver { observe() {} }
   vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
     document, localStorage, MutationObserver, setTimeout(fn) { tarefa = fn; return 1; }, setInterval(fn) { intervalo = fn; }, Math, Date: { now: () => relogio },
@@ -57,6 +57,16 @@ const r = (nome, raridade, stats) => ({ nome, raridade, stats });
 test('escolhe maior raridade e usa dano como desempate nas ofertas', () => {
   const ofertas = [r('Com dano', 1, '+5% Dano'), r('Área', 2, '+8% Área'), r('Dano', 2, '+7% Dano')];
   assert.deepEqual(executar({ ofertas, equipadas: [] }), ['oferta:Dano']);
+});
+test('usa o preset ativo e reconhece atributos múltiplos em relíquias', () => {
+  const ofertas = [r('Dano', 2, '+7% Dano'), r('Mista', 2, '+8% Chance crít. · +25% Dano crítico')];
+  assert.deepEqual(executar({ ofertas, equipadas: [], prioridade: ['dano critico', 'dano', 'chance critica'] }), ['oferta:Mista']);
+  assert.deepEqual(executar({ ofertas, equipadas: [], prioridade: ['dano', 'dano critico', 'chance critica'] }), ['oferta:Dano']);
+});
+test('compara o preset ativo ao escolher qual relíquia substituir', () => {
+  const equipadas = [r('Área', 5, '+8% Área'), r('Dano', 5, '+7% Dano'), r('Sorte', 5, '+10% Sorte')];
+  assert.deepEqual(executar({ ofertas: [r('Dano crítico', 5, '+25% Dano crítico')], equipadas,
+    prioridade: ['dano critico', 'area', 'dano', 'sorte'] }), ['oferta:Dano crítico', 'swap:Sorte']);
 });
 test('com espaços cheios escolhe e substitui a relíquia menos prioritária', () => {
   const ofertas = [r('Estrela', 5, '+25% Dano crítico')];

@@ -11,10 +11,12 @@ export function decidir(tela, configuracao = {}, aleatorio = Math.random) {
   if (!opcoes.length) return { acao: 'aguardar', motivo: 'sem opções reconhecidas' };
   if (tela.tipo === 'reliquia') {
     const equipadas = tela.equipadas;
-    if (!Array.isArray(equipadas) || equipadas.length > 3 || [...opcoes, ...equipadas].some((item) => !Number.isFinite(item.raridade) || typeof item.dano !== 'boolean')) {
+    const ordem = configuracao.status;
+    if (!Array.isArray(ordem) || !Array.isArray(equipadas) || equipadas.length > 3 || [...opcoes, ...equipadas].some((item) => !Number.isFinite(item.raridade) || !Array.isArray(item.status) || !item.status.length || item.status.some((status) => typeof status !== 'string' || !status))) {
       return { acao: 'aguardar', motivo: 'relíquias não reconhecidas' };
     }
-    const comparar = (a, b) => a.raridade - b.raridade || Number(a.dano) - Number(b.dano);
+    const prioridade = (item) => Math.min(...item.status.map((status) => { const indice = ordem.indexOf(status); return indice < 0 ? ordem.length : indice; }));
+    const comparar = (a, b) => a.raridade - b.raridade || prioridade(b) - prioridade(a);
     const melhor = opcoes.reduce((atual, item) => comparar(item, atual) > 0 ? item : atual);
     const melhores = opcoes.filter((item) => comparar(item, melhor) === 0);
     if (equipadas.length < 3) return { acao: 'selecionar', id: sortear(melhores).id };
