@@ -6,9 +6,11 @@ const adaptador = await readFile(new URL('../src/adaptador.js', import.meta.url)
 const cabecalho = `// ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.1
+// @version      0.2.2
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
+// @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
+// @downloadURL  https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
 // @grant        none
 // ==/UserScript==
 

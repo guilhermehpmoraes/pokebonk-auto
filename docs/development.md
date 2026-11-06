@@ -14,6 +14,8 @@ node --test tests/*.test.mjs
 
 O gerador escreve `pokebonk-autoselect.user.js`. Os testes em `tests/decisao.test.mjs` cobrem decisões e `tests/integracao.test.mjs` simula um cenário de bênção; o navegador e o jogo real precisam de teste manual separado.
 
+Ao mudar o script, incremente `@version` em `scripts/gerar-userscript.mjs`, gere o arquivo e inclua-o no commit. O gerenciador usa o endereço configurado no cabeçalho para consultar versões publicadas na `main`.
+
 ## Git
 
-Use o WSL para operações Git. Este repositório trabalha diretamente na branch `main`, sem Gitflow. A convenção de commits segue a skill global `commit-message` quando aplicável.
+Use o WSL para operações Git. Este repositório trabalha diretamente na branch `main`, sem Gitflow. Depois de verificar cada alteração, faça commit e envie a `main` ao GitHub. A convenção de commits segue a skill global `commit-message` quando aplicável.

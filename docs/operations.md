@@ -2,7 +2,7 @@
 
 ## Distribuição e estado
 
-O artefato `pokebonk-autoselect.user.js` é instalado manualmente em um gerenciador de userscripts. Atualizar o arquivo no repositório não atualiza automaticamente uma cópia instalada. A distribuição e o processo de release ainda não foram definidos.
+O artefato `pokebonk-autoselect.user.js` é instalado em um gerenciador de userscripts. O cabeçalho aponta `@updateURL` e `@downloadURL` para o arquivo público na `main` do GitHub. O gerenciador pode consultar atualizações periodicamente quando a configuração estiver habilitada; o intervalo e as confirmações dependem dele. O script instalado antes dessa configuração precisa ser atualizado ou reinstalado uma vez a partir do link do README. A instalação e a atualização automáticas ainda não foram testadas no navegador.
 
 | Configuração | Estado |
 | --- | --- |
@@ -13,3 +13,5 @@ O artefato `pokebonk-autoselect.user.js` é instalado manualmente em um gerencia
 ## Observabilidade, riscos e dívidas
 
 Não há serviço, banco, pipeline de deploy ou telemetria próprios identificados. O script interage com uma partida real e pode consumir recursos. Mudanças no DOM ou no idioma podem impedir o funcionamento. O catálogo de status é parcial; testes reais, latência, compatibilidade entre navegadores e comportamento em todas as telas não foram verificados integralmente.
+
+Uma seleção de cartão ignorada pode ser tentada novamente até três vezes. As ações de consumo de banimento, atualização e pulo não são repetidas automaticamente.
