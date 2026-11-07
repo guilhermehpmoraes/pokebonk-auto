@@ -20,7 +20,7 @@ Relíquias usam maior raridade e, em caso de empate, o atributo mais alto no pre
 
 O painel oferece cinco presets de status com nomes editáveis. Cada preset guarda uma ordem independente; a aba selecionada determina a prioridade usada nas bênçãos. É possível copiar a ordem de outro preset para o ativo, mediante confirmação, preservando o nome do destino. Uma alça e botões movem cada status uma posição ou diretamente ao topo ou ao fim. As configurações ficam salvas no navegador. Na primeira utilização, a ordem anterior é usada como ponto de partida para os cinco presets.
 
-O Auto Pickup tem ativação própria, começa desligado e tenta interagir ao detectar os textos conhecidos de Poké Bola gratuita ou amaldiçoada, Great Ball gratuita, Snorlax, altar de Gengar e altar de desafio. Portais e interações desconhecidas continuam manuais.
+O Auto Pickup tem ativação própria, começa desligado e tenta interagir ao detectar os textos conhecidos de Poké Bola gratuita ou amaldiçoada, Great Ball gratuita, Snorlax, Rock Smash, altar de Gengar e altar de desafio. Portais e interações desconhecidas continuam manuais.
 
 Para gastos, compara custos estimados por item. A Pokébola recebe um bônus de 30% por permitir escolha; o cassino usa 0,194 item por giro e retorno de 25% do preço, médias calculadas sem bônus de sorte, além de penalidade de 30% pelo risco. O preço médio inicial da loja é estimado em 130 ₽ na zona 1, multiplicado por 2,2 por zona. São heurísticas, não garantia de fortalecer mais a build: sorte, qualidade dos itens, saldo e modificadores reais podem alterar o resultado. As alternativas exibidas no HUD são comparadas antes da interação.
 
