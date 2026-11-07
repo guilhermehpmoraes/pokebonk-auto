@@ -25,6 +25,8 @@ As escolhas e substituições de relíquias têm testes simulados. O HTML real p
 
 O Auto Pickup inicia desligado independentemente do Auto Select. Ele interage com alguns objetos gratuitos, inclusive os que aumentam a dificuldade, e pode gastar dinheiro automaticamente em jaulas de 30 ₽, Pokébolas, lojas e cassinos. Não automatiza portais. A estratégia usa estimativas e não garante a melhor decisão; eventos de teclado, cliques e reconhecimento precisam de teste manual no jogo.
 
+O altar amaldiçoado adiciona uma maldição em troca de um item raro. O Rugido de Rhydon pode ser ativado até o limite exibido de três, fortalecendo o guardião e sua escolta em troca de Great Balls extras. Ambos têm testes simulados e precisam de confirmação no jogo.
+
 O botão informa a alternativa paga sugerida e a mantém no trajeto; **Trocar sugestão** permite escolher outra. O pickup também gasta ao encontrar as outras opções pagas, se as reconhecer e houver saldo. O cassino tenta um giro inicial mesmo quando não é a sugestão, e a loja compra o primeiro lote se o saldo cobrir os itens disponíveis. A indicação reflete uma estimativa, não garante que o objeto esteja próximo ou que a loja tenha itens vantajosos.
 
 Na loja, o script compra os itens disponíveis do primeiro lote quando o reconhece e o saldo o cobre. Antes de renovar, estima o custo do próximo estoque pelos preços e raridades observados, além do preço da renovação; volta a comparar os preços reais depois de renovar. A estimativa não antecipa quais itens aparecerão e ainda precisa de confirmação no jogo.

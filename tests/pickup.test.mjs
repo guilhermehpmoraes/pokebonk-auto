@@ -25,7 +25,7 @@ test('compra o lote reconhecido e acessível sem reavaliar a estratégia', () =>
 });
 
 test('pickup aceita apenas interações gratuitas identificadas e bloqueia portais e despesas', () => {
-  for (const texto of ['acordar o snorlax', 'rock smash', 'coletar oran berries', 'magnemite: atrai toda a experiencia', 'abrir poke bola amaldicoada (gratis... tem certeza?)', 'altar de gengar · +dificuldade, +xp e +saque', 'altar de desafio · invoca uma onda; se voce a derrotar, great ball']) {
+  for (const texto of ['acordar o snorlax', 'rock smash', 'coletar oran berries', 'magnemite: atrai toda a experiencia', 'altar amaldicoado · um item raro em troca de uma maldicao', 'abrir poke bola amaldicoada (gratis... tem certeza?)', 'altar de gengar · +dificuldade, +xp e +saque', 'altar de desafio · invoca uma onda; se voce a derrotar, great ball']) {
     assert.equal(decidirPickup(texto).acao, 'interagir');
   }
   for (const texto of ['entrar no portal', 'invocar o lendario', 'abrir poke bola · 32 ₽', 'falar com o meowth (loja)', 'caca-niqueis · 40 ₽ por giro', '']) {
@@ -36,6 +36,43 @@ test('pickup aceita apenas interações gratuitas identificadas e bloqueia porta
 test('liberta qualquer Pokémon da jaula por 30 ₽, mas aguarda valores ou avisos diferentes', () => {
   for (const texto of ['libertar pupitar · 30 ₽', 'libertar mr. mime · 30 ₽', 'libertar nidoran♀ · 30 ₽']) assert.equal(decidirPickup(texto).acao, 'interagir');
   for (const texto of ['libertar pupitar · 31 ₽', 'libertar pupitar · 300 ₽', 'libertar · 30 ₽', 'libertar pupitar · 30 ₽ extra']) assert.equal(decidirPickup(texto).acao, 'aguardar');
+});
+
+test('identifica somente os estágios disponíveis do Rugido de Rhydon', () => {
+  const inicial = 'rugido de rhydon · guardiao mais forte e com escolta, +1 great ball por rugido';
+  const etapa = (n) => `rugido de rhydon (${n}/3) · outro rugido: guardiao +30% de hp e +1 great ball`;
+  assert.equal(decidirPickup(inicial).estagioRhydon, 0);
+  assert.equal(decidirPickup(etapa(1)).estagioRhydon, 1);
+  assert.equal(decidirPickup(etapa(2)).estagioRhydon, 2);
+  assert.equal(decidirPickup(etapa(3)).acao, 'aguardar');
+  assert.equal(decidirPickup('rhydon descansa · 3 rugidos').acao, 'aguardar');
+  assert.equal(decidirPickup('rugido de rhydon (1/3) · abrir portal').acao, 'aguardar');
+});
+
+test('ativa os três rugidos, repete clique ignorado e respeita o limite mostrado', () => {
+  function simular(inicio, aceitar) {
+    let agora = 1000, intervalo, estagio = inicio, entradas = 0;
+    const controles = [], tarefas = [];
+    const rotulo = () => estagio === 0 ? 'Rugido de Rhydon · guardião mais forte e com escolta, +1 Great Ball por rugido'
+      : estagio < 3 ? `Rugido de Rhydon (${estagio}/3) · outro rugido: guardião +30% de HP e +1 Great Ball` : 'Rhydon descansa · 3 rugidos';
+    const prompt = { getClientRects: () => [1], get textContent() { return `E${rotulo()}`; }, querySelector: () => ({ textContent: 'E' }) };
+    const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }),
+      querySelectorAll(s) { return s === '#hud .prompt' ? [prompt] : []; } };
+    class MutationObserver { observe() {} }
+    class KeyboardEvent { constructor(type) { this.type = type; } }
+    vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
+      document, localStorage: { getItem: () => null }, MutationObserver, KeyboardEvent,
+      window: { dispatchEvent(evento) { if (evento.type === 'keydown') { entradas++; if (aceitar(entradas)) estagio++; } } },
+      setTimeout(fn) { tarefas.push(fn); return tarefas.length; }, setInterval(fn) { intervalo = fn; }, Date: { now: () => agora }, Math,
+    });
+    const executar = () => { const pendentes = tarefas.splice(0); pendentes.forEach((fn) => fn()); };
+    controles[2].click(); executar(); executar();
+    for (let i = 0; i < 10; i++) { agora += 600; intervalo(); executar(); executar(); }
+    return { entradas, estagio };
+  }
+  assert.deepEqual(simular(0, (n) => n > 1), { entradas: 4, estagio: 3 });
+  assert.deepEqual(simular(1, () => true), { entradas: 2, estagio: 3 });
+  assert.deepEqual(simular(0, () => false), { entradas: 3, estagio: 0 });
 });
 
 test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecidas', () => {
@@ -70,6 +107,8 @@ test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecid
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
   texto = 'Libertar Pupitar · 30 ₽'; controles[2].click(); controles[2].click(); executar(); executar();
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
+  texto = 'Altar amaldiçoado · um item raro em troca de uma maldição'; controles[2].click(); controles[2].click(); executar(); executar();
+  assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
 });
 
 test('indicador mantém o alvo no trajeto e permite trocá-lo manualmente', () => {

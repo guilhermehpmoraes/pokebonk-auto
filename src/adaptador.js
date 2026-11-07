@@ -92,6 +92,7 @@ let ultimoEncontroPago = null;
 let tentativasEncontro = 0;
 let repetirEncontro = false;
 let interacaoLivre = null;
+let tentativaRhydon = null;
 const botaoPickup = document.createElement('button');
 botaoPickup.type = 'button';
 botaoPickup.textContent = 'Auto Pickup: desligado';
@@ -116,7 +117,7 @@ trocarAlvo.addEventListener('click', () => {
 botaoPickup.addEventListener('click', () => {
   pickupAtivo = !pickupAtivo;
   ultimoPickup = '';
-  pickupSessao = null; pickupAcao = null; limparAlvo(); bloqueiosGasto = {}; ultimoEncontroPago = null; tentativasEncontro = 0; repetirEncontro = false; interacaoLivre = null;
+  pickupSessao = null; pickupAcao = null; limparAlvo(); bloqueiosGasto = {}; ultimoEncontroPago = null; tentativasEncontro = 0; repetirEncontro = false; interacaoLivre = null; tentativaRhydon = null;
   trocarAlvo.style.display = 'none';
   botaoPickup.textContent = pickupAtivo ? 'Auto Pickup: ligado' : 'Auto Pickup: desligado';
   agendar();
@@ -314,7 +315,7 @@ function observarPickup() {
   }
   atualizarIndicadorPickup(indicadores());
   const prompts = visiveis('#hud .prompt');
-  if (prompts.length !== 1) { ultimoPickup = ''; ultimoEncontroPago = null; tentativasEncontro = 0; repetirEncontro = false; return; }
+  if (prompts.length !== 1) { ultimoPickup = ''; ultimoEncontroPago = null; tentativasEncontro = 0; repetirEncontro = false; tentativaRhydon = null; return; }
   const prompt = prompts[0];
   const tecla = prompt.querySelector('kbd')?.textContent?.trim();
   const texto = normalizar(prompt.textContent.slice(tecla?.length || 0));
@@ -326,9 +327,15 @@ function observarPickup() {
   if (precoBola && numeroPickup(precoBola[1]) === carteira?.bola && carteira.saldo >= carteira.bola) tipo = 'bola';
   if (precoGiro && numeroPickup(precoGiro[1]) === carteira?.giro && carteira.saldo >= carteira.giro) tipo = 'cassino';
   if (encontro === 'loja' && carteira && Number.isFinite(carteira.saldo) && carteira.saldo > 0) tipo = 'loja';
-  if (decidirPickup(texto).acao !== 'interagir' && !tipo || tecla !== 'E') { ultimoPickup = ''; return; }
-  if (!pickupLiberado || ultimoPickup === texto || (tipo && ultimoEncontroPago === tipo && (!repetirEncontro || tentativasEncontro >= 3))) return;
+  const decisaoLivre = decidirPickup(texto);
+  if (decisaoLivre.acao !== 'interagir' && !tipo || tecla !== 'E') { ultimoPickup = ''; tentativaRhydon = null; return; }
+  const estagioRhydon = decisaoLivre.estagioRhydon;
+  if (estagioRhydon === undefined) tentativaRhydon = null;
+  else if (!tentativaRhydon || tentativaRhydon.estagio !== estagioRhydon) tentativaRhydon = { estagio: estagioRhydon, tentativas: 0, ultima: 0 };
+  const repetirRhydon = tentativaRhydon && tentativaRhydon.tentativas < 3 && (!tentativaRhydon.tentativas || Date.now() - tentativaRhydon.ultima >= 800);
+  if (!pickupLiberado || (ultimoPickup === texto && !repetirRhydon) || (tentativaRhydon && !repetirRhydon) || (tipo && ultimoEncontroPago === tipo && (!repetirEncontro || tentativasEncontro >= 3))) return;
   ultimoPickup = texto;
+  if (tentativaRhydon) { tentativaRhydon.tentativas++; tentativaRhydon.ultima = Date.now(); }
   if (tipo) { ultimoEncontroPago = tipo; tentativasEncontro++; repetirEncontro = false; pickupSessao = { tipo, inicio: Date.now(), precoBase: tipo === 'bola' ? (carteira.bolaBruta ?? carteira.bola) : null }; pickupAcao = null; }
   else interacaoLivre = { inicio: Date.now(), viuModal: false };
   pickupLiberado = false;

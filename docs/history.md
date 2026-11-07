@@ -2,7 +2,7 @@
 
 ## 2026-11-06
 
-Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.22` em `scripts/gerar-userscript.mjs`.
+Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.23` em `scripts/gerar-userscript.mjs`.
 
 O repositório foi publicado inicialmente com Gitflow e depois passou a trabalhar diretamente na `main`, por decisão do mantenedor.
 
@@ -61,3 +61,5 @@ O aviso do Magnemite fornecido pelo usuário foi incluído entre as interações
 Após relato de sugestões mudando no trajeto e da loja sendo sugerida repetidamente, a sugestão passou a ser mantida até a interação correspondente ou troca manual. A pedido do usuário, interações pagas fora da sugestão também são tentadas. Há testes simulados para o trajeto, a loja e o cassino; a integração precisa de confirmação em jogo.
 
 O aviso de jaula por 30 ₽ fornecido pelo usuário foi incluído como interação de passagem para qualquer nome de Pokémon. Há testes simulados; a interação ainda precisa de confirmação no jogo.
+
+Os avisos do Rugido de Rhydon e do altar amaldiçoado fornecidos pelo usuário foram incluídos no Auto Pickup. Os estágios subsequentes e o limite do Rugido foram consultados no código público do jogo. Ambos têm testes simulados e ainda precisam de confirmação em jogo.

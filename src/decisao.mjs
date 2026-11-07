@@ -1,5 +1,8 @@
 // Decide a partir de dados já identificados na tela; não interage com o jogo.
 export function decidirPickup(texto) {
+  const primeiroRugido = 'rugido de rhydon · guardiao mais forte e com escolta, +1 great ball por rugido';
+  const proximoRugido = /^rugido de rhydon \(([12])\/3\) · outro rugido: guardiao \+\d+% de hp e \+1 great ball$/.exec(texto);
+  if (texto === primeiroRugido || proximoRugido) return { acao: 'interagir', estagioRhydon: proximoRugido ? Number(proximoRugido[1]) : 0 };
   const gratuitos = [
     'abrir poke bola (gratis)',
     'abrir great ball (gratis)',
@@ -8,6 +11,7 @@ export function decidirPickup(texto) {
     'rock smash',
     'coletar oran berries',
     'magnemite: atrai toda a experiencia',
+    'altar amaldicoado · um item raro em troca de uma maldicao',
     'altar de gengar · +dificuldade, +xp e +saque',
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
   ];
