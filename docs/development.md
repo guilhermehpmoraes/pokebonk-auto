@@ -18,6 +18,8 @@ O gerador escreve `pokebonk-autoselect.user.js`. Os testes em `tests/decisao.tes
 
 Os cenários da loja incluem saldo abreviado, lote parcialmente vendido e itens caros com renovação barata.
 
+Os cenários do cassino incluem saldo abreviado, clique ignorado, animação, contador de giros e mudança de preferência após uma loja cara observada.
+
 Ao mudar o script, incremente `@version` em `scripts/gerar-userscript.mjs`, gere o arquivo e inclua-o no commit. O gerenciador usa o endereço configurado no cabeçalho para consultar versões publicadas na `main`.
 
 ## Git

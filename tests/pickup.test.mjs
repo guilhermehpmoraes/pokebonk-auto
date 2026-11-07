@@ -91,7 +91,7 @@ test('indicador acompanha a preferência mesmo longe dos objetos e informa esper
   assert.equal(pickup.textContent, 'Auto Pickup: desligado');
 });
 
-function simularLoja({ saldoInicial, precos, raridades, vendidosIniciais, iteracoes, precosRenovados, precosCompactos = false }) {
+function simularLoja({ saldoInicial, precos, raridades, vendidosIniciais, iteracoes, precosRenovados, precosCompactos = false, verificarIndicador = false }) {
   let tempo = 1000, saldo = saldoInicial, atual = 'prompt', tarefa, intervalo;
   const controles = [], acoes = [], vendidos = [...vendidosIniciais];
   const valores = [...precos];
@@ -130,6 +130,11 @@ function simularLoja({ saldoInicial, precos, raridades, vendidosIniciais, iterac
   // Conclui o keyup pendente e, em seguida, observa cada atualização da loja.
   tarefa();
   for (let i = 0; i < iteracoes; i++) tick();
+  if (verificarIndicador) {
+    tick(); const depoisDaLoja = controles[2].textContent;
+    tempo += 61000; tick();
+    return { depoisDaLoja, depoisDeExpirar: controles[2].textContent };
+  }
   return acoes;
 }
 
@@ -141,6 +146,12 @@ test('loja com saldo abreviado conclui lote parcialmente vendido e renova confor
 test('não renova loja com itens caros mesmo se a renovação for barata', () => {
   const acoes = simularLoja({ saldoInicial: 60200, precos: [9092, 5001, 9092, 9092], raridades: ['Épico', 'Raro', 'Épico', 'Épico'], vendidosIniciais: [false, false, false, false], iteracoes: 5 });
   assert.deepEqual(acoes, ['abrir', 'comprou 0', 'comprou 1', 'comprou 2', 'comprou 3', 'sair']);
+});
+
+test('custos observados na loja influenciam a preferência temporariamente', () => {
+  const resultado = simularLoja({ saldoInicial: 60200, precos: [9092, 5001, 9092, 9092], raridades: ['Épico', 'Raro', 'Épico', 'Épico'], vendidosIniciais: [false, false, false, false], iteracoes: 5, verificarIndicador: true });
+  assert.match(resultado.depoisDaLoja, /Ir atrás: Cassino/);
+  assert.match(resultado.depoisDeExpirar, /Ir atrás: Loja do Meowth/);
 });
 
 test('interpreta preços abreviados com limite conservador', () => {
@@ -158,19 +169,19 @@ test('sai sem comprar quando o estoque renovado aparece caro demais', () => {
   assert.deepEqual(acoes, ['abrir', 'comprou 1', 'comprou 2', 'comprou 3', 'renovar', 'sair']);
 });
 
-test('cassino gira e sai quando o preço crescente deixa a Pokébola melhor', () => {
-  let tempo = 1000, saldo = 1000, giro = 40, atual = 'prompt', tarefa, intervalo;
+test('cassino com saldo abreviado repete clique ignorado, continua girando e sai quando a Pokébola melhora', () => {
+  let tempo = 1000, saldo = 19500, giro = 34, atual = 'prompt', tarefa, intervalo, tentativas = 0, giros = 0, emGiro = false;
   const controles = [], acoes = [];
   const visivel = () => [1];
   const chip = (valor) => ({ getClientRects: visivel, querySelector: () => ({ textContent: String(valor) }) });
   const wallet = { getClientRects: visivel, get dataset() { return { g: String(saldo) }; },
-    querySelector(s) { return s === '.wl-ball' ? chip(400) : s === '.wl-slots' ? chip(40) : null; } };
-  const girar = { disabled: false, get textContent() { return `Girar · ${giro} ₽E`; }, click() { acoes.push('girar'); saldo -= giro; giro = 100; } };
+    querySelector(s) { return s === '.wl-ball' ? chip(256) : s === '.wl-slots' ? chip(34) : null; } };
+  const girar = { disabled: false, get textContent() { return `Girar · ${giro} ₽E`; }, click() { acoes.push('girar'); if (++tentativas > 1) { saldo -= giro; emGiro = true; if (++giros === 2) giro = 50; } } };
   const sair = { disabled: false, textContent: 'Sair', click() { acoes.push('sair'); atual = 'prompt'; } };
-  const cabine = { classList: { contains: () => false } };
-  const modal = { getClientRects: visivel, querySelector(s) { if (s === '.sl-cab') return cabine; if (s === '.sl-gold') return { textContent: `${saldo} ₽` }; return null; },
+  const cabine = { classList: { contains: () => emGiro }, querySelector: () => ({ textContent: String(giros) }) };
+  const modal = { getClientRects: visivel, querySelector(s) { if (s === '.sl-cab') return cabine; if (s === '.sl-gold') return { textContent: `${(saldo / 1000).toFixed(1)}k ₽` }; return null; },
     querySelectorAll(s) { return s === '.actions button' ? [girar, sair] : []; } };
-  const prompt = { getClientRects: visivel, textContent: 'ECaça-níqueis · 40 ₽ por giro', querySelector: () => ({ textContent: 'E' }) };
+  const prompt = { getClientRects: visivel, textContent: 'ECaça-níqueis · 34 ₽ por giro', querySelector: () => ({ textContent: 'E' }) };
   const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }),
     querySelector(s) { if (s === '#hud .wallet') return wallet; if (s === '#hud .ht-zone') return { textContent: 'Zona 1/3' }; return null; },
     querySelectorAll(s) { if (s === '.modal') return atual === 'modal' ? [modal] : []; if (s === '#hud .prompt') return atual === 'prompt' ? [prompt] : []; return []; } };
@@ -183,6 +194,8 @@ test('cassino gira e sai quando o preço crescente deixa a Pokébola melhor', ()
   });
   const tick = () => { tempo += 600; intervalo(); tarefa(); };
   controles[2].click(); tarefa(); tarefa();
-  tick(); tick();
-  assert.deepEqual(acoes, ['abrir', 'girar', 'sair']);
+  tick(); tick(); tick(); tick();
+  emGiro = false; tick(); tick();
+  emGiro = false; tick();
+  assert.deepEqual(acoes, ['abrir', 'girar', 'girar', 'girar', 'sair']);
 });

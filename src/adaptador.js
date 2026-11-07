@@ -82,6 +82,8 @@ let ultimoPickup = '';
 let pickupLiberado = true;
 let pickupSessao = null;
 let pickupAcao = null;
+let custoLojaObservado = null;
+let ultimoTempoPartida = null;
 const botaoPickup = document.createElement('button');
 botaoPickup.type = 'button';
 botaoPickup.textContent = 'Auto Pickup: desligado';
@@ -113,16 +115,24 @@ function numeroPickup(texto, limite = 'estimado') {
 }
 function carteiraPickup() {
   const wallet = document.querySelector?.('#hud .wallet');
-  if (!wallet || !wallet.getClientRects().length) return null;
+  if (!wallet || !wallet.getClientRects().length) { custoLojaObservado = null; ultimoTempoPartida = null; return null; }
   const ler = (seletor) => {
     const chip = wallet.querySelector(seletor);
     return chip && chip.getClientRects().length ? numeroPickup(chip.querySelector('em')?.textContent) : null;
   };
   const zona = /\bzona\s+(\d+)\s*\/\s*3\b/.exec(normalizar(document.querySelector('#hud .ht-zone')?.textContent));
-  const escala = zona && Number(zona[1]) >= 1 && Number(zona[1]) <= 3 ? 2.2 ** (Number(zona[1]) - 1) : null;
+  const numeroZona = zona ? Number(zona[1]) : null;
+  const escala = numeroZona >= 1 && numeroZona <= 3 ? 2.2 ** (numeroZona - 1) : null;
+  const tempo = /^(\d+):(\d{2})(?:[.,]\d+)?$/.exec(document.querySelector('#hud .runclock b')?.textContent?.trim() || '');
+  if (tempo) {
+    const segundos = Number(tempo[1]) * 60 + Number(tempo[2]);
+    if (ultimoTempoPartida !== null && segundos < ultimoTempoPartida - 5) custoLojaObservado = null;
+    ultimoTempoPartida = segundos;
+  }
+  if (custoLojaObservado && (custoLojaObservado.zona !== numeroZona || Date.now() - custoLojaObservado.em > 60000 || Date.now() < custoLojaObservado.em)) custoLojaObservado = null;
   if (ler('.wl-shop') !== null && !escala) return null;
-  return { saldo: numeroPickup(wallet.dataset.g), bola: ler('.wl-ball'), giro: ler('.wl-slots'),
-    lojaEstimada: ler('.wl-shop') !== null && escala ? 130 * escala : null };
+  return { saldo: numeroPickup(wallet.dataset.g), bola: ler('.wl-ball'), giro: ler('.wl-slots'), zona: numeroZona,
+    lojaEstimada: ler('.wl-shop') !== null && escala ? (custoLojaObservado?.valor ?? 130 * escala) : null };
 }
 function atualizarIndicadorPickup(texto) {
   const conteudo = `Auto Pickup: ligado · ${texto}`;
@@ -147,7 +157,14 @@ function observarModalPickup(modal, carteira) {
     const decisao = decidirGasto({ ...carteira, saldo, giro: valor });
     if (decisao === 'aguardar') { acaoPickup(sair, `sair-cassino:${valor}`); return; }
     if (decisao !== 'cassino') { acaoPickup(sair, `sair-cassino:${valor}`); return; }
-    acaoPickup(girar, `girar:${valor}:${saldo}`);
+    const giros = numeroPickup(cabine.querySelector?.('.sl-led span:nth-child(2) b')?.textContent);
+    const assinatura = `${valor}:${saldo}:${giros}`;
+    let tentativa = pickupSessao.giro;
+    if (!tentativa || tentativa.assinatura !== assinatura) tentativa = pickupSessao.giro = { assinatura, quantidade: 0, ultima: 0 };
+    const agora = Date.now();
+    if (!girar.disabled && tentativa.quantidade < 3 && (!tentativa.quantidade || agora - tentativa.ultima >= 800)) {
+      tentativa.quantidade++; tentativa.ultima = agora; girar.click();
+    }
     return;
   }
   if (pickupSessao.tipo !== 'loja' || !modal.classList.contains('shop-modal')) return;
@@ -167,7 +184,10 @@ function observarModalPickup(modal, carteira) {
   const bases = [80, 130, 220, 400, 750];
   const estimativas = dados.filter((d) => !d.vendido && d.valor !== null && d.raridade >= 1 && d.raridade <= 5)
     .map((d) => d.valor / bases[d.raridade - 1] * 130);
-  if (estimativas.length) pickupSessao.custoMedio = Math.max(pickupSessao.custoMedio || 0, ...estimativas);
+  if (estimativas.length) {
+    pickupSessao.custoMedio = Math.max(pickupSessao.custoMedio || 0, ...estimativas);
+    if (carteira.zona >= 1 && carteira.zona <= 3) custoLojaObservado = { zona: carteira.zona, valor: pickupSessao.custoMedio, em: Date.now() };
+  }
   const saldo = numeroPickup(/·\s*([\d.,\s]+[kmb]?)\s*₽\s*$/i.exec(modal.querySelector('h1')?.textContent || '')?.[1], 'inferior');
   if (saldo === null) return;
   const indisponiveis = dados.map((d) => d.vendido || Number(d.capacidade[1]) >= Number(d.capacidade[2]));
