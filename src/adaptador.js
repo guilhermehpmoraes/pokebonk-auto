@@ -84,15 +84,40 @@ let pickupSessao = null;
 let pickupAcao = null;
 let custoLojaObservado = null;
 let ultimoTempoPartida = null;
+let alvoGasto = null;
+let zonaPlanejamento = null;
+let visitaManual = null;
+let bloqueiosGasto = {};
+let ultimoEncontroPago = null;
+let tentativasEncontro = 0;
+let repetirEncontro = false;
+let interacaoLivre = null;
 const botaoPickup = document.createElement('button');
 botaoPickup.type = 'button';
 botaoPickup.textContent = 'Auto Pickup: desligado';
 Object.assign(botaoPickup.style, { position: 'fixed', bottom: '48px', right: '8px', zIndex: '2147483647', padding: '8px', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer' });
 document.body.appendChild(botaoPickup);
+const trocarAlvo = document.createElement('button');
+trocarAlvo.type = 'button';
+trocarAlvo.textContent = 'Trocar sugestão';
+Object.assign(trocarAlvo.style, { position: 'fixed', bottom: '88px', right: '8px', zIndex: '2147483647', padding: '6px 8px', background: '#39435f', color: 'white', border: '1px solid #888', borderRadius: '8px', cursor: 'pointer', display: 'none' });
+document.body.appendChild(trocarAlvo);
+function limparAlvo() { alvoGasto = null; visitaManual = null; ultimoPickup = ''; }
+function concluirAlvo(tipo) {
+  if (tipo === 'loja') bloqueiosGasto.loja = Date.now() + 30000;
+  if (tipo === alvoGasto) limparAlvo();
+  else { visitaManual = null; ultimoPickup = ''; }
+}
+trocarAlvo.addEventListener('click', () => {
+  if (!pickupAtivo || pickupSessao || !alvoGasto) return;
+  bloqueiosGasto[alvoGasto] = Date.now() + 30000;
+  limparAlvo(); agendar();
+});
 botaoPickup.addEventListener('click', () => {
   pickupAtivo = !pickupAtivo;
   ultimoPickup = '';
-  pickupSessao = null; pickupAcao = null;
+  pickupSessao = null; pickupAcao = null; limparAlvo(); bloqueiosGasto = {}; ultimoEncontroPago = null; tentativasEncontro = 0; repetirEncontro = false; interacaoLivre = null;
+  trocarAlvo.style.display = 'none';
   botaoPickup.textContent = pickupAtivo ? 'Auto Pickup: ligado' : 'Auto Pickup: desligado';
   agendar();
 });
@@ -115,7 +140,7 @@ function numeroPickup(texto, limite = 'estimado') {
 }
 function carteiraPickup() {
   const wallet = document.querySelector?.('#hud .wallet');
-  if (!wallet || !wallet.getClientRects().length) { custoLojaObservado = null; ultimoTempoPartida = null; return null; }
+  if (!wallet || !wallet.getClientRects().length) { custoLojaObservado = null; return null; }
   const ler = (seletor) => {
     const chip = wallet.querySelector(seletor);
     return chip && chip.getClientRects().length ? numeroPickup(chip.querySelector('em')?.textContent) : null;
@@ -126,12 +151,15 @@ function carteiraPickup() {
   const tempo = /^(\d+):(\d{2})(?:[.,]\d+)?$/.exec(document.querySelector('#hud .runclock b')?.textContent?.trim() || '');
   if (tempo) {
     const segundos = Number(tempo[1]) * 60 + Number(tempo[2]);
-    if (ultimoTempoPartida !== null && segundos < ultimoTempoPartida - 5) custoLojaObservado = null;
+    if (ultimoTempoPartida !== null && segundos < ultimoTempoPartida - 5) { custoLojaObservado = null; limparAlvo(); bloqueiosGasto = {}; pickupSessao = null; ultimoEncontroPago = null; }
     ultimoTempoPartida = segundos;
   }
+  if (numeroZona && zonaPlanejamento && numeroZona !== zonaPlanejamento) { limparAlvo(); bloqueiosGasto = {}; pickupSessao = null; ultimoEncontroPago = null; }
+  if (numeroZona) zonaPlanejamento = numeroZona;
   if (custoLojaObservado && (custoLojaObservado.zona !== numeroZona || Date.now() - custoLojaObservado.em > 60000 || Date.now() < custoLojaObservado.em)) custoLojaObservado = null;
   if (ler('.wl-shop') !== null && !escala) return null;
-  return { saldo: numeroPickup(wallet.dataset.g), bola: ler('.wl-ball'), giro: ler('.wl-slots'), zona: numeroZona,
+  const bolaBruta = /^(\d+)\|(\d+)(?:\||$)/.exec(wallet.dataset.k || '');
+  return { saldo: numeroPickup(wallet.dataset.g), bola: ler('.wl-ball'), bolaBruta: bolaBruta ? numeroPickup(bolaBruta[2]) : null, giro: ler('.wl-slots'), zona: numeroZona,
     lojaEstimada: ler('.wl-shop') !== null && escala ? (custoLojaObservado?.valor ?? 130 * escala) : null };
 }
 function atualizarIndicadorPickup(texto) {
@@ -171,15 +199,16 @@ function observarModalPickup(modal, carteira) {
     const valor = numeroPickup(/girar\s*·\s*([\d.,\s]+[kmb]?)\s*₽/i.exec(girar?.textContent || '')?.[1], 'superior');
     const saldo = numeroPickup(/^\s*([\d.,\s]+[kmb]?)\s*₽\s*$/i.exec(modal.querySelector('.sl-gold')?.textContent || '')?.[1], 'inferior');
     if (!girar || !sair || valor === null || saldo === null) return;
-    const decisao = decidirGasto({ ...carteira, saldo, giro: valor });
-    if (decisao === 'aguardar') { acaoPickup(sair, `sair-cassino:${valor}`); return; }
-    if (decisao !== 'cassino') { acaoPickup(sair, `sair-cassino:${valor}`); return; }
     const giros = numeroPickup(cabine.querySelector?.('.sl-led span:nth-child(2) b')?.textContent);
     const assinatura = `${valor}:${saldo}:${giros}`;
+    if (pickupSessao.giroInicialAssinatura && pickupSessao.giroInicialAssinatura !== assinatura) pickupSessao.giroInicialConfirmado = true;
+    const decisao = decidirGasto({ ...carteira, saldo, giro: valor });
+    if (saldo < valor || (pickupSessao.giroInicialConfirmado && decisao !== 'cassino')) { acaoPickup(sair, `sair-cassino:${valor}`); return; }
     let tentativa = pickupSessao.giro;
     if (!tentativa || tentativa.assinatura !== assinatura) tentativa = pickupSessao.giro = { assinatura, quantidade: 0, ultima: 0 };
     const agora = Date.now();
     if (!girar.disabled && tentativa.quantidade < 3 && (!tentativa.quantidade || agora - tentativa.ultima >= 800)) {
+      if (!pickupSessao.giroInicialAssinatura) pickupSessao.giroInicialAssinatura = assinatura;
       tentativa.quantidade++; tentativa.ultima = agora; girar.click();
     }
     return;
@@ -232,43 +261,76 @@ function observarModalPickup(modal, carteira) {
   const sair = modal.querySelector('button.shop-exit');
   acaoPickup(sair, `sair-loja:${assinatura}:${saldo}`);
 }
+function modalDoAlvo(modal, tipo) {
+  if (tipo === 'cassino') return !!modal.querySelector?.('.sl-cab');
+  if (tipo === 'loja') return !!modal.classList?.contains('shop-modal') && !!modal.querySelector?.('button.shop-exit');
+  if (tipo !== 'bola') return false;
+  const cards = [...(modal.querySelectorAll?.('button.card') || [])];
+  const botoes = [...(modal.querySelectorAll?.('button') || [])];
+  return cards.some((card) => !!card.querySelector?.('.top img[src*="assets/items/"]')) &&
+    botoes.some((botao) => normalizar(botao.textContent).startsWith('nenhum'));
+}
 function observarPickup() {
   if (!pickupAtivo || modalAberto) return;
   const carteira = carteiraPickup();
-  const preferencia = carteira ? decidirGasto(carteira) : 'aguardar';
-  const nomes = { bola: 'Ir atrás: Pokébola', cassino: 'Ir atrás: Cassino', loja: 'Ir atrás: Loja do Meowth', aguardar: 'Aguardando dados ou saldo' };
-  const indicador = nomes[preferencia] || nomes.aguardar;
-  if (document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')) { atualizarIndicadorPickup(indicador); return; }
+  const nomes = { bola: 'Sugestão: Pokébola', cassino: 'Sugestão: Cassino', loja: 'Sugestão: Loja do Meowth', aguardar: 'Aguardando dados ou saldo' };
   const visiveis = (seletor) => [...document.querySelectorAll(seletor)].filter((el) => el.getClientRects().length);
   const modais = visiveis('.modal');
+  const indicadores = () => {
+    trocarAlvo.style.display = alvoGasto && !pickupSessao && !visitaManual && !modais.length ? 'block' : 'none';
+    return nomes[alvoGasto] || nomes.aguardar;
+  };
+  if (document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')) { atualizarIndicadorPickup(indicadores()); return; }
   if (modais.length) {
-    let texto = indicador;
+    let texto = indicadores();
     if (modais.length === 1) {
+      if (interacaoLivre) interacaoLivre.viuModal = true;
+      if (pickupSessao && modalDoAlvo(modais[0], pickupSessao.tipo)) pickupSessao.viuModal = true;
+      if (!pickupSessao && !interacaoLivre && alvoGasto && modalDoAlvo(modais[0], alvoGasto)) visitaManual = alvoGasto;
       if (pickupSessao?.tipo === 'loja' && modais[0].classList.contains('shop-modal')) texto = 'Loja: avaliando itens';
       if (pickupSessao?.tipo === 'cassino' && modais[0].querySelector('.sl-cab')) texto = 'Cassino: avaliando giro';
+      if (pickupSessao?.tipo === 'bola' && pickupSessao.viuModal) texto = 'Pokébola: aguardando escolha';
       atualizarIndicadorPickup(texto);
       observarModalPickup(modais[0], carteira);
     } else atualizarIndicadorPickup(texto);
     return;
   }
-  atualizarIndicadorPickup(indicador);
-  if (pickupSessao && Date.now() - pickupSessao.inicio > 3000) { pickupSessao = null; pickupAcao = null; }
-  if (pickupSessao) return;
+  if (interacaoLivre && (interacaoLivre.viuModal || Date.now() - interacaoLivre.inicio > 3000)) interacaoLivre = null;
+  if (pickupSessao) {
+    const bolaComprada = pickupSessao.tipo === 'bola' && carteira && pickupSessao.precoBase !== null &&
+      (carteira.bolaBruta ?? carteira.bola) !== null && (carteira.bolaBruta ?? carteira.bola) !== pickupSessao.precoBase;
+    if (pickupSessao.viuModal || bolaComprada) {
+      concluirAlvo(pickupSessao.tipo); pickupSessao = null; pickupAcao = null;
+    } else if (Date.now() - pickupSessao.inicio > 3000) {
+      pickupSessao = null; pickupAcao = null; ultimoPickup = ''; repetirEncontro = true;
+    } else { atualizarIndicadorPickup(indicadores()); return; }
+  }
+  if (visitaManual) concluirAlvo(visitaManual);
+  if (!alvoGasto && carteira) {
+    const excluidos = Object.keys(bloqueiosGasto).filter((tipo) => bloqueiosGasto[tipo] > Date.now());
+    if (ultimoEncontroPago && !excluidos.includes(ultimoEncontroPago)) excluidos.push(ultimoEncontroPago);
+    const escolhido = decidirGasto({ ...carteira, excluidos });
+    if (escolhido !== 'aguardar') alvoGasto = escolhido;
+  }
+  atualizarIndicadorPickup(indicadores());
   const prompts = visiveis('#hud .prompt');
-  if (prompts.length !== 1) { ultimoPickup = ''; return; }
+  if (prompts.length !== 1) { ultimoPickup = ''; ultimoEncontroPago = null; tentativasEncontro = 0; repetirEncontro = false; return; }
   const prompt = prompts[0];
   const tecla = prompt.querySelector('kbd')?.textContent?.trim();
   const texto = normalizar(prompt.textContent.slice(tecla?.length || 0));
   let tipo = null;
   const precoBola = /^abrir poke bola · ([\d.,\s]+[kmb]?) ₽$/.exec(texto);
   const precoGiro = /^caca-niqueis · ([\d.,\s]+[kmb]?) ₽ por giro$/.exec(texto);
-  if (precoBola && numeroPickup(precoBola[1]) === carteira?.bola && preferencia === 'bola') tipo = 'bola';
-  if (precoGiro && numeroPickup(precoGiro[1]) === carteira?.giro && preferencia === 'cassino') tipo = 'cassino';
-  if (texto === 'falar com o meowth (loja)' && preferencia === 'loja') tipo = 'loja';
+  const encontro = precoBola ? 'bola' : precoGiro ? 'cassino' : texto === 'falar com o meowth (loja)' ? 'loja' : null;
+  if (encontro !== ultimoEncontroPago) { ultimoEncontroPago = null; tentativasEncontro = 0; repetirEncontro = false; }
+  if (precoBola && numeroPickup(precoBola[1]) === carteira?.bola && carteira.saldo >= carteira.bola) tipo = 'bola';
+  if (precoGiro && numeroPickup(precoGiro[1]) === carteira?.giro && carteira.saldo >= carteira.giro) tipo = 'cassino';
+  if (encontro === 'loja' && carteira && Number.isFinite(carteira.saldo) && carteira.saldo > 0) tipo = 'loja';
   if (decidirPickup(texto).acao !== 'interagir' && !tipo || tecla !== 'E') { ultimoPickup = ''; return; }
-  if (!pickupLiberado || ultimoPickup === texto) return;
+  if (!pickupLiberado || ultimoPickup === texto || (tipo && ultimoEncontroPago === tipo && (!repetirEncontro || tentativasEncontro >= 3))) return;
   ultimoPickup = texto;
-  if (tipo === 'cassino' || tipo === 'loja') { pickupSessao = { tipo, inicio: Date.now() }; pickupAcao = null; }
+  if (tipo) { ultimoEncontroPago = tipo; tentativasEncontro++; repetirEncontro = false; pickupSessao = { tipo, inicio: Date.now(), precoBase: tipo === 'bola' ? (carteira.bolaBruta ?? carteira.bola) : null }; pickupAcao = null; }
+  else interacaoLivre = { inicio: Date.now(), viuModal: false };
   pickupLiberado = false;
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', code: 'KeyE', bubbles: true }));
   setTimeout(() => {

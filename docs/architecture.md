@@ -22,4 +22,4 @@ O Auto Pickup possui ativação separada em memória. A decisão de elegibilidad
 
 Durante um giro no cassino, o adaptador identifica o botão de pular animação e tenta acioná-lo; o próximo giro continua condicionado à decisão de gasto.
 
-Quando ativo, o botão do Auto Pickup também mostra a preferência calculada pela mesma regra de gasto usada no mapa. Nos modais próprios, indica que está avaliando itens ou giro.
+Quando ativo, o botão do Auto Pickup mostra uma sugestão de destino mantida em memória até ser concluída ou trocada pelo usuário. A sugestão não limita as interações pagas no caminho. Nos modais próprios, indica que está avaliando itens ou giro.

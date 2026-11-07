@@ -10,6 +10,7 @@ test('estima custo e aguarda quando não pode bancar a alternativa preferida', (
   assert.equal(decidirGasto({ saldo: 1000, bola: 400, giro: 20, lojaEstimada: 130 }), 'cassino');
   assert.equal(decidirGasto({ saldo: 200, bola: 400, giro: 40, lojaEstimada: 130 }), 'aguardar');
   assert.equal(decidirGasto({ saldo: 200, bola: null, giro: 40 }), 'aguardar');
+  assert.equal(decidirGasto({ saldo: 1000, bola: 400, giro: 40, lojaEstimada: 130, excluidos: ['loja'] }), 'cassino');
 });
 
 test('compra o lote reconhecido e acessível sem reavaliar a estratégia', () => {
@@ -64,7 +65,7 @@ test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecid
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
 });
 
-test('indicador acompanha a preferência mesmo longe dos objetos e informa espera', () => {
+test('indicador mantém o alvo no trajeto e permite trocá-lo manualmente', () => {
   let saldo = 1000, bola = 32, giro = 40, loja = 40, tarefa, intervalo;
   const controles = [];
   const chip = (valor) => ({ getClientRects: () => [1], querySelector: () => ({ textContent: String(valor) }) });
@@ -82,18 +83,124 @@ test('indicador acompanha a preferência mesmo longe dos objetos e informa esper
   const pickup = controles[2];
   assert.equal(pickup.textContent, 'Auto Pickup: desligado');
   pickup.click(); tarefa();
-  assert.match(pickup.textContent, /Ir atrás: Pokébola/);
+  assert.match(pickup.textContent, /Sugestão: Pokébola/);
   bola = 400; intervalo(); tarefa();
-  assert.match(pickup.textContent, /Ir atrás: Loja do Meowth/);
+  assert.match(pickup.textContent, /Sugestão: Pokébola/);
+  controles[3].click(); tarefa();
+  assert.match(pickup.textContent, /Sugestão: Loja do Meowth/);
   giro = 20; intervalo(); tarefa();
-  assert.match(pickup.textContent, /Ir atrás: Cassino/);
+  assert.match(pickup.textContent, /Sugestão: Loja do Meowth/);
+  controles[3].click(); tarefa();
+  assert.match(pickup.textContent, /Sugestão: Cassino/);
   saldo = 1; intervalo(); tarefa();
+  assert.match(pickup.textContent, /Sugestão: Cassino/);
+  controles[3].click(); tarefa();
   assert.match(pickup.textContent, /Aguardando dados ou saldo/);
   pickup.click();
   assert.equal(pickup.textContent, 'Auto Pickup: desligado');
 });
 
-function simularLoja({ saldoInicial, precos, raridades, vendidosIniciais, iteracoes, precosRenovados, precosCompactos = false, verificarIndicador = false }) {
+test('mantém a sugestão e coleta gratuitos e Pokébola fora dela no trajeto', () => {
+  let agora = 1000, bola = 400, giro = 40, promptTexto = '', modalAberto = false, intervalo;
+  const controles = [], eventos = [], tarefas = [];
+  const visivel = () => [1];
+  const chip = (valor) => ({ getClientRects: visivel, querySelector: () => ({ textContent: String(valor) }) });
+  const wallet = { getClientRects: visivel, get dataset() { return { g: '1000', k: `1000|${bola}|${giro}|40` }; },
+    querySelector(s) { return s === '.wl-ball' ? chip(bola) : s === '.wl-slots' ? chip(giro) : s === '.wl-shop' ? chip(40) : null; } };
+  const prompt = { getClientRects: visivel, get textContent() { return `E${promptTexto}`; }, querySelector: () => ({ textContent: 'E' }) };
+  const modal = { getClientRects: visivel, classList: { contains: () => false }, querySelector: () => null,
+    querySelectorAll(s) { if (s === 'button.card') return [{ querySelector: () => ({}) }]; if (s === 'button') return [{ textContent: 'Nenhum (+10 ₽)' }]; return []; } };
+  const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }),
+    querySelector(s) { if (s === '#hud .wallet') return wallet; if (s === '#hud .ht-zone') return { textContent: 'Zona 1/3' }; return null; },
+    querySelectorAll(s) { if (s === '#hud .prompt') return promptTexto ? [prompt] : []; if (s === '.modal') return modalAberto ? [modal] : []; return []; } };
+  class MutationObserver { observe() {} }
+  class KeyboardEvent { constructor(type) { this.type = type; } }
+  vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
+    document, localStorage: { getItem: () => null }, MutationObserver, KeyboardEvent,
+    window: { dispatchEvent(evento) { eventos.push(evento.type); } },
+    setTimeout(fn) { tarefas.push(fn); return tarefas.length; }, setInterval(fn) { intervalo = fn; }, Date: { now: () => agora }, Math,
+  });
+  const executar = () => { const pendentes = tarefas.splice(0); pendentes.forEach((fn) => fn()); };
+  const tick = () => { agora += 600; intervalo(); executar(); };
+  controles[2].click(); executar();
+  assert.match(controles[2].textContent, /Sugestão: Loja do Meowth/);
+  giro = 1; promptTexto = ''; tick();
+  assert.match(controles[2].textContent, /Sugestão: Loja do Meowth/);
+  assert.deepEqual(eventos, []);
+  promptTexto = 'Coletar Oran Berries'; tick(); executar();
+  assert.deepEqual(eventos, ['keydown', 'keyup']);
+  promptTexto = 'Abrir Poké Bola · 400 ₽'; tick(); executar();
+  assert.deepEqual(eventos, ['keydown', 'keyup', 'keydown', 'keyup']);
+  tick(); assert.match(controles[2].textContent, /Sugestão: Loja do Meowth/);
+  modalAberto = true; tick();
+  assert.match(controles[2].textContent, /aguardando escolha/);
+  modalAberto = false; promptTexto = ''; bola = 401; tick();
+  assert.match(controles[2].textContent, /Sugestão: Loja do Meowth/);
+  controles[3].click(); executar();
+  assert.match(controles[2].textContent, /Cassino/);
+});
+
+test('interage com cassino fora da sugestão, gira uma vez e não reabre enquanto permanece perto', () => {
+  let agora = 1000, atual = 'mapa', perto = false, tarefas = [], intervalo, giros = 0;
+  const controles = [], acoes = [];
+  const visivel = () => [1];
+  const chip = (valor) => ({ getClientRects: visivel, querySelector: () => ({ textContent: String(valor) }) });
+  const carteira = { getClientRects: visivel, dataset: { g: '1000', k: '1000|32|40|40' },
+    querySelector(s) { return s === '.wl-ball' ? chip(32) : s === '.wl-slots' ? chip(40) : s === '.wl-shop' ? chip(40) : null; } };
+  const prompt = { getClientRects: visivel, textContent: 'ECaça-níqueis · 40 ₽ por giro', querySelector: () => ({ textContent: 'E' }) };
+  const cabine = { classList: { contains: () => false }, querySelector: () => ({ textContent: String(giros) }) };
+  const girar = { disabled: false, textContent: 'Girar · 40 ₽E', click() { giros++; acoes.push('girar'); } };
+  const sair = { disabled: false, textContent: 'Sair', click() { acoes.push('sair'); atual = 'mapa'; } };
+  const modal = { getClientRects: visivel, classList: { contains: () => false }, querySelector(s) { if (s === '.sl-cab') return cabine; if (s === '.sl-gold') return { textContent: '1000 ₽' }; return null; },
+    querySelectorAll(s) { return s === '.actions button' ? [girar, sair] : []; } };
+  const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }),
+    querySelector(s) { if (s === '#hud .wallet') return carteira; if (s === '#hud .ht-zone') return { textContent: 'Zona 1/3' }; return null; },
+    querySelectorAll(s) { if (s === '.modal') return atual === 'modal' ? [modal] : []; if (s === '#hud .prompt') return perto && atual === 'mapa' ? [prompt] : []; return []; } };
+  class MutationObserver { observe() {} }
+  class KeyboardEvent { constructor(type) { this.type = type; } }
+  vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
+    document, localStorage: { getItem: () => null }, MutationObserver, KeyboardEvent,
+    window: { dispatchEvent(evento) { if (evento.type === 'keydown') { acoes.push('abrir'); atual = 'modal'; } } },
+    setTimeout(fn) { tarefas.push(fn); return tarefas.length; }, setInterval(fn) { intervalo = fn; }, Date: { now: () => agora }, Math,
+  });
+  const executar = () => { const pendentes = tarefas; tarefas = []; pendentes.forEach((fn) => fn()); };
+  const tick = () => { agora += 600; intervalo(); executar(); };
+  controles[2].click(); executar();
+  assert.match(controles[2].textContent, /Sugestão: Pokébola/);
+  perto = true; tick(); executar();
+  assert.deepEqual(acoes, ['abrir']);
+  tick(); tick(); tick();
+  assert.deepEqual(acoes, ['abrir', 'girar', 'sair']);
+  assert.match(controles[2].textContent, /Sugestão: Pokébola/);
+  tick(); assert.deepEqual(acoes, ['abrir', 'girar', 'sair']);
+  perto = false; tick(); perto = true; tick();
+  assert.deepEqual(acoes, ['abrir', 'girar', 'sair', 'abrir']);
+});
+
+test('tenta novamente uma interação paga ignorada sem repetir indefinidamente', () => {
+  let agora = 1000, intervalo;
+  const controles = [], eventos = [], tarefas = [];
+  const chip = (valor) => ({ getClientRects: () => [1], querySelector: () => ({ textContent: String(valor) }) });
+  const carteira = { getClientRects: () => [1], dataset: { g: '1000', k: '1000|32|40|40' },
+    querySelector(s) { return s === '.wl-ball' ? chip(32) : s === '.wl-slots' ? chip(40) : s === '.wl-shop' ? chip(40) : null; } };
+  const prompt = { getClientRects: () => [1], textContent: 'EAbrir Poké Bola · 32 ₽', querySelector: () => ({ textContent: 'E' }) };
+  const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }),
+    querySelector(s) { if (s === '#hud .wallet') return carteira; if (s === '#hud .ht-zone') return { textContent: 'Zona 1/3' }; return null; },
+    querySelectorAll(s) { return s === '#hud .prompt' ? [prompt] : []; } };
+  class MutationObserver { observe() {} }
+  class KeyboardEvent { constructor(type) { this.type = type; } }
+  vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
+    document, localStorage: { getItem: () => null }, MutationObserver, KeyboardEvent,
+    window: { dispatchEvent(evento) { eventos.push(evento.type); } },
+    setTimeout(fn) { tarefas.push(fn); return tarefas.length; }, setInterval(fn) { intervalo = fn; }, Date: { now: () => agora }, Math,
+  });
+  const executar = () => { const pendentes = tarefas.splice(0); pendentes.forEach((fn) => fn()); };
+  controles[2].click(); executar(); executar();
+  for (let i = 0; i < 5; i++) { agora += 3100; intervalo(); executar(); executar(); }
+  assert.equal(eventos.filter((evento) => evento === 'keydown').length, 3);
+});
+
+function simularLoja({ saldoInicial, precos, raridades, vendidosIniciais, iteracoes, precosRenovados, precosCompactos = false, verificarIndicador = false, bolaHud = 400 }) {
   let tempo = 1000, saldo = saldoInicial, atual = 'prompt', tarefa, intervalo;
   const controles = [], acoes = [], vendidos = [...vendidosIniciais];
   const valores = [...precos];
@@ -101,7 +208,7 @@ function simularLoja({ saldoInicial, precos, raridades, vendidosIniciais, iterac
   const textoPreco = (valor) => ({ textContent: String(valor) });
   const chip = (valor) => ({ getClientRects: visivel, querySelector: () => textoPreco(valor) });
   const wallet = { getClientRects: visivel, get dataset() { return { g: String(saldo) }; },
-    querySelector(s) { return s === '.wl-ball' ? chip(400) : s === '.wl-slots' ? chip(40) : s === '.wl-shop' ? chip(40) : null; } };
+    querySelector(s) { return s === '.wl-ball' ? chip(bolaHud) : s === '.wl-slots' ? chip(40) : s === '.wl-shop' ? chip(40) : null; } };
   const cartoes = valores.map((_, i) => ({ getClientRects: visivel,
     querySelector(s) {
       if (s === '.price') return { classList: { contains: () => vendidos[i] }, textContent: vendidos[i] ? 'VENDIDO' : `${precosCompactos ? (valores[i] / 1000).toFixed(1) + 'k' : valores[i]} ₽` };
@@ -145,6 +252,11 @@ test('loja com saldo abreviado conclui lote parcialmente vendido e renova confor
   assert.deepEqual(acoes, ['abrir', 'comprou 1', 'comprou 2', 'comprou 3', 'renovar', 'comprou 0', 'comprou 1']);
 });
 
+test('compra os itens da loja encontrada mesmo quando a sugestão é Pokébola', () => {
+  const acoes = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [true, false, false, false], iteracoes: 4, bolaHud: 32 });
+  assert.deepEqual(acoes, ['abrir', 'comprou 1', 'comprou 2', 'comprou 3', 'sair']);
+});
+
 test('não renova loja com itens caros mesmo se a renovação for barata', () => {
   const acoes = simularLoja({ saldoInicial: 60200, precos: [9092, 5001, 9092, 9092], raridades: ['Épico', 'Raro', 'Épico', 'Épico'], vendidosIniciais: [false, false, false, false], iteracoes: 5 });
   assert.deepEqual(acoes, ['abrir', 'comprou 0', 'comprou 1', 'comprou 2', 'comprou 3', 'sair']);
@@ -152,8 +264,14 @@ test('não renova loja com itens caros mesmo se a renovação for barata', () =>
 
 test('custos observados na loja influenciam a preferência temporariamente', () => {
   const resultado = simularLoja({ saldoInicial: 60200, precos: [9092, 5001, 9092, 9092], raridades: ['Épico', 'Raro', 'Épico', 'Épico'], vendidosIniciais: [false, false, false, false], iteracoes: 5, verificarIndicador: true });
-  assert.match(resultado.depoisDaLoja, /Ir atrás: Cassino/);
-  assert.match(resultado.depoisDeExpirar, /Ir atrás: Loja do Meowth/);
+  assert.match(resultado.depoisDaLoja, /Sugestão: Cassino/);
+  assert.match(resultado.depoisDeExpirar, /Sugestão: Cassino/);
+});
+
+test('ao sair da loja sem preços observados prioriza outra opção em vez de voltar à loja', () => {
+  const resultado = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [true, true, true, true], iteracoes: 1, verificarIndicador: true });
+  assert.match(resultado.depoisDaLoja, /Sugestão: Cassino/);
+  assert.match(resultado.depoisDeExpirar, /Sugestão: Cassino/);
 });
 
 test('interpreta preços abreviados com limite conservador', () => {
@@ -163,6 +281,11 @@ test('interpreta preços abreviados com limite conservador', () => {
 
 test('não renova quando não observou preço de nenhum item', () => {
   const acoes = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [true, true, true, true], iteracoes: 1 });
+  assert.deepEqual(acoes, ['abrir', 'sair']);
+});
+
+test('não reabre loja fechada enquanto o jogador permanece sobre ela', () => {
+  const acoes = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [true, true, true, true], iteracoes: 8 });
   assert.deepEqual(acoes, ['abrir', 'sair']);
 });
 

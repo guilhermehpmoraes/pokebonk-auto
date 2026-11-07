@@ -20,6 +20,8 @@ Os cenários da loja incluem saldo abreviado, lote parcialmente vendido e itens 
 
 Os cenários do cassino incluem saldo abreviado, clique ignorado, botão de pular animação, contador de giros e mudança de preferência após uma loja cara observada.
 
+Os cenários de pickup também incluem sugestão estável durante o trajeto, troca manual, interações pagas fora da sugestão e prevenção de reabertura da loja.
+
 Ao mudar o script, incremente `@version` em `scripts/gerar-userscript.mjs`, gere o arquivo e inclua-o no commit. O gerenciador usa o endereço configurado no cabeçalho para consultar versões publicadas na `main`.
 
 ## Git

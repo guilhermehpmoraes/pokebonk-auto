@@ -16,14 +16,15 @@ export function decidirPickup(texto) {
 
 // Estimativas de custo por item: a Pokébola tem bônus pela escolha entre ofertas;
 // no cassino 0,194 item/giro e retorno médio de 25% são valores sem sorte.
-export function decidirGasto({ saldo, bola, giro, lojaEstimada }) {
+export function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [] }) {
   if (![saldo, bola].every((n) => Number.isFinite(n) && n >= 0) || bola === 0) return 'aguardar';
   const custos = [{ tipo: 'bola', custo: bola / 1.3, acessivel: saldo >= bola }];
   if (Number.isFinite(giro) && giro > 0) custos.push({ tipo: 'cassino', custo: giro * 0.75 / 0.194 * 1.3, acessivel: saldo >= giro });
   if (Number.isFinite(lojaEstimada) && lojaEstimada > 0) custos.push({ tipo: 'loja', custo: lojaEstimada, acessivel: saldo >= lojaEstimada * 4 });
-  custos.sort((a, b) => a.custo - b.custo);
+  const elegiveis = custos.filter((item) => !excluidos.includes(item.tipo));
+  elegiveis.sort((a, b) => a.custo - b.custo);
   // Não desvia o dinheiro para a segunda opção só porque a melhor não cabe no saldo.
-  return custos[0].acessivel ? custos[0].tipo : 'aguardar';
+  return elegiveis[0]?.acessivel ? elegiveis[0].tipo : 'aguardar';
 }
 
 export function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0 }) {
