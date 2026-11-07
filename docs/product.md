@@ -10,6 +10,8 @@ Em `src/decisao.mjs`, as opções do plano têm prioridade. O adaptador também 
 
 Sem opção do plano, prioriza melhorias de golpes ou vitaminas já adquiridos, mesmo fora do plano, por raridade e, no empate, por golpe. Sem essas melhorias, tenta banir aleatoriamente, atualizar e pular, nessa ordem. Quando todos os recursos acabam, seleciona aleatoriamente uma opção fora do plano. Quando o jogo oferece banir o kit, o adaptador o faz apenas se comprovar que nenhum golpe do kit aparece nos planos disponíveis; caso contrário, confirma o banimento individual.
 
+Essa regra também vale para o ataque inicial: se aparecer como melhoria fora do plano, pode ser escolhido enquanto houver níveis disponíveis. Ele não recebe identificação ou prioridade especial, e continua gerando o aviso de fora da build.
+
 Após uma escolha fora do plano e o cartão deixar a tela, um aviso persistente informa o nome e recomenda conferir a remoção com Hypno. O usuário marca o aviso como resolvido; o script não verifica automaticamente se o item foi removido ou se uma nova partida começou.
 
 Para bênçãos, prioridade configurada vem antes de raridade; a raridade desempata opções do mesmo status. Itens apresentados em conjunto usam maior raridade e sorteio no empate. `src/adaptador.js` tenta identificar a tela de item único e clicar em Pegar.

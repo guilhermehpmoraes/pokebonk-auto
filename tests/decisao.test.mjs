@@ -53,6 +53,15 @@ test('opção do plano prevalece sobre melhoria fora do plano', () => {
   const opcoes = [item('nova planejada', 'vitamina', 1, true, 'novo'), item('melhoria fora', 'golpe', 5, false)];
   assert.deepEqual(decidir({ tipo: 'build', opcoes }), { acao: 'selecionar', id: 'nova planejada' });
 });
+test('melhora ataque inicial fora da build em qualquer nível após opções do plano', () => {
+  for (let nivel = 1; nivel < 8; nivel++) {
+    const inicial = { ...item('ataque inicial', 'golpe', 1, false), nivel };
+    const tela = { tipo: 'build', opcoes: [inicial], banimentos: 2, atualizacoes: 2, pulos: 2 };
+    assert.deepEqual(decidir(tela, {}, primeiro), { acao: 'selecionar', id: 'ataque inicial', foraDoPlano: true });
+    tela.opcoes.push(item('nova da build', 'vitamina', 1, true, 'novo'));
+    assert.equal(decidir(tela, {}, primeiro).id, 'nova da build');
+  }
+});
 test('status prioriza a ordem configurada antes da raridade', () => {
   const tela = { tipo: 'status', opcoes: [{ id: 'exp', status: 'exp', raridade: 1 }, { id: 'luck', status: 'luck', raridade: 2 }] };
   assert.equal(decidir(tela, { status: ['exp', 'luck'] }).id, 'exp');

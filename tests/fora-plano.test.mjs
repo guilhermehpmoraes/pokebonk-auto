@@ -75,3 +75,10 @@ test('melhora o golpe fora da build antes de gastar banimentos e mostra aviso', 
   assert.deepEqual(execucao.acoes, ['Toxic']);
   assert.deepEqual(JSON.parse(execucao.memoria.get('pokebonk-auto-select-fora-da-build')), [{ nome: 'Toxic', tipo: 'golpe' }]);
 });
+
+test('trata a melhoria do ataque inicial como qualquer golpe já adquirido', () => {
+  const execucao = iniciar({ opcoes: ['Rolling Kick'], melhorias: ['Rolling Kick'], recursos: 2 });
+  execucao.ativar();
+  assert.deepEqual(execucao.acoes, ['Rolling Kick']);
+  assert.deepEqual(JSON.parse(execucao.memoria.get('pokebonk-auto-select-fora-da-build')), [{ nome: 'Rolling Kick', tipo: 'golpe' }]);
+});

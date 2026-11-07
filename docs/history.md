@@ -37,3 +37,5 @@ A comparação de relíquias passou a usar a prioridade de status do preset ativ
 Uma captura mostrou que o banimento individual exige confirmação no mesmo cartão. O adaptador passou a confirmar seleções que ele próprio iniciou e a tentar banir kits quando a verificação conservadora dos planos permite. Ambos os fluxos precisam de confirmação em jogo.
 
 O fallback passou a melhorar itens já possuídos fora da build antes de gastar recursos e a escolher aleatoriamente quando eles se esgotarem. Avisos persistentes pedem conferência e podem ser marcados como resolvidos. Os fluxos têm testes simulados e precisam de validação no jogo.
+
+Foram adicionados testes para o ataque inicial fora da build, confirmando que a lógica existente escolhe sua melhoria depois das opções do plano. O jogo real ainda precisa ser testado.
