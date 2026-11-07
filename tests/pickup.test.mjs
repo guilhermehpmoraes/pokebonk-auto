@@ -169,14 +169,16 @@ test('sai sem comprar quando o estoque renovado aparece caro demais', () => {
   assert.deepEqual(acoes, ['abrir', 'comprou 1', 'comprou 2', 'comprou 3', 'renovar', 'sair']);
 });
 
-test('cassino com saldo abreviado repete clique ignorado, continua girando e sai quando a Pokébola melhora', () => {
-  let tempo = 1000, saldo = 19500, giro = 34, atual = 'prompt', tarefa, intervalo, tentativas = 0, giros = 0, emGiro = false;
+test('cassino pula cada animação, repete clique ignorado e reavalia antes de girar', () => {
+  let tempo = 1000, saldo = 19500, giro = 34, atual = 'prompt', tarefa, intervalo, tentativas = 0, giros = 0, emGiro = false, walletVisivel = true, rotuloPular = 'Pular animação', pularDesabilitado = false;
   const controles = [], acoes = [];
   const visivel = () => [1];
   const chip = (valor) => ({ getClientRects: visivel, querySelector: () => ({ textContent: String(valor) }) });
-  const wallet = { getClientRects: visivel, get dataset() { return { g: String(saldo) }; },
+  const wallet = { getClientRects: () => walletVisivel ? [1] : [], get dataset() { return { g: String(saldo) }; },
     querySelector(s) { return s === '.wl-ball' ? chip(256) : s === '.wl-slots' ? chip(34) : null; } };
-  const girar = { disabled: false, get textContent() { return `Girar · ${giro} ₽E`; }, click() { acoes.push('girar'); if (++tentativas > 1) { saldo -= giro; emGiro = true; if (++giros === 2) giro = 50; } } };
+  const girar = { get disabled() { return emGiro && pularDesabilitado; }, get textContent() { return emGiro ? `${rotuloPular}E` : `Girar · ${giro} ₽E`; },
+    querySelector(s) { return s === 'kbd' ? { textContent: 'E' } : null; },
+    click() { if (emGiro) { acoes.push('pular'); emGiro = false; return; } acoes.push('girar'); if (++tentativas > 1) { saldo -= giro; emGiro = true; if (++giros === 2) giro = 50; } } };
   const sair = { disabled: false, textContent: 'Sair', click() { acoes.push('sair'); atual = 'prompt'; } };
   const cabine = { classList: { contains: () => emGiro }, querySelector: () => ({ textContent: String(giros) }) };
   const modal = { getClientRects: visivel, querySelector(s) { if (s === '.sl-cab') return cabine; if (s === '.sl-gold') return { textContent: `${(saldo / 1000).toFixed(1)}k ₽` }; return null; },
@@ -194,8 +196,12 @@ test('cassino com saldo abreviado repete clique ignorado, continua girando e sai
   });
   const tick = () => { tempo += 600; intervalo(); tarefa(); };
   controles[2].click(); tarefa(); tarefa();
-  tick(); tick(); tick(); tick();
-  emGiro = false; tick(); tick();
-  emGiro = false; tick();
-  assert.deepEqual(acoes, ['abrir', 'girar', 'girar', 'girar', 'sair']);
+  tick(); tick(); tick();
+  rotuloPular = 'Outro botão'; tick();
+  rotuloPular = 'Pular animação'; pularDesabilitado = true; tick();
+  assert.deepEqual(acoes, ['abrir', 'girar', 'girar']);
+  pularDesabilitado = false;
+  walletVisivel = false; tick(); // Pular é gratuito, mesmo se o HUD deixar de estar visível.
+  walletVisivel = true; tick(); tick(); tick();
+  assert.deepEqual(acoes, ['abrir', 'girar', 'girar', 'pular', 'girar', 'pular', 'sair']);
 });

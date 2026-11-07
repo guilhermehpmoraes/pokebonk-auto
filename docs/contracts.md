@@ -34,4 +34,4 @@ Para coleta gratuita, `decidirPickup` recebe o texto português normalizado, sem
 
 O botão do Auto Pickup apresenta a saída de `decidirGasto` como Pokébola, cassino, loja ou espera; em seus próprios modais, apresenta uma indicação de avaliação. O texto é atualizado apenas quando muda.
 
-A estimativa de loja observada é mantida em memória por até 60 segundos na mesma zona e descartada ao identificar mudança de zona, reinício do relógio da partida ou ausência do HUD. O contador `.sl-led span:nth-child(2) b`, quando disponível, diferencia giros mesmo com valores arredondados iguais; o adaptador nunca tenta outro clique enquanto `.sl-cab` estiver em animação.
+A estimativa de loja observada é mantida em memória por até 60 segundos na mesma zona e descartada ao identificar mudança de zona, reinício do relógio da partida ou ausência do HUD. O contador `.sl-led span:nth-child(2) b`, quando disponível, diferencia giros mesmo com valores arredondados iguais. Durante `.sl-cab.spinning`, somente um botão `.actions button` identificado como `Pular animação` é acionado; giros novos aguardam o fim da animação e outra decisão.

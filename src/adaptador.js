@@ -144,11 +144,28 @@ function acaoPickup(botao, assinatura) {
   botao.click();
 }
 function observarModalPickup(modal, carteira) {
-  if (!pickupSessao || !carteira || Date.now() - pickupSessao.inicio < 400) return;
+  if (!pickupSessao || Date.now() - pickupSessao.inicio < 400) return;
   if (pickupSessao.tipo === 'cassino' && modal.querySelector('.sl-cab')) {
     const cabine = modal.querySelector('.sl-cab');
-    if (cabine.classList.contains('spinning')) return;
     const botoes = [...modal.querySelectorAll('.actions button')];
+    if (cabine.classList.contains('spinning')) {
+      const pular = botoes.filter((b) => {
+        const tecla = b.querySelector?.('kbd')?.textContent || '';
+        const texto = b.textContent || '';
+        return normalizar(tecla && texto.endsWith(tecla) ? texto.slice(0, -tecla.length) : texto) === 'pular animacao';
+      });
+      if (pular.length !== 1 || pular[0].disabled) return;
+      const giros = numeroPickup(cabine.querySelector?.('.sl-led span:nth-child(2) b')?.textContent);
+      let tentativa = pickupSessao.salto;
+      if (!tentativa || tentativa.giros !== giros) tentativa = pickupSessao.salto = { giros, quantidade: 0, ultima: 0 };
+      const agora = Date.now();
+      if (tentativa.quantidade < 3 && (!tentativa.quantidade || agora - tentativa.ultima >= 400)) {
+        tentativa.quantidade++; tentativa.ultima = agora; pular[0].click();
+      }
+      return;
+    }
+    pickupSessao.salto = null;
+    if (!carteira) return;
     const girar = botoes.find((b) => /^girar\s*·\s*[\d.,\s]+[kmb]?\s*₽/i.test(normalizar(b.textContent)));
     const sair = botoes.find((b) => normalizar(b.textContent) === 'sair');
     const valor = numeroPickup(/girar\s*·\s*([\d.,\s]+[kmb]?)\s*₽/i.exec(girar?.textContent || '')?.[1], 'superior');
@@ -167,7 +184,7 @@ function observarModalPickup(modal, carteira) {
     }
     return;
   }
-  if (pickupSessao.tipo !== 'loja' || !modal.classList.contains('shop-modal')) return;
+  if (!carteira || pickupSessao.tipo !== 'loja' || !modal.classList.contains('shop-modal')) return;
   const cartoes = [...modal.querySelectorAll('.cards > button.card')];
   if (cartoes.length !== 4) return;
   const dados = cartoes.map((cartao) => {

@@ -20,4 +20,6 @@ O DOM do jogo é externo e pode mudar sem aviso. Não há serviço ou banco pró
 
 O Auto Pickup possui ativação separada em memória. A decisão de elegibilidade e as estimativas de gasto são puras; o adaptador lê o aviso e a carteira, emite eventos de teclado e acompanha as telas do cassino e da loja que ele mesmo abriu.
 
+Durante um giro no cassino, o adaptador identifica o botão de pular animação e tenta acioná-lo; o próximo giro continua condicionado à decisão de gasto.
+
 Quando ativo, o botão do Auto Pickup também mostra a preferência calculada pela mesma regra de gasto usada no mapa. Nos modais próprios, indica que está avaliando itens ou giro.

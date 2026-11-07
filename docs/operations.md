@@ -29,4 +29,4 @@ O botão informa qual alternativa paga a estratégia prefere procurar; se não c
 
 Na loja, o script compra os itens disponíveis do primeiro lote quando o reconhece e o saldo o cobre. Antes de renovar, estima o custo do próximo estoque pelos preços e raridades observados, além do preço da renovação; volta a comparar os preços reais depois de renovar. A estimativa não antecipa quais itens aparecerão e ainda precisa de confirmação no jogo.
 
-O cassino tenta novamente cliques ignorados, até três vezes por estado e com intervalo mínimo de 800 ms; não tenta durante a animação. Preços observados na loja são usados temporariamente na comparação, mas podem se tornar desatualizados antes de expirar. O fluxo precisa de teste em jogo.
+O cassino tenta novamente cliques de giro ignorados, até três vezes por estado e com intervalo mínimo de 800 ms. Durante a animação, tenta apenas o botão identificado de pular animação, até três vezes com intervalo mínimo de 400 ms. Preços observados na loja são usados temporariamente na comparação, mas podem se tornar desatualizados antes de expirar. O fluxo precisa de teste em jogo.
