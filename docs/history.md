@@ -2,7 +2,7 @@
 
 ## 2026-11-06
 
-Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.12` em `scripts/gerar-userscript.mjs`.
+Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.13` em `scripts/gerar-userscript.mjs`.
 
 O repositório foi publicado inicialmente com Gitflow e depois passou a trabalhar diretamente na `main`, por decisão do mantenedor.
 
@@ -40,4 +40,6 @@ O fallback passou a melhorar itens já possuídos fora da build antes de gastar 
 
 Foram adicionados testes para o ataque inicial fora da build, confirmando que a lógica existente escolhe sua melhoria depois das opções do plano. O jogo real ainda precisa ser testado.
 
-Foi adicionado um primeiro estágio do Auto Pickup para alguns rótulos gratuitos, com controle independente e desligado ao iniciar. Há testes simulados; o jogo real ainda precisa ser testado. A comparação entre gastos e a automação da loja e do cassino continuam pendentes.
+Foi adicionado um primeiro estágio do Auto Pickup para alguns rótulos gratuitos, com controle independente e desligado ao iniciar. Naquele estágio, a comparação entre gastos e a automação da loja e do cassino ainda não haviam sido implementadas.
+
+A etapa seguinte adicionou uma estimativa para comparar Pokébola, cassino e loja, além de acompanhamento de lotes e giros. As probabilidades e custos de referência foram examinados no código público do jogo; HTML da carteira e das telas foi fornecido pelo usuário. A estratégia é aproximada, tem testes simulados e ainda não foi validada em jogo.

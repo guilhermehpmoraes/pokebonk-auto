@@ -11,6 +11,32 @@ export function decidirPickup(texto) {
   return gratuitos.includes(texto) ? { acao: 'interagir' } : { acao: 'aguardar' };
 }
 
+// Estimativas de custo por item: a Pokébola tem bônus pela escolha entre ofertas;
+// no cassino 0,194 item/giro e retorno médio de 25% são valores sem sorte.
+export function decidirGasto({ saldo, bola, giro, lojaEstimada }) {
+  if (![saldo, bola].every((n) => Number.isFinite(n) && n >= 0) || bola === 0) return 'aguardar';
+  const custos = [{ tipo: 'bola', custo: bola / 1.3, acessivel: saldo >= bola }];
+  if (Number.isFinite(giro) && giro > 0) custos.push({ tipo: 'cassino', custo: giro * 0.75 / 0.194 * 1.3, acessivel: saldo >= giro });
+  if (Number.isFinite(lojaEstimada) && lojaEstimada > 0) custos.push({ tipo: 'loja', custo: lojaEstimada, acessivel: saldo >= lojaEstimada * 4 });
+  custos.sort((a, b) => a.custo - b.custo);
+  // Não desvia o dinheiro para a segunda opção só porque a melhor não cabe no saldo.
+  return custos[0].acessivel ? custos[0].tipo : 'aguardar';
+}
+
+export function decidirLoteLoja({ saldo, precos, vendidos, bola, giro, renovacao = 0 }) {
+  if (!Number.isFinite(saldo) || !Number.isFinite(bola) || bola <= 0 || !Number.isFinite(renovacao) || renovacao < 0 ||
+      !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length !== 4 || vendidos.length !== 4 ||
+      vendidos.some((v) => typeof v !== 'boolean') || precos.some((p, i) => !vendidos[i] && (!Number.isFinite(p) || p <= 0))) return 'aguardar';
+  const restantes = precos.filter((_, i) => !vendidos[i]);
+  if (!restantes.length) return 'concluido';
+  const total = restantes.reduce((a, b) => a + b, 0);
+  if (saldo < total) return 'aguardar';
+  const custoUnitario = (total + renovacao) / restantes.length;
+  const alternativas = [bola / 1.3];
+  if (Number.isFinite(giro) && giro > 0) alternativas.push(giro * 0.75 / 0.194 * 1.3);
+  return custoUnitario <= Math.min(...alternativas) ? 'comprar' : 'sair';
+}
+
 export function decidir(tela, configuracao = {}, aleatorio = Math.random) {
   const opcoes = tela.opcoes ?? [];
   const maiorRaridade = (lista) => {

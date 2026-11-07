@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.12
+// @version      0.2.13
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -22,6 +22,32 @@ function decidirPickup(texto) {
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
   ];
   return gratuitos.includes(texto) ? { acao: 'interagir' } : { acao: 'aguardar' };
+}
+
+// Estimativas de custo por item: a Pokébola tem bônus pela escolha entre ofertas;
+// no cassino 0,194 item/giro e retorno médio de 25% são valores sem sorte.
+function decidirGasto({ saldo, bola, giro, lojaEstimada }) {
+  if (![saldo, bola].every((n) => Number.isFinite(n) && n >= 0) || bola === 0) return 'aguardar';
+  const custos = [{ tipo: 'bola', custo: bola / 1.3, acessivel: saldo >= bola }];
+  if (Number.isFinite(giro) && giro > 0) custos.push({ tipo: 'cassino', custo: giro * 0.75 / 0.194 * 1.3, acessivel: saldo >= giro });
+  if (Number.isFinite(lojaEstimada) && lojaEstimada > 0) custos.push({ tipo: 'loja', custo: lojaEstimada, acessivel: saldo >= lojaEstimada * 4 });
+  custos.sort((a, b) => a.custo - b.custo);
+  // Não desvia o dinheiro para a segunda opção só porque a melhor não cabe no saldo.
+  return custos[0].acessivel ? custos[0].tipo : 'aguardar';
+}
+
+function decidirLoteLoja({ saldo, precos, vendidos, bola, giro, renovacao = 0 }) {
+  if (!Number.isFinite(saldo) || !Number.isFinite(bola) || bola <= 0 || !Number.isFinite(renovacao) || renovacao < 0 ||
+      !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length !== 4 || vendidos.length !== 4 ||
+      vendidos.some((v) => typeof v !== 'boolean') || precos.some((p, i) => !vendidos[i] && (!Number.isFinite(p) || p <= 0))) return 'aguardar';
+  const restantes = precos.filter((_, i) => !vendidos[i]);
+  if (!restantes.length) return 'concluido';
+  const total = restantes.reduce((a, b) => a + b, 0);
+  if (saldo < total) return 'aguardar';
+  const custoUnitario = (total + renovacao) / restantes.length;
+  const alternativas = [bola / 1.3];
+  if (Number.isFinite(giro) && giro > 0) alternativas.push(giro * 0.75 / 0.194 * 1.3);
+  return custoUnitario <= Math.min(...alternativas) ? 'comprar' : 'sair';
 }
 
 function decidir(tela, configuracao = {}, aleatorio = Math.random) {
@@ -217,6 +243,10 @@ document.body.appendChild(configuracao);
 let pickupAtivo = false;
 let ultimoPickup = '';
 let pickupLiberado = true;
+let pickupSessao = null;
+let pickupAcao = null;
+let custoRenovacao = 0;
+let loteEmCurso = false;
 const botaoPickup = document.createElement('button');
 botaoPickup.type = 'button';
 botaoPickup.textContent = 'Auto Pickup: desligado';
@@ -225,23 +255,115 @@ document.body.appendChild(botaoPickup);
 botaoPickup.addEventListener('click', () => {
   pickupAtivo = !pickupAtivo;
   ultimoPickup = '';
-  botaoPickup.textContent = pickupAtivo ? 'Auto Pickup: ligado (gratuitos)' : 'Auto Pickup: desligado';
+  pickupSessao = null; pickupAcao = null; custoRenovacao = 0; loteEmCurso = false;
+  botaoPickup.textContent = pickupAtivo ? 'Auto Pickup: ligado' : 'Auto Pickup: desligado';
   agendar();
 });
 
+function numeroPickup(texto) {
+  const valor = String(texto ?? '').trim();
+  if (!/^\d{1,3}(?:[.,\s]\d{3})*$|^\d+$/.test(valor)) return null;
+  return Number(valor.replace(/[.,\s]/g, ''));
+}
+function carteiraPickup() {
+  const wallet = document.querySelector?.('#hud .wallet');
+  if (!wallet || !wallet.getClientRects().length) return null;
+  const ler = (seletor) => {
+    const chip = wallet.querySelector(seletor);
+    return chip && chip.getClientRects().length ? numeroPickup(chip.querySelector('em')?.textContent) : null;
+  };
+  const zona = /\bzona\s+(\d+)\s*\/\s*3\b/.exec(normalizar(document.querySelector('#hud .ht-zone')?.textContent));
+  const escala = zona && Number(zona[1]) >= 1 && Number(zona[1]) <= 3 ? 2.2 ** (Number(zona[1]) - 1) : null;
+  if (ler('.wl-shop') !== null && !escala) return null;
+  return { saldo: numeroPickup(wallet.dataset.g), bola: ler('.wl-ball'), giro: ler('.wl-slots'),
+    lojaEstimada: ler('.wl-shop') !== null && escala ? 130 * escala : null };
+}
+function acaoPickup(botao, assinatura) {
+  if (!botao || botao.disabled || pickupAcao === assinatura) return;
+  pickupAcao = assinatura;
+  botao.click();
+}
+function observarModalPickup(modal, carteira) {
+  if (!pickupSessao || !carteira || Date.now() - pickupSessao.inicio < 400) return;
+  if (pickupSessao.tipo === 'cassino' && modal.querySelector('.sl-cab')) {
+    const cabine = modal.querySelector('.sl-cab');
+    if (cabine.classList.contains('spinning')) return;
+    const botoes = [...modal.querySelectorAll('.actions button')];
+    const girar = botoes.find((b) => /^girar\s*·\s*[\d.,\s]+\s*₽/i.test(normalizar(b.textContent)));
+    const sair = botoes.find((b) => normalizar(b.textContent) === 'sair');
+    const valor = numeroPickup(/girar\s*·\s*([\d.,\s]+)\s*₽/i.exec(girar?.textContent || '')?.[1]);
+    const saldo = numeroPickup(/^\s*([\d.,\s]+)\s*₽\s*$/.exec(modal.querySelector('.sl-gold')?.textContent || '')?.[1]);
+    if (!girar || !sair || valor === null || saldo === null) return;
+    const decisao = decidirGasto({ ...carteira, saldo, giro: valor });
+    if (decisao === 'aguardar') { acaoPickup(sair, `sair-cassino:${valor}`); return; }
+    if (decisao !== 'cassino') { acaoPickup(sair, `sair-cassino:${valor}`); return; }
+    acaoPickup(girar, `girar:${valor}:${saldo}`);
+    return;
+  }
+  if (pickupSessao.tipo !== 'loja' || !modal.classList.contains('shop-modal')) return;
+  const cartoes = [...modal.querySelectorAll('.cards > button.card')];
+  if (cartoes.length !== 4) return;
+  const dados = cartoes.map((cartao) => {
+    const preco = cartao.querySelector('.price');
+    const vendido = preco?.classList.contains('sold');
+    const capacidade = /(?:voce tem)\s*(\d+)\s*\/\s*(\d+)/.exec(normalizar(cartao.querySelector('.cap')?.textContent));
+    const valor = numeroPickup(/^\s*([\d.,\s]+)\s*₽\s*$/.exec(preco?.textContent || '')?.[1]);
+    return { vendido, valor, capacidade, cartao };
+  });
+  if (dados.some((d) => typeof d.vendido !== 'boolean' || !d.capacidade || (!d.vendido && (d.valor === null || Number(d.capacidade[1]) >= Number(d.capacidade[2]))))) return;
+  const saldo = numeroPickup(/·\s*([\d.,\s]+)\s*₽\s*$/.exec(modal.querySelector('h1')?.textContent || '')?.[1]);
+  if (saldo === null) return;
+  const resultado = decidirLoteLoja({ saldo, bola: carteira.bola, giro: carteira.giro, precos: dados.map((d) => d.valor), vendidos: dados.map((d) => d.vendido), renovacao: custoRenovacao });
+  const assinatura = dados.map((d) => `${d.cartao.querySelector('h3')?.textContent}:${d.vendido}:${d.valor}`).join('|');
+  if (resultado === 'comprar' || (loteEmCurso && resultado === 'sair')) {
+    const proximo = dados.find((d) => !d.vendido);
+    loteEmCurso = true;
+    acaoPickup(proximo.cartao, `comprar:${assinatura}`);
+    return;
+  }
+  if (resultado === 'concluido') {
+    loteEmCurso = false;
+    const renovar = modal.querySelector('button.shop-reroll');
+    const valor = numeroPickup(/·\s*([\d.,\s]+)\s*₽/.exec(renovar?.textContent || '')?.[1]);
+    const custoPrevisto = carteira.lojaEstimada;
+    if (valor !== null && custoPrevisto && saldo >= valor + custoPrevisto * 4 &&
+        decidirGasto({ ...carteira, saldo, lojaEstimada: custoPrevisto + valor / 4 }) === 'loja' && !renovar.disabled) {
+      custoRenovacao = valor;
+      acaoPickup(renovar, `renovar:${assinatura}:${valor}`);
+      return;
+    }
+  }
+  const sair = modal.querySelector('button.shop-exit');
+  acaoPickup(sair, `sair-loja:${assinatura}:${saldo}`);
+}
 function observarPickup() {
   if (!pickupAtivo || modalAberto) return;
   if (document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')) return;
   const visiveis = (seletor) => [...document.querySelectorAll(seletor)].filter((el) => el.getClientRects().length);
-  if (visiveis('.modal').length) return;
+  const modais = visiveis('.modal');
+  if (modais.length) {
+    if (modais.length === 1) observarModalPickup(modais[0], carteiraPickup());
+    return;
+  }
+  if (pickupSessao && Date.now() - pickupSessao.inicio > 3000) { pickupSessao = null; pickupAcao = null; custoRenovacao = 0; loteEmCurso = false; }
+  if (pickupSessao) return;
   const prompts = visiveis('#hud .prompt');
   if (prompts.length !== 1) { ultimoPickup = ''; return; }
   const prompt = prompts[0];
   const tecla = prompt.querySelector('kbd')?.textContent?.trim();
   const texto = normalizar(prompt.textContent.slice(tecla?.length || 0));
-  if (decidirPickup(texto).acao !== 'interagir' || tecla !== 'E') { ultimoPickup = ''; return; }
+  let tipo = null;
+  const carteira = carteiraPickup();
+  const preferencia = carteira ? decidirGasto(carteira) : 'aguardar';
+  const precoBola = /^abrir poke bola · ([\d.,\s]+) ₽$/.exec(texto);
+  const precoGiro = /^caca-niqueis · ([\d.,\s]+) ₽ por giro$/.exec(texto);
+  if (precoBola && numeroPickup(precoBola[1]) === carteira?.bola && preferencia === 'bola') tipo = 'bola';
+  if (precoGiro && numeroPickup(precoGiro[1]) === carteira?.giro && preferencia === 'cassino') tipo = 'cassino';
+  if (texto === 'falar com o meowth (loja)' && preferencia === 'loja') tipo = 'loja';
+  if (decidirPickup(texto).acao !== 'interagir' && !tipo || tecla !== 'E') { ultimoPickup = ''; return; }
   if (!pickupLiberado || ultimoPickup === texto) return;
   ultimoPickup = texto;
+  if (tipo === 'cassino' || tipo === 'loja') { pickupSessao = { tipo, inicio: Date.now() }; pickupAcao = null; custoRenovacao = 0; loteEmCurso = false; }
   pickupLiberado = false;
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', code: 'KeyE', bubbles: true }));
   setTimeout(() => {

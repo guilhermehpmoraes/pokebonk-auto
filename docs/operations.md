@@ -23,4 +23,4 @@ O aviso de item fora da build permanece na aba e pode sobreviver ao recarregamen
 
 As escolhas e substituições de relíquias têm testes simulados. O HTML real pode mudar; não há confirmação de teste no jogo para essa integração. Substituições afetam a partida atual.
 
-O Auto Pickup inicia desligado independentemente do Auto Select. Ele interage com alguns objetos gratuitos, inclusive os que aumentam a dificuldade. Não automatiza compras, cassino ou portais; eventos de teclado e reconhecimento precisam de teste manual no jogo.
+O Auto Pickup inicia desligado independentemente do Auto Select. Ele interage com alguns objetos gratuitos, inclusive os que aumentam a dificuldade, e pode gastar dinheiro automaticamente na Pokébola, na loja e no cassino. Não automatiza portais. A estratégia usa estimativas e não garante a melhor decisão; eventos de teclado, cliques e reconhecimento precisam de teste manual no jogo.

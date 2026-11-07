@@ -31,4 +31,4 @@ No painel de prioridades, `abrirPrioridades` permite trocar entre cinco presets,
 
 Os seletores e etapas são dependências da interface real; a simulação em `tests/integracao.test.mjs` não confirma o comportamento do jogo.
 
-O Auto Pickup independente observa o aviso de proximidade. Com a tecla E identificada e sem modal aberto, emite um pressionamento para textos gratuitos explicitamente reconhecidos; evita repetição enquanto o mesmo aviso permanecer visível. Qualquer outro texto, incluindo portais e opções pagas, permanece manual.
+O Auto Pickup independente observa o aviso de proximidade. Com a tecla E identificada e sem modal aberto, emite um pressionamento para textos gratuitos explicitamente reconhecidos; evita repetição enquanto o mesmo aviso permanecer visível. Para Pokébola e cassino compara também o preço do aviso com o HUD. Entre as alternativas pagas, escolhe pela estimativa documentada em produto; na loja confere o lote real antes de comprar ou renovar e no cassino reavalia antes de cada giro. Só assume o controle de lojas e cassinos que ele próprio abriu. Portais e avisos desconhecidos permanecem manuais.

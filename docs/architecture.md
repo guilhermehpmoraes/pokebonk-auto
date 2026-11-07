@@ -18,4 +18,4 @@ Para banimento de kit, o adaptador tenta ler os módulos do jogo carregados na m
 
 O DOM do jogo é externo e pode mudar sem aviso. Não há serviço ou banco próprio neste repositório. Veja [contratos](contracts.md) e [decisões](decisions/README.md).
 
-O Auto Pickup possui ativação separada em memória. A decisão de elegibilidade é pura e o adaptador verifica o aviso de proximidade antes de emitir eventos de teclado. Despesas não são automatizadas nesta etapa.
+O Auto Pickup possui ativação separada em memória. A decisão de elegibilidade e as estimativas de gasto são puras; o adaptador lê o aviso e a carteira, emite eventos de teclado e acompanha as telas do cassino e da loja que ele mesmo abriu.
