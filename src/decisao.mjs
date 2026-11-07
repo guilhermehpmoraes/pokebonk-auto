@@ -11,7 +11,8 @@ export function decidirPickup(texto) {
     'altar de gengar · +dificuldade, +xp e +saque',
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
   ];
-  return gratuitos.includes(texto) ? { acao: 'interagir' } : { acao: 'aguardar' };
+  const jaula = /^libertar\s+\S(?:.*\S)?\s+·\s+30\s+₽$/.test(texto);
+  return gratuitos.includes(texto) || jaula ? { acao: 'interagir' } : { acao: 'aguardar' };
 }
 
 // Estimativas de custo por item: a Pokébola tem bônus pela escolha entre ofertas;

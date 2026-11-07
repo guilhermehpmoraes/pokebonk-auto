@@ -33,6 +33,11 @@ test('pickup aceita apenas interações gratuitas identificadas e bloqueia porta
   }
 });
 
+test('liberta qualquer Pokémon da jaula por 30 ₽, mas aguarda valores ou avisos diferentes', () => {
+  for (const texto of ['libertar pupitar · 30 ₽', 'libertar mr. mime · 30 ₽', 'libertar nidoran♀ · 30 ₽']) assert.equal(decidirPickup(texto).acao, 'interagir');
+  for (const texto of ['libertar pupitar · 31 ₽', 'libertar pupitar · 300 ₽', 'libertar · 30 ₽', 'libertar pupitar · 30 ₽ extra']) assert.equal(decidirPickup(texto).acao, 'aguardar');
+});
+
 test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecidas', () => {
   const controles = [], eventos = [], timers = [];
   let texto = 'Acordar o Snorlax', tecla = 'E', modal = false;
@@ -63,6 +68,8 @@ test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecid
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
   texto = 'Magnemite: atrai toda a experiência'; controles[2].click(); controles[2].click(); executar(); executar();
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
+  texto = 'Libertar Pupitar · 30 ₽'; controles[2].click(); controles[2].click(); executar(); executar();
+  assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
 });
 
 test('indicador mantém o alvo no trajeto e permite trocá-lo manualmente', () => {

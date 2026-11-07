@@ -22,6 +22,8 @@ O painel oferece cinco presets de status com nomes editáveis. Cada preset guard
 
 O Auto Pickup tem ativação própria, começa desligado e tenta interagir ao detectar os textos conhecidos de Poké Bola gratuita ou amaldiçoada, Great Ball gratuita, Snorlax, Rock Smash, coleta de Oran Berries, Magnemite, altar de Gengar e altar de desafio. Portais e interações desconhecidas continuam manuais.
 
+Jaulas com o aviso **Libertar [Pokémon] · 30 ₽** também são acionadas ao passar, independentemente do nome e da sugestão de destino. Apesar de seguirem o mesmo fluxo das interações gratuitas, gastam 30 ₽; valores diferentes não são reconhecidos automaticamente.
+
 Para sugerir um destino, compara custos estimados por item. A Pokébola recebe um bônus de 30% por permitir escolha; o cassino usa 0,194 item por giro e retorno de 25% do preço, médias calculadas sem bônus de sorte, além de penalidade de 30% pelo risco. O preço médio inicial da loja é estimado em 130 ₽ na zona 1, multiplicado por 2,2 por zona. Após observar preços de itens na loja, usa essa estimativa observada também no mapa por até 60 segundos na mesma zona. São heurísticas, não garantia de fortalecer mais a build: sorte, qualidade dos itens, saldo e modificadores reais podem alterar o resultado.
 
 A sugestão permanece até a interação sugerida ser concluída, mesmo se os custos mudarem no trajeto ou outra opção paga for usada no caminho. **Trocar sugestão** permite escolher outra. Com dados reconhecidos e saldo suficiente, o pickup também interage com Pokébolas, lojas e cassinos encontrados fora da sugestão. Após uma visita, não repete a mesma interação paga enquanto seu aviso continuar próximo; a loja deixa de ser sugerida por 30 segundos após a saída.
