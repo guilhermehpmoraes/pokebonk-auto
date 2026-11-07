@@ -55,6 +55,12 @@ test('pickup aceita apenas interações gratuitas identificadas e bloqueia porta
   }
 });
 
+test('chama o Alfa apenas com o aviso exato de encerramento das ondas', () => {
+  assert.equal(decidirPickup('chamar o alfa agora (encerra as ondas)').acao, 'interagir');
+  assert.equal(decidirPickup('chamar o alfa agora (encerra as ondas) e entrar no portal').acao, 'aguardar');
+  assert.equal(decidirPickup('chamar o alfa agora').acao, 'aguardar');
+});
+
 test('liberta qualquer Pokémon da jaula pelo preço exibido', () => {
   for (const texto of ['libertar pupitar · 30 ₽', 'libertar mr. mime · 30 ₽', 'libertar nidoran♀ · 30 ₽']) assert.equal(decidirPickup(texto).acao, 'interagir');
   assert.equal(decidirPickup('libertar sandslash · 50 ₽').custoJaula, 50);
@@ -149,6 +155,8 @@ test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecid
   assert.equal(eventos.length, 16);
   texto = 'Lançar Poké Bola'; controles[2].click(); controles[2].click(); executar(); executar();
   assert.equal(eventos.length, 18);
+  texto = 'Chamar o Alfa agora (encerra as ondas)'; controles[2].click(); controles[2].click(); executar(); executar();
+  assert.equal(eventos.length, 20);
 });
 
 test('confere preços completos com a carteira bruta quando o HUD abrevia os valores', () => {

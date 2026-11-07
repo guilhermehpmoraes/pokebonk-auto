@@ -71,3 +71,5 @@ O usuário relatou que uma Pokébola deixou de ser aberta com aviso de 14498 ₽
 A estratégia passou a priorizar Pokébolas e reservar o preço de uma próxima ao avaliar lotes e giros, com repetição até o limite heurístico de custo. A retomada após recompensa reconhecida tem teste simulado, mas precisa de validação no jogo; não há contagem automática das Pokébolas restantes.
 
 Na versão 0.2.27 foram adicionados painel com contagem de marcadores, projeção de reserva, Friend Ball e comparação de suportes Alfa. Jaulas de preço variável e Lançar Poké Bola passaram a ser reconhecidos. O usuário relatou falha de retomada após prêmio no cassino; foi acrescentado reconhecimento do prêmio de item único e uma espera entre telas. Tudo requer validação na partida real.
+
+O aviso fornecido pelo usuário para chamar o Alfa e encerrar as ondas passou a ser reconhecido pelo Auto Pickup. Há teste de decisão e simulação de teclado; falta validação em partida.

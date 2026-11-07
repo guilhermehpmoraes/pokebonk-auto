@@ -20,7 +20,7 @@ Relíquias usam maior raridade e, em caso de empate, o atributo mais alto no pre
 
 O painel oferece cinco presets de status com nomes editáveis. Cada preset guarda uma ordem independente; a aba selecionada determina a prioridade usada nas bênçãos. É possível copiar a ordem de outro preset para o ativo, mediante confirmação, preservando o nome do destino. Uma alça e botões movem cada status uma posição ou diretamente ao topo ou ao fim. As configurações ficam salvas no navegador. Na primeira utilização, a ordem anterior é usada como ponto de partida para os cinco presets.
 
-O Auto Pickup tem ativação própria, começa desligado e tenta interagir ao detectar os textos conhecidos de Poké Bola gratuita ou amaldiçoada, Great Ball gratuita, Snorlax, Rock Smash, coleta de Oran Berries, Magnemite, Ovo Pokémon, altar de Gengar, altar de desafio e altar amaldiçoado. O altar amaldiçoado concede um item raro em troca de uma maldição. Portais e interações desconhecidas continuam manuais.
+O Auto Pickup tem ativação própria, começa desligado e tenta interagir ao detectar os textos conhecidos de Poké Bola gratuita ou amaldiçoada, Great Ball gratuita, Snorlax, Rock Smash, coleta de Oran Berries, Magnemite, Ovo Pokémon, altar de Gengar, altar de desafio e altar amaldiçoado. O aviso **Chamar o Alfa agora (encerra as ondas)** também é acionado ao passar. O altar amaldiçoado concede um item raro em troca de uma maldição. Portais e interações desconhecidas continuam manuais.
 
 No Rugido de Rhydon, o pickup identifica o aviso inicial e os estágios 1/3 e 2/3 para tentar completar três ativações no total. Cada rugido fortalece o guardião e melhora a recompensa; ao chegar ao limite, o jogo mostra outro aviso que não é acionado pelo script.
 

@@ -31,7 +31,7 @@ No painel de prioridades, `abrirPrioridades` permite trocar entre cinco presets,
 
 Os seletores e etapas são dependências da interface real; a simulação em `tests/integracao.test.mjs` não confirma o comportamento do jogo.
 
-O Auto Pickup observa o aviso de proximidade e interage apenas com textos identificados. A sugestão prioriza Pokébolas, sem bloquear outras interações reconhecidas. Na loja, compra lotes inteiros e renova repetidamente enquanto viáveis; no cassino, avalia cada giro e tenta retomar após uma recompensa reconhecida. Preserva o custo estimado das Pokébolas pagas restantes que cabem no saldo atual e usa o dobro do custo estimado dela como limite por item. Portais e avisos desconhecidos permanecem manuais.
+O Auto Pickup observa o aviso de proximidade e interage apenas com textos identificados, inclusive para chamar o Alfa e encerrar as ondas. A sugestão prioriza Pokébolas, sem bloquear outras interações reconhecidas. Na loja, compra lotes inteiros e renova repetidamente enquanto viáveis; no cassino, avalia cada giro e tenta retomar após uma recompensa reconhecida. Preserva o custo estimado das Pokébolas pagas restantes que cabem no saldo atual e usa o dobro do custo estimado dela como limite por item. Portais e avisos desconhecidos permanecem manuais.
 
 A conferência usa o preço bruto da carteira quando o HUD exibe um valor abreviado; sem preço bruto, só aceita valores exibidos por inteiro. Um preço incompatível ou saldo insuficiente mantém a interação em espera.
 
