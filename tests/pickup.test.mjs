@@ -56,6 +56,35 @@ test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecid
   assert.equal(eventos.length, 2);
 });
 
+test('indicador acompanha a preferência mesmo longe dos objetos e informa espera', () => {
+  let saldo = 1000, bola = 32, giro = 40, loja = 40, tarefa, intervalo;
+  const controles = [];
+  const chip = (valor) => ({ getClientRects: () => [1], querySelector: () => ({ textContent: String(valor) }) });
+  const wallet = { getClientRects: () => [1], get dataset() { return { g: String(saldo) }; },
+    querySelector(s) { return s === '.wl-ball' ? chip(bola) : s === '.wl-slots' ? chip(giro) : s === '.wl-shop' ? chip(loja) : null; } };
+  const document = { body: { appendChild: (el) => controles.push(el) },
+    createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }),
+    querySelector(s) { if (s === '#hud .wallet') return wallet; if (s === '#hud .ht-zone') return { textContent: 'Zona 1/3' }; return null; },
+    querySelectorAll: () => [] };
+  class MutationObserver { observe() {} }
+  vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
+    document, localStorage: { getItem: () => null }, MutationObserver,
+    setTimeout(fn) { tarefa = fn; return 1; }, setInterval(fn) { intervalo = fn; }, Date, Math,
+  });
+  const pickup = controles[2];
+  assert.equal(pickup.textContent, 'Auto Pickup: desligado');
+  pickup.click(); tarefa();
+  assert.match(pickup.textContent, /Ir atrás: Pokébola/);
+  bola = 400; intervalo(); tarefa();
+  assert.match(pickup.textContent, /Ir atrás: Loja do Meowth/);
+  giro = 20; intervalo(); tarefa();
+  assert.match(pickup.textContent, /Ir atrás: Cassino/);
+  saldo = 1; intervalo(); tarefa();
+  assert.match(pickup.textContent, /Aguardando dados ou saldo/);
+  pickup.click();
+  assert.equal(pickup.textContent, 'Auto Pickup: desligado');
+});
+
 test('auto pickup compra quatro itens e considera a renovação no próximo lote', () => {
   let tempo = 1000, saldo = 1600, atual = 'prompt', tarefa, intervalo;
   const controles = [], acoes = [], vendidos = [false, false, false, false];

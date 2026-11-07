@@ -14,7 +14,7 @@ node --test tests/*.test.mjs
 
 O gerador escreve `pokebonk-autoselect.user.js`. Os testes em `tests/decisao.test.mjs` cobrem decisões e `tests/integracao.test.mjs` simula um cenário de bênção; o navegador e o jogo real precisam de teste manual separado.
 
-`tests/pickup.test.mjs` verifica decisões de custo, reconhecimento e simulações do teclado, da loja e do cassino; não comprova que o jogo aceita os eventos nem que a estratégia seja ótima.
+`tests/pickup.test.mjs` verifica decisões de custo, o indicador de preferência, reconhecimento e simulações do teclado, da loja e do cassino; não comprova que o jogo aceita os eventos nem que a estratégia seja ótima.
 
 Ao mudar o script, incremente `@version` em `scripts/gerar-userscript.mjs`, gere o arquivo e inclua-o no commit. O gerenciador usa o endereço configurado no cabeçalho para consultar versões publicadas na `main`.
 
