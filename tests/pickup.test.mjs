@@ -118,6 +118,36 @@ test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecid
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
 });
 
+test('confere preços completos com a carteira bruta quando o HUD abrevia os valores', () => {
+  function simular({ aviso, bola, giro, bruto, saldo = 333400 }) {
+    const controles = [], eventos = [], tarefas = [];
+    const chip = (valor) => ({ getClientRects: () => [1], querySelector: () => ({ textContent: valor }) });
+    const carteira = { getClientRects: () => [1], dataset: { g: String(saldo), ...(bruto ? { k: bruto } : {}) },
+      querySelector(s) { if (s === '.wl-ball') return chip(bola); if (s === '.wl-slots') return chip(giro); if (s === '.wl-shop') return chip('273'); return null; } };
+    const prompt = { getClientRects: () => [1], textContent: `E${aviso}`, querySelector: () => ({ textContent: 'E' }) };
+    const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }),
+      querySelector(s) { if (s === '#hud .wallet') return carteira; if (s === '#hud .ht-zone') return { textContent: 'Zona 2/3' }; return null; },
+      querySelectorAll(s) { return s === '#hud .prompt' ? [prompt] : []; } };
+    class MutationObserver { observe() {} }
+    class KeyboardEvent { constructor(type) { this.type = type; } }
+    vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
+      document, localStorage: { getItem: () => null }, MutationObserver, KeyboardEvent,
+      window: { dispatchEvent(evento) { eventos.push(evento.type); } },
+      setTimeout(fn) { tarefas.push(fn); return tarefas.length; }, setInterval() {}, Date, Math,
+    });
+    const executar = () => { const pendentes = tarefas.splice(0); pendentes.forEach((fn) => fn()); };
+    controles[2].click(); executar(); executar();
+    return eventos;
+  }
+  const caso = { aviso: 'Abrir Poké Bola · 14498 ₽', bola: '14.4k', giro: '343', bruto: '333400|14498|343|273' };
+  assert.deepEqual(simular(caso), ['keydown', 'keyup']);
+  assert.deepEqual(simular({ ...caso, bruto: '333400|14499|343|273' }), []);
+  assert.deepEqual(simular({ ...caso, bruto: undefined }), []);
+  assert.deepEqual(simular({ ...caso, bruto: undefined, bola: '14498' }), ['keydown', 'keyup']);
+  assert.deepEqual(simular({ ...caso, saldo: 14497 }), []);
+  assert.deepEqual(simular({ aviso: 'Caça-níqueis · 14498 ₽ por giro', bola: '32', giro: '14.4k', bruto: '333400|32|14498|273' }), ['keydown', 'keyup']);
+});
+
 test('indicador mantém o alvo no trajeto e permite trocá-lo manualmente', () => {
   let saldo = 1000, bola = 32, giro = 40, loja = 40, tarefa, intervalo;
   const controles = [];

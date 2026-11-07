@@ -22,6 +22,8 @@ Os cenários do cassino incluem saldo abreviado, clique ignorado, botão de pula
 
 Os cenários de pickup também incluem sugestão estável durante o trajeto, troca manual, interações pagas fora da sugestão e prevenção de reabertura da loja.
 
+Os testes de preços incluem o aviso de 14498 ₽ com HUD abreviado em 14.4k, além de dados ausentes, divergentes e saldo insuficiente.
+
 Os cenários do Rugido de Rhydon cobrem os avisos 0, 1/3, 2/3 e esgotado, além de cliques ignorados e limite de tentativas.
 
 Ao mudar o script, incremente `@version` em `scripts/gerar-userscript.mjs`, gere o arquivo e inclua-o no commit. O gerenciador usa o endereço configurado no cabeçalho para consultar versões publicadas na `main`.

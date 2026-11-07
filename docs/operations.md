@@ -29,6 +29,8 @@ O altar amaldiçoado adiciona uma maldição em troca de um item raro. O Rugido 
 
 O botão informa a alternativa paga sugerida e a mantém no trajeto; **Trocar sugestão** permite escolher outra. O pickup também gasta ao encontrar as outras opções pagas, se as reconhecer e houver saldo. O cassino tenta um giro inicial mesmo quando não é a sugestão, e a loja compra o primeiro lote se o saldo cobrir os itens disponíveis. A indicação reflete uma estimativa, não garante que o objeto esteja próximo ou que a loja tenha itens vantajosos.
 
+Quando o preço no HUD estiver abreviado, a abertura de Pokébolas e a entrada no cassino dependem do preço bruto em `data-k` para conferir o aviso. Sem esse dado, o pickup aguarda em vez de adivinhar o preço.
+
 Na loja, o script compra os itens disponíveis do primeiro lote quando o reconhece e o saldo o cobre. Antes de renovar, estima o custo do próximo estoque pelos preços e raridades observados, além do preço da renovação; volta a comparar os preços reais depois de renovar. A estimativa não antecipa quais itens aparecerão e ainda precisa de confirmação no jogo.
 
 O cassino tenta novamente cliques de giro ignorados, até três vezes por estado e com intervalo mínimo de 800 ms. Durante a animação, tenta apenas o botão identificado de pular animação, até três vezes com intervalo mínimo de 400 ms. Preços observados na loja são usados temporariamente na comparação, mas podem se tornar desatualizados antes de expirar. O fluxo precisa de teste em jogo.

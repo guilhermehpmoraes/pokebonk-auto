@@ -2,7 +2,7 @@
 
 ## 2026-11-06
 
-Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.24` em `scripts/gerar-userscript.mjs`.
+Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.25` em `scripts/gerar-userscript.mjs`.
 
 O repositório foi publicado inicialmente com Gitflow e depois passou a trabalhar diretamente na `main`, por decisão do mantenedor.
 
@@ -65,3 +65,5 @@ O aviso de jaula por 30 ₽ fornecido pelo usuário foi incluído como interaç�
 Os avisos do Rugido de Rhydon e do altar amaldiçoado fornecidos pelo usuário foram incluídos no Auto Pickup. Os estágios subsequentes e o limite do Rugido foram consultados no código público do jogo. Ambos têm testes simulados e ainda precisam de confirmação em jogo.
 
 O aviso de coleta do Ovo Pokémon fornecido pelo usuário foi incluído no Auto Pickup, com contagem variável de derrotas e teste simulado. Ainda precisa de confirmação no jogo.
+
+O usuário relatou que uma Pokébola deixou de ser aberta com aviso de 14498 ₽ e HUD de 14.4k. A comparação anterior tratava o valor abreviado como 14400; o adaptador passou a usar o preço bruto da carteira, com fallback apenas para valor não abreviado. O cenário tem teste simulado e ainda precisa de confirmação em jogo.

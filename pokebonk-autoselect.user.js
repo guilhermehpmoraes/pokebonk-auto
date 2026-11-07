@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.24
+// @version      0.2.25
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -322,6 +322,11 @@ function carteiraPickup() {
     const chip = wallet.querySelector(seletor);
     return chip && chip.getClientRects().length ? numeroPickup(chip.querySelector('em')?.textContent) : null;
   };
+  const lerExato = (seletor) => {
+    const chip = wallet.querySelector(seletor);
+    const texto = chip && chip.getClientRects().length ? chip.querySelector('em')?.textContent?.trim() : '';
+    return texto && !/[kmb]/i.test(texto) ? numeroPickup(texto) : null;
+  };
   const zona = /\bzona\s+(\d+)\s*\/\s*3\b/.exec(normalizar(document.querySelector('#hud .ht-zone')?.textContent));
   const numeroZona = zona ? Number(zona[1]) : null;
   const escala = numeroZona >= 1 && numeroZona <= 3 ? 2.2 ** (numeroZona - 1) : null;
@@ -335,8 +340,12 @@ function carteiraPickup() {
   if (numeroZona) zonaPlanejamento = numeroZona;
   if (custoLojaObservado && (custoLojaObservado.zona !== numeroZona || Date.now() - custoLojaObservado.em > 60000 || Date.now() < custoLojaObservado.em)) custoLojaObservado = null;
   if (ler('.wl-shop') !== null && !escala) return null;
-  const bolaBruta = /^(\d+)\|(\d+)(?:\||$)/.exec(wallet.dataset.k || '');
-  return { saldo: numeroPickup(wallet.dataset.g), bola: ler('.wl-ball'), bolaBruta: bolaBruta ? numeroPickup(bolaBruta[2]) : null, giro: ler('.wl-slots'), zona: numeroZona,
+  const dadosBrutos = /^\d+\|(\d+|-)\|(\d+|-)(?:\||$)/.exec(wallet.dataset.k || '');
+  const bolaVisivel = ler('.wl-ball');
+  const giroVisivel = ler('.wl-slots');
+  const bolaBruta = bolaVisivel === null ? null : dadosBrutos ? numeroPickup(dadosBrutos[1]) : lerExato('.wl-ball');
+  const giroBruto = giroVisivel === null ? null : dadosBrutos ? numeroPickup(dadosBrutos[2]) : lerExato('.wl-slots');
+  return { saldo: numeroPickup(wallet.dataset.g), bola: bolaBruta ?? bolaVisivel, bolaBruta, giro: giroBruto ?? giroVisivel, giroBruto, zona: numeroZona,
     lojaEstimada: ler('.wl-shop') !== null && escala ? (custoLojaObservado?.valor ?? 130 * escala) : null };
 }
 function atualizarIndicadorPickup(texto) {
@@ -500,8 +509,8 @@ function observarPickup() {
   const precoGiro = /^caca-niqueis · ([\d.,\s]+[kmb]?) ₽ por giro$/.exec(texto);
   const encontro = precoBola ? 'bola' : precoGiro ? 'cassino' : texto === 'falar com o meowth (loja)' ? 'loja' : null;
   if (encontro !== ultimoEncontroPago) { ultimoEncontroPago = null; tentativasEncontro = 0; repetirEncontro = false; }
-  if (precoBola && numeroPickup(precoBola[1]) === carteira?.bola && carteira.saldo >= carteira.bola) tipo = 'bola';
-  if (precoGiro && numeroPickup(precoGiro[1]) === carteira?.giro && carteira.saldo >= carteira.giro) tipo = 'cassino';
+  if (precoBola && carteira?.bolaBruta !== null && carteira?.bolaBruta !== undefined && numeroPickup(precoBola[1]) === carteira.bolaBruta && carteira.saldo >= carteira.bolaBruta) tipo = 'bola';
+  if (precoGiro && carteira?.giroBruto !== null && carteira?.giroBruto !== undefined && numeroPickup(precoGiro[1]) === carteira.giroBruto && carteira.saldo >= carteira.giroBruto) tipo = 'cassino';
   if (encontro === 'loja' && carteira && Number.isFinite(carteira.saldo) && carteira.saldo > 0) tipo = 'loja';
   const decisaoLivre = decidirPickup(texto);
   if (decisaoLivre.acao !== 'interagir' && !tipo || tecla !== 'E') { ultimoPickup = ''; tentativaRhydon = null; return; }
