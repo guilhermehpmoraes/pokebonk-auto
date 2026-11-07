@@ -2,7 +2,7 @@
 
 ## 2026-11-06
 
-Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.19` em `scripts/gerar-userscript.mjs`.
+Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.20` em `scripts/gerar-userscript.mjs`.
 
 O repositório foi publicado inicialmente com Gitflow e depois passou a trabalhar diretamente na `main`, por decisão do mantenedor.
 
@@ -55,3 +55,5 @@ O usuário relatou uma loja que parou depois de uma compra, com saldo exibido co
 O usuário relatou que o cassino ficou sem girar, com `19.5k` de saldo e giro de 34 ₽. A leitura de saldo abreviado já havia sido adicionada na versão anterior, mas não há confirmação de qual versão estava instalada no relato. Foram adicionadas tentativas limitadas para cliques ignorados e uso temporário dos custos observados na loja; o cenário foi simulado e ainda precisa de confirmação em jogo.
 
 Foi adicionada a tentativa de acionar o botão **Pular animação** nos giros do cassino. O fluxo foi testado em simulação e ainda precisa de confirmação no jogo.
+
+O aviso do Magnemite fornecido pelo usuário foi incluído entre as interações gratuitas, com teste simulado; ainda precisa de confirmação em jogo.

@@ -24,7 +24,7 @@ test('compra o lote reconhecido e acessível sem reavaliar a estratégia', () =>
 });
 
 test('pickup aceita apenas interações gratuitas identificadas e bloqueia portais e despesas', () => {
-  for (const texto of ['acordar o snorlax', 'rock smash', 'coletar oran berries', 'abrir poke bola amaldicoada (gratis... tem certeza?)', 'altar de gengar · +dificuldade, +xp e +saque', 'altar de desafio · invoca uma onda; se voce a derrotar, great ball']) {
+  for (const texto of ['acordar o snorlax', 'rock smash', 'coletar oran berries', 'magnemite: atrai toda a experiencia', 'abrir poke bola amaldicoada (gratis... tem certeza?)', 'altar de gengar · +dificuldade, +xp e +saque', 'altar de desafio · invoca uma onda; se voce a derrotar, great ball']) {
     assert.equal(decidirPickup(texto).acao, 'interagir');
   }
   for (const texto of ['entrar no portal', 'invocar o lendario', 'abrir poke bola · 32 ₽', 'falar com o meowth (loja)', 'caca-niqueis · 40 ₽ por giro', '']) {
@@ -60,6 +60,8 @@ test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecid
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
   texto = 'Coletar Oran Berries'; controles[2].click(); controles[2].click(); executar(); executar();
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
+  texto = 'Magnemite: atrai toda a experiência'; controles[2].click(); controles[2].click(); executar(); executar();
+  assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
 });
 
 test('indicador acompanha a preferência mesmo longe dos objetos e informa espera', () => {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.19
+// @version      0.2.20
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -20,6 +20,7 @@ function decidirPickup(texto) {
     'acordar o snorlax',
     'rock smash',
     'coletar oran berries',
+    'magnemite: atrai toda a experiencia',
     'altar de gengar · +dificuldade, +xp e +saque',
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
   ];

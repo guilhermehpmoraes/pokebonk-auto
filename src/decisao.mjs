@@ -7,6 +7,7 @@ export function decidirPickup(texto) {
     'acordar o snorlax',
     'rock smash',
     'coletar oran berries',
+    'magnemite: atrai toda a experiencia',
     'altar de gengar · +dificuldade, +xp e +saque',
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
   ];
