@@ -70,12 +70,12 @@ function identificarStatus(texto, registrar = true) {
 const painel = document.createElement('button');
 painel.type = 'button';
 painel.textContent = 'Auto Select: desligado';
-Object.assign(painel.style, { position: 'fixed', bottom: '8px', right: '8px', zIndex: '2147483647', padding: '8px', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer' });
+Object.assign(painel.style, { position: 'fixed', top: '40vh', left: '8px', zIndex: '2147483647', height: '30px', boxSizing: 'border-box', padding: '4px 8px', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer', fontSize: '12px' });
 document.body.appendChild(painel);
 const configuracao = document.createElement('button');
 configuracao.type = 'button';
 configuracao.textContent = 'Prioridade de status';
-Object.assign(configuracao.style, { position: 'fixed', bottom: '8px', right: '205px', zIndex: '2147483647', padding: '8px', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer' });
+Object.assign(configuracao.style, { position: 'fixed', top: 'calc(40vh + 34px)', left: '8px', zIndex: '2147483647', height: '30px', boxSizing: 'border-box', padding: '4px 8px', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer', fontSize: '12px' });
 document.body.appendChild(configuracao);
 let pickupAtivo = false;
 let ultimoPickup = '';
@@ -97,17 +97,35 @@ let ultimaTentativaFenda = 0;
 const botaoPickup = document.createElement('button');
 botaoPickup.type = 'button';
 botaoPickup.textContent = 'Auto Pickup: desligado';
-Object.assign(botaoPickup.style, { position: 'fixed', bottom: '48px', right: '8px', zIndex: '2147483647', padding: '8px', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer' });
+Object.assign(botaoPickup.style, { position: 'fixed', top: 'calc(40vh + 68px)', left: '8px', zIndex: '2147483647', height: '30px', maxWidth: 'calc(100vw - 16px)', boxSizing: 'border-box', padding: '4px 8px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer', fontSize: '12px' });
 document.body.appendChild(botaoPickup);
 const trocarAlvo = document.createElement('button');
 trocarAlvo.type = 'button';
 trocarAlvo.textContent = 'Trocar sugestão';
-Object.assign(trocarAlvo.style, { position: 'fixed', bottom: '88px', right: '8px', zIndex: '2147483647', padding: '6px 8px', background: '#39435f', color: 'white', border: '1px solid #888', borderRadius: '8px', cursor: 'pointer', display: 'none' });
+Object.assign(trocarAlvo.style, { position: 'fixed', top: 'calc(40vh + 102px)', left: '8px', zIndex: '2147483647', height: '30px', boxSizing: 'border-box', padding: '4px 8px', background: '#39435f', color: 'white', border: '1px solid #888', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', display: 'none' });
 document.body.appendChild(trocarAlvo);
 const painelMapa = document.createElement('div');
-Object.assign(painelMapa.style, { position: 'fixed', top: '150px', right: '8px', zIndex: '2147483646', padding: '8px', maxWidth: '210px', maxHeight: '40vh', overflow: 'auto', whiteSpace: 'pre-line', background: 'rgba(25, 28, 46, .9)', color: 'white', border: '1px solid #888', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', display: 'none' });
+Object.assign(painelMapa.style, { position: 'fixed', top: 'calc(40vh + 136px)', left: '8px', zIndex: '2147483646', padding: '8px', maxWidth: 'min(240px, calc(100vw - 16px))', maxHeight: 'max(48px, calc(60vh - 268px))', overflow: 'auto', whiteSpace: 'pre-line', background: 'rgba(25, 28, 46, .9)', color: 'white', border: '1px solid #888', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', display: 'none' });
 painelMapa.title = 'Clique para recolher ou expandir';
 document.body.appendChild(painelMapa);
+let ultimaPosicaoInterface = '';
+function reposicionarInterface() {
+  const altura = typeof window === 'undefined' ? null : window.innerHeight;
+  if (!Number.isFinite(altura) || altura <= 0) return;
+  const equipe = document.querySelector?.('#hud .hud-party');
+  const limiteEquipe = equipe?.getClientRects?.().length ? equipe.getBoundingClientRect?.().bottom : 0;
+  const inicio = Math.round(Math.max(altura * 0.4, Number.isFinite(limiteEquipe) ? limiteEquipe + 8 : 0));
+  const alturaMapa = Math.max(48, Math.round(altura - inicio - 268));
+  const assinatura = `${inicio}:${alturaMapa}`;
+  if (assinatura === ultimaPosicaoInterface) return;
+  ultimaPosicaoInterface = assinatura;
+  painel.style.top = `${inicio}px`;
+  configuracao.style.top = `${inicio + 34}px`;
+  botaoPickup.style.top = `${inicio + 68}px`;
+  trocarAlvo.style.top = `${inicio + 102}px`;
+  painelMapa.style.top = `${inicio + 136}px`;
+  painelMapa.style.maxHeight = `${alturaMapa}px`;
+}
 let mapaRecolhido = false, mapaInstancia = null, mapaHookInstalado = false, mapaCarregando = false, mapaUltimaBusca = 0;
 painelMapa.addEventListener('click', () => { mapaRecolhido = !mapaRecolhido; agendar(); });
 const nomesMapa = { chest: 'Pokébolas pagas', freechest: 'Pokébolas grátis', cursedchest: 'Pokébolas amaldiçoadas', altar: 'Altares Unown', cursed: 'Altares amaldiçoados', challenge: 'Desafios', cage: 'Jaulas', rock: 'Rock Smash', shroom: 'Cogumelos', slots: 'Cassinos', magnet: 'Magnemite', berry: 'Oran Berries', meowth: 'Lojas Meowth', greed: 'Altares Gengar', ditto: 'Ditto', hypno: 'Hypno', snorlax: 'Snorlax', fossil: 'Fósseis', rhydon: 'Rhydon', porygon: 'Porygon', dojo: 'Dojo', nest: 'Ovos', bill: 'Máquinas de Bill', boss: 'Guardião', portal: 'Portais', shrine: 'Santuário', bonk: 'Bonkoins', comet: 'Fragmentos de cometa' };
@@ -469,7 +487,7 @@ function atualizarAvisos() {
   if (!painelAvisos) {
     painelAvisos = document.createElement('aside');
     painelAvisos.setAttribute('aria-label', 'Itens fora da build');
-    painelAvisos.style.cssText = 'position:fixed;right:8px;bottom:58px;z-index:2147483647;width:min(360px,calc(100vw - 16px));max-height:38vh;overflow:auto;padding:12px;background:#38251c;color:#fff5e7;border:2px solid #f5a953;border-radius:12px;box-shadow:0 8px 28px #0008;font:13px system-ui,sans-serif';
+    painelAvisos.style.cssText = 'position:fixed;right:max(16px,12vw);top:16vh;z-index:2147483647;width:min(300px,calc(100vw - max(16px,12vw) - 32px));max-height:38vh;overflow:auto;padding:12px;background:#38251c;color:#fff5e7;border:2px solid #f5a953;border-radius:12px;box-shadow:0 8px 28px #0008;font:13px system-ui,sans-serif';
     painelAvisos.addEventListener('click', (event) => event.stopPropagation());
     painelAvisos.addEventListener('pointerdown', (event) => event.stopPropagation());
     document.body.appendChild(painelAvisos);
@@ -633,6 +651,7 @@ async function verificarKitSeguro(nome) {
   } catch (_) { return null; }
 }
 function observar() {
+  reposicionarInterface();
   verificarAvisoPendente();
   observarPickup();
   if (pickupAtivo && !modalAberto && observarAlfa()) return;

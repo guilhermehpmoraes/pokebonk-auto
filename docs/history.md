@@ -75,3 +75,5 @@ Na versão 0.2.27 foram adicionados painel com contagem de marcadores, projeçã
 O aviso fornecido pelo usuário para chamar o Alfa e encerrar as ondas passou a ser reconhecido pelo Auto Pickup. Há teste de decisão e simulação de teclado; falta validação em partida.
 
 Foi adicionada a tentativa automática de abrir Fendas e entrar nelas quando reconhecidas, a pedido do usuário. Os bloqueios foram examinados no código público do jogo e o fluxo tem teste simulado; a partida real ainda precisa de validação.
+
+Após relato de sobreposição do minimapa e do inventário, os controles e a lista foram deslocados para o lado esquerdo e o aviso de itens para uma posição superior. A disposição ainda precisa de confirmação visual em jogo.
