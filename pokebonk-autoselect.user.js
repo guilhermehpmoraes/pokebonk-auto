@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.23
+// @version      0.2.24
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -29,7 +29,8 @@ function decidirPickup(texto) {
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
   ];
   const jaula = /^libertar\s+\S(?:.*\S)?\s+·\s+30\s+₽$/.test(texto);
-  return gratuitos.includes(texto) || jaula ? { acao: 'interagir' } : { acao: 'aguardar' };
+  const ovo = /^pegar o ovo pokemon · choca apos \d+(?:[.,]\d{3})* derrotas$/.test(texto);
+  return gratuitos.includes(texto) || jaula || ovo ? { acao: 'interagir' } : { acao: 'aguardar' };
 }
 
 // Estimativas de custo por item: a Pokébola tem bônus pela escolha entre ofertas;

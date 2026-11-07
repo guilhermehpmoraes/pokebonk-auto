@@ -38,6 +38,11 @@ test('liberta qualquer Pokémon da jaula por 30 ₽, mas aguarda valores ou avis
   for (const texto of ['libertar pupitar · 31 ₽', 'libertar pupitar · 300 ₽', 'libertar · 30 ₽', 'libertar pupitar · 30 ₽ extra']) assert.equal(decidirPickup(texto).acao, 'aguardar');
 });
 
+test('reconhece ovo com contagem variável sem acionar avisos de ninho indisponível', () => {
+  for (const texto of ['pegar o ovo pokemon · choca apos 300 derrotas', 'pegar o ovo pokemon · choca apos 1.200 derrotas']) assert.equal(decidirPickup(texto).acao, 'interagir');
+  for (const texto of ['ninho vazio', 'ninho com um ovo · voce ja carrega um', 'pegar o ovo pokemon · choca apos derrotas', 'pegar o ovo pokemon · choca apos 300 derrotas e abrir portal']) assert.equal(decidirPickup(texto).acao, 'aguardar');
+});
+
 test('identifica somente os estágios disponíveis do Rugido de Rhydon', () => {
   const inicial = 'rugido de rhydon · guardiao mais forte e com escolta, +1 great ball por rugido';
   const etapa = (n) => `rugido de rhydon (${n}/3) · outro rugido: guardiao +30% de hp e +1 great ball`;
@@ -109,6 +114,8 @@ test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecid
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
   texto = 'Altar amaldiçoado · um item raro em troca de uma maldição'; controles[2].click(); controles[2].click(); executar(); executar();
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
+  texto = 'Pegar o Ovo Pokémon · choca após 300 derrotas'; controles[2].click(); controles[2].click(); executar(); executar();
+  assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
 });
 
 test('indicador mantém o alvo no trajeto e permite trocá-lo manualmente', () => {
