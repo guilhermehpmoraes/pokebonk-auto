@@ -2,15 +2,15 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { decidirPickup, decidirGasto, decidirLoteLoja } from '../src/decisao.mjs';
+import { decidirPickup, decidirGasto, decidirLoteLoja, gastoViavel } from '../src/decisao.mjs';
 
 test('estima custo e aguarda quando não pode bancar a alternativa preferida', () => {
   assert.equal(decidirGasto({ saldo: 100, bola: 32, giro: 40, lojaEstimada: 130 }), 'bola');
-  assert.equal(decidirGasto({ saldo: 1000, bola: 400, giro: 40, lojaEstimada: 130 }), 'loja');
-  assert.equal(decidirGasto({ saldo: 1000, bola: 400, giro: 20, lojaEstimada: 130 }), 'cassino');
+  assert.equal(decidirGasto({ saldo: 1000, bola: 400, giro: 40, lojaEstimada: 130, excluidos: ['bola'] }), 'loja');
+  assert.equal(decidirGasto({ saldo: 1000, bola: 400, giro: 20, lojaEstimada: 130, excluidos: ['bola'] }), 'cassino');
   assert.equal(decidirGasto({ saldo: 200, bola: 400, giro: 40, lojaEstimada: 130 }), 'aguardar');
   assert.equal(decidirGasto({ saldo: 200, bola: null, giro: 40 }), 'aguardar');
-  assert.equal(decidirGasto({ saldo: 1000, bola: 400, giro: 40, lojaEstimada: 130, excluidos: ['loja'] }), 'cassino');
+  assert.equal(decidirGasto({ saldo: 1000, bola: 400, giro: 40, lojaEstimada: 130, excluidos: ['bola', 'loja'] }), 'cassino');
 });
 
 test('compra o lote reconhecido e acessível sem reavaliar a estratégia', () => {
@@ -22,6 +22,18 @@ test('compra o lote reconhecido e acessível sem reavaliar a estratégia', () =>
   assert.equal(decidirLoteLoja({ ...lote, avaliar: true, bola: null }), 'aguardar');
   assert.equal(decidirLoteLoja({ ...lote, precos: [80, 130, null, 130] }), 'aguardar');
   assert.equal(decidirLoteLoja({ ...lote, vendidos: [true, true, true, true] }), 'concluido');
+});
+
+test('reserva uma Pokébola e limita custo comparado', () => {
+  assert.equal(gastoViavel({ saldo: 300, bola: 100, custo: 200, itens: 2 }), true);
+  assert.equal(gastoViavel({ saldo: 299, bola: 100, custo: 200, itens: 2 }), false);
+  assert.equal(gastoViavel({ saldo: 1000, bola: 100, custo: 309, itens: 2 }), false);
+  assert.equal(gastoViavel({ saldo: 1000, bola: null, custo: 20 }), false);
+});
+
+test('renova mais de uma vez enquanto o estoque é viável', () => {
+  const acoes = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [false, false, false, false], iteracoes: 11 });
+  assert.equal(acoes.filter((acao) => acao === 'renovar').length, 2);
 });
 
 test('pickup aceita apenas interações gratuitas identificadas e bloqueia portais e despesas', () => {
@@ -146,6 +158,7 @@ test('confere preços completos com a carteira bruta quando o HUD abrevia os val
   assert.deepEqual(simular({ ...caso, bruto: undefined, bola: '14498' }), ['keydown', 'keyup']);
   assert.deepEqual(simular({ ...caso, saldo: 14497 }), []);
   assert.deepEqual(simular({ aviso: 'Caça-níqueis · 14498 ₽ por giro', bola: '32', giro: '14.4k', bruto: '333400|32|14498|273' }), ['keydown', 'keyup']);
+  assert.deepEqual(simular({ aviso: 'Caça-níqueis · 37515 ₽ por giro', bola: '254.7k', giro: '37.5k', bruto: '903326|254796|37515|1383', saldo: 903326 }), ['keydown', 'keyup']);
 });
 
 test('indicador mantém o alvo no trajeto e permite trocá-lo manualmente', () => {
@@ -205,7 +218,7 @@ test('mantém a sugestão e coleta gratuitos e Pokébola fora dela no trajeto', 
   });
   const executar = () => { const pendentes = tarefas.splice(0); pendentes.forEach((fn) => fn()); };
   const tick = () => { agora += 600; intervalo(); executar(); };
-  controles[2].click(); executar();
+  controles[2].click(); executar(); controles[3].click(); executar();
   assert.match(controles[2].textContent, /Sugestão: Loja do Meowth/);
   giro = 1; promptTexto = ''; tick();
   assert.match(controles[2].textContent, /Sugestão: Loja do Meowth/);
@@ -223,7 +236,7 @@ test('mantém a sugestão e coleta gratuitos e Pokébola fora dela no trajeto', 
   assert.match(controles[2].textContent, /Cassino/);
 });
 
-test('interage com cassino fora da sugestão, gira uma vez e não reabre enquanto permanece perto', () => {
+test('sai do cassino inviável e não reabre enquanto permanece perto', () => {
   let agora = 1000, atual = 'mapa', perto = false, tarefas = [], intervalo, giros = 0;
   const controles = [], acoes = [];
   const visivel = () => [1];
@@ -253,11 +266,34 @@ test('interage com cassino fora da sugestão, gira uma vez e não reabre enquant
   perto = true; tick(); executar();
   assert.deepEqual(acoes, ['abrir']);
   tick(); tick(); tick();
-  assert.deepEqual(acoes, ['abrir', 'girar', 'sair']);
+  assert.deepEqual(acoes, ['abrir', 'sair']);
   assert.match(controles[2].textContent, /Sugestão: Pokébola/);
-  tick(); assert.deepEqual(acoes, ['abrir', 'girar', 'sair']);
+  tick(); assert.deepEqual(acoes, ['abrir', 'sair']);
   perto = false; tick(); perto = true; tick();
-  assert.deepEqual(acoes, ['abrir', 'girar', 'sair', 'abrir']);
+  assert.deepEqual(acoes, ['abrir', 'sair', 'abrir']);
+});
+
+test('retoma o cassino após uma tela reconhecida de recompensa', () => {
+  let tempo = 1000, tela = 'mapa', tarefas = [], intervalo, giros = 0;
+  const acoes = [], controles = [], visivel = () => [1];
+  const chip = (n) => ({ getClientRects: visivel, querySelector: () => ({ textContent: String(n) }) });
+  const carteira = { getClientRects: visivel, dataset: { g: '10000', k: '10000|400|40|40' }, querySelector(s) { return s === '.wl-ball' ? chip(400) : s === '.wl-slots' ? chip(40) : chip(40); } };
+  const prompt = { getClientRects: visivel, textContent: 'ECaça-níqueis · 40 ₽ por giro', querySelector: () => ({ textContent: 'E' }) };
+  const cabine = { classList: { contains: () => false }, querySelector: () => ({ textContent: String(giros) }) };
+  const girar = { disabled: false, textContent: 'Girar · 40 ₽E', click() { giros++; acoes.push('girar'); tela = 'recompensa'; } };
+  const sair = { disabled: false, textContent: 'Sair', click() { tela = 'mapa'; } };
+  const cassino = { getClientRects: visivel, classList: { contains: () => false }, querySelector(s) { return s === '.sl-cab' ? cabine : s === '.sl-gold' ? { textContent: '10000 ₽' } : null; }, querySelectorAll(s) { return s === '.actions button' ? [girar, sair] : []; } };
+  const recompensa = { getClientRects: visivel, classList: { contains: () => false }, querySelector: () => null, querySelectorAll(s) { return s === 'button.card' ? [{ querySelector: () => ({}) }] : s === 'button' ? [{ textContent: 'Nenhum (+10 ₽)' }] : []; } };
+  const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }), querySelector(s) { return s === '#hud .wallet' ? carteira : s === '#hud .ht-zone' ? { textContent: 'Zona 1/3' } : null; }, querySelectorAll(s) { return s === '.modal' ? tela === 'cassino' ? [cassino] : tela === 'recompensa' ? [recompensa] : [] : s === '#hud .prompt' && tela === 'mapa' ? [prompt] : []; } };
+  class MutationObserver { observe() {} }
+  class KeyboardEvent { constructor(type) { this.type = type; } }
+  vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), { document, localStorage: { getItem: () => null }, MutationObserver, KeyboardEvent, window: { dispatchEvent(e) { if (e.type === 'keydown') { acoes.push('abrir'); tela = 'cassino'; } } }, setTimeout(fn) { tarefas.push(fn); }, setInterval(fn) { intervalo = fn; }, Date: { now: () => tempo }, Math });
+  const executar = () => { const atuais = tarefas.splice(0); atuais.forEach((fn) => fn()); };
+  const tick = () => { tempo += 600; intervalo(); executar(); };
+  controles[2].click(); executar(); executar(); tick(); tick();
+  assert.deepEqual(acoes, ['abrir', 'girar']);
+  tick(); tela = 'mapa'; tick(); executar();
+  assert.deepEqual(acoes, ['abrir', 'girar', 'abrir']);
 });
 
 test('tenta novamente uma interação paga ignorada sem repetir indefinidamente', () => {
@@ -335,31 +371,31 @@ test('loja com saldo abreviado conclui lote parcialmente vendido e renova confor
   assert.deepEqual(acoes, ['abrir', 'comprou 1', 'comprou 2', 'comprou 3', 'renovar', 'comprou 0', 'comprou 1']);
 });
 
-test('compra os itens da loja encontrada mesmo quando a sugestão é Pokébola', () => {
+test('não compra lote inviável mesmo com saldo suficiente', () => {
   const acoes = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [true, false, false, false], iteracoes: 4, bolaHud: 32 });
-  assert.deepEqual(acoes, ['abrir', 'comprou 1', 'comprou 2', 'comprou 3', 'sair']);
+  assert.deepEqual(acoes, ['abrir', 'sair']);
 });
 
 test('não renova loja com itens caros mesmo se a renovação for barata', () => {
   const acoes = simularLoja({ saldoInicial: 60200, precos: [9092, 5001, 9092, 9092], raridades: ['Épico', 'Raro', 'Épico', 'Épico'], vendidosIniciais: [false, false, false, false], iteracoes: 5 });
-  assert.deepEqual(acoes, ['abrir', 'comprou 0', 'comprou 1', 'comprou 2', 'comprou 3', 'sair']);
+  assert.deepEqual(acoes, ['abrir', 'sair']);
 });
 
-test('custos observados na loja influenciam a preferência temporariamente', () => {
+test('mantém a preferência por Pokébola após encontrar loja cara', () => {
   const resultado = simularLoja({ saldoInicial: 60200, precos: [9092, 5001, 9092, 9092], raridades: ['Épico', 'Raro', 'Épico', 'Épico'], vendidosIniciais: [false, false, false, false], iteracoes: 5, verificarIndicador: true });
-  assert.match(resultado.depoisDaLoja, /Sugestão: Cassino/);
-  assert.match(resultado.depoisDeExpirar, /Sugestão: Cassino/);
+  assert.match(resultado.depoisDaLoja, /Sugestão: Pokébola/);
+  assert.match(resultado.depoisDeExpirar, /Sugestão: Pokébola/);
 });
 
 test('ao sair da loja sem preços observados prioriza outra opção em vez de voltar à loja', () => {
   const resultado = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [true, true, true, true], iteracoes: 1, verificarIndicador: true });
-  assert.match(resultado.depoisDaLoja, /Sugestão: Cassino/);
-  assert.match(resultado.depoisDeExpirar, /Sugestão: Cassino/);
+  assert.match(resultado.depoisDaLoja, /Sugestão: Pokébola/);
+  assert.match(resultado.depoisDeExpirar, /Sugestão: Pokébola/);
 });
 
 test('interpreta preços abreviados com limite conservador', () => {
   const acoes = simularLoja({ saldoInicial: 60200, precos: [9092, 5001, 9092, 9092], raridades: ['Épico', 'Raro', 'Épico', 'Épico'], vendidosIniciais: [false, false, false, false], iteracoes: 5, precosCompactos: true });
-  assert.deepEqual(acoes, ['abrir', 'comprou 0', 'comprou 1', 'comprou 2', 'comprou 3', 'sair']);
+  assert.deepEqual(acoes, ['abrir', 'sair']);
 });
 
 test('não renova quando não observou preço de nenhum item', () => {
@@ -411,5 +447,5 @@ test('cassino pula cada animação, repete clique ignorado e reavalia antes de g
   pularDesabilitado = false;
   walletVisivel = false; tick(); // Pular é gratuito, mesmo se o HUD deixar de estar visível.
   walletVisivel = true; tick(); tick(); tick();
-  assert.deepEqual(acoes, ['abrir', 'girar', 'girar', 'pular', 'girar', 'pular', 'sair']);
+  assert.deepEqual(acoes, ['abrir', 'girar', 'girar', 'pular', 'girar', 'pular', 'girar']);
 });

@@ -24,6 +24,7 @@ export function decidirPickup(texto) {
 // no cassino 0,194 item/giro e retorno médio de 25% são valores sem sorte.
 export function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [] }) {
   if (![saldo, bola].every((n) => Number.isFinite(n) && n >= 0) || bola === 0) return 'aguardar';
+  if (!excluidos.includes('bola')) return saldo >= bola ? 'bola' : 'aguardar';
   const custos = [{ tipo: 'bola', custo: bola / 1.3, acessivel: saldo >= bola }];
   if (Number.isFinite(giro) && giro > 0) custos.push({ tipo: 'cassino', custo: giro * 0.75 / 0.194 * 1.3, acessivel: saldo >= giro });
   if (Number.isFinite(lojaEstimada) && lojaEstimada > 0) custos.push({ tipo: 'loja', custo: lojaEstimada, acessivel: saldo >= lojaEstimada * 4 });
@@ -33,6 +34,13 @@ export function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [] }
   return elegiveis[0]?.acessivel ? elegiveis[0].tipo : 'aguardar';
 }
 
+// Mantém o preço de uma próxima Pokébola e tolera até o dobro do custo
+// estimado por item dela para evitar viagens entre opções por diferenças pequenas.
+export function gastoViavel({ saldo, bola, custo, itens = 1 }) {
+  if (![saldo, bola, custo, itens].every(Number.isFinite) || saldo < 0 || bola <= 0 || custo <= 0 || itens <= 0) return false;
+  return saldo >= custo + bola && custo / itens <= 2 * bola / 1.3;
+}
+
 export function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0 }) {
   if (!Number.isFinite(saldo) || saldo < 0 ||
       !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length !== 4 || vendidos.length !== 4 ||
@@ -40,12 +48,10 @@ export function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola
   const restantes = precos.filter((_, i) => !vendidos[i]);
   if (!restantes.length) return 'concluido';
   const total = restantes.reduce((a, b) => a + b, 0);
-  if (saldo < total) return 'aguardar';
+  if (saldo < total || (Number.isFinite(bola) && saldo < total + bola)) return 'aguardar';
   if (avaliar) {
     if (!Number.isFinite(bola) || bola <= 0 || !Number.isFinite(renovacao) || renovacao < 0) return 'aguardar';
-    const alternativas = [bola / 1.3];
-    if (Number.isFinite(giro) && giro > 0) alternativas.push(giro * 0.75 / 0.194 * 1.3);
-    if ((total + renovacao) / restantes.length > Math.min(...alternativas)) return 'sair';
+    if ((total + renovacao) / restantes.length > 2 * bola / 1.3) return 'sair';
   }
   return 'comprar';
 }

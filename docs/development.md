@@ -31,3 +31,5 @@ Ao mudar o script, incremente `@version` em `scripts/gerar-userscript.mjs`, gere
 ## Git
 
 Use o WSL para operações Git. Este repositório trabalha diretamente na branch `main`, sem Gitflow. Depois de verificar cada alteração, faça commit e envie a `main` ao GitHub. A convenção de commits segue a skill global `commit-message` quando aplicável.
+
+Os testes simulam lotes renovados repetidamente, reserva para Pokébola e retorno ao cassino após uma tela de recompensa reconhecida. Esses cenários não substituem validação em jogo.

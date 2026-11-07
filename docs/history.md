@@ -67,3 +67,5 @@ Os avisos do Rugido de Rhydon e do altar amaldiçoado fornecidos pelo usuário f
 O aviso de coleta do Ovo Pokémon fornecido pelo usuário foi incluído no Auto Pickup, com contagem variável de derrotas e teste simulado. Ainda precisa de confirmação no jogo.
 
 O usuário relatou que uma Pokébola deixou de ser aberta com aviso de 14498 ₽ e HUD de 14.4k. A comparação anterior tratava o valor abreviado como 14400; o adaptador passou a usar o preço bruto da carteira, com fallback apenas para valor não abreviado. O cenário tem teste simulado e ainda precisa de confirmação em jogo.
+
+A estratégia passou a priorizar Pokébolas e reservar o preço de uma próxima ao avaliar lotes e giros, com repetição até o limite heurístico de custo. A retomada após recompensa reconhecida tem teste simulado, mas precisa de validação no jogo; não há contagem automática das Pokébolas restantes.

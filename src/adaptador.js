@@ -211,9 +211,7 @@ function observarModalPickup(modal, carteira) {
     if (!girar || !sair || valor === null || saldo === null) return;
     const giros = numeroPickup(cabine.querySelector?.('.sl-led span:nth-child(2) b')?.textContent);
     const assinatura = `${valor}:${saldo}:${giros}`;
-    if (pickupSessao.giroInicialAssinatura && pickupSessao.giroInicialAssinatura !== assinatura) pickupSessao.giroInicialConfirmado = true;
-    const decisao = decidirGasto({ ...carteira, saldo, giro: valor });
-    if (saldo < valor || (pickupSessao.giroInicialConfirmado && decisao !== 'cassino')) { acaoPickup(sair, `sair-cassino:${valor}`); return; }
+    if (!gastoViavel({ saldo, bola: carteira.bola, custo: valor, itens: 0.194 / (0.75 * 1.3) })) { pickupSessao.saiuPorEstrategia = true; acaoPickup(sair, `sair-cassino:${valor}`); return; }
     let tentativa = pickupSessao.giro;
     if (!tentativa || tentativa.assinatura !== assinatura) tentativa = pickupSessao.giro = { assinatura, quantidade: 0, ultima: 0 };
     const agora = Date.now();
@@ -248,11 +246,11 @@ function observarModalPickup(modal, carteira) {
   if (saldo === null) return;
   const indisponiveis = dados.map((d) => d.vendido || Number(d.capacidade[1]) >= Number(d.capacidade[2]));
   const resultado = decidirLoteLoja({ saldo, precos: dados.map((d) => d.valor), vendidos: indisponiveis,
-    avaliar: !!pickupSessao.renovacaoPendente, bola: carteira.bola, giro: carteira.giro, renovacao: pickupSessao.custoRenovacao || 0 });
+    avaliar: !pickupSessao.loteIniciado, bola: carteira.bola, giro: carteira.giro, renovacao: pickupSessao.custoRenovacao || 0 });
   const assinatura = dados.map((d) => `${d.cartao.querySelector('h3')?.textContent}:${d.vendido}:${d.valor}`).join('|');
   if (resultado === 'comprar') {
     const proximo = dados.find((_, i) => !indisponiveis[i]);
-    pickupSessao.renovacaoPendente = false;
+    pickupSessao.loteIniciado = true;
     acaoPickup(proximo.cartao, `comprar:${assinatura}`);
     return;
   }
@@ -260,10 +258,10 @@ function observarModalPickup(modal, carteira) {
     const renovar = modal.querySelector('button.shop-reroll');
     const valor = numeroPickup(/·\s*([\d.,\s]+[kmb]?)\s*₽/i.exec(renovar?.textContent || '')?.[1], 'superior');
     const custoPrevisto = pickupSessao.custoMedio;
-    if (valor !== null && custoPrevisto && saldo >= valor + custoPrevisto * 4 &&
-        decidirGasto({ ...carteira, saldo, lojaEstimada: custoPrevisto + valor / 4 }) === 'loja' && !renovar.disabled) {
+    if (valor !== null && custoPrevisto &&
+        gastoViavel({ saldo, bola: carteira.bola, custo: valor + custoPrevisto * 4, itens: 4 }) && !renovar.disabled) {
       pickupSessao.custoRenovacao = valor;
-      pickupSessao.renovacaoPendente = true;
+      pickupSessao.loteIniciado = false;
       acaoPickup(renovar, `renovar:${assinatura}:${valor}`);
       return;
     }
@@ -296,6 +294,7 @@ function observarPickup() {
     if (modais.length === 1) {
       if (interacaoLivre) interacaoLivre.viuModal = true;
       if (pickupSessao && modalDoAlvo(modais[0], pickupSessao.tipo)) pickupSessao.viuModal = true;
+      if (pickupSessao?.tipo === 'cassino' && pickupSessao.giroInicialAssinatura && !pickupSessao.saiuPorEstrategia && modalDoAlvo(modais[0], 'bola')) pickupSessao.recompensa = true;
       if (!pickupSessao && !interacaoLivre && alvoGasto && modalDoAlvo(modais[0], alvoGasto)) visitaManual = alvoGasto;
       if (pickupSessao?.tipo === 'loja' && modais[0].classList.contains('shop-modal')) texto = 'Loja: avaliando itens';
       if (pickupSessao?.tipo === 'cassino' && modais[0].querySelector('.sl-cab')) texto = 'Cassino: avaliando giro';
@@ -310,6 +309,10 @@ function observarPickup() {
     const bolaComprada = pickupSessao.tipo === 'bola' && carteira && pickupSessao.precoBase !== null &&
       (carteira.bolaBruta ?? carteira.bola) !== null && (carteira.bolaBruta ?? carteira.bola) !== pickupSessao.precoBase;
     if (pickupSessao.viuModal || bolaComprada) {
+      if (pickupSessao.tipo === 'cassino' && pickupSessao.recompensa && !pickupSessao.saiuPorEstrategia && carteira &&
+          gastoViavel({ saldo: carteira.saldo, bola: carteira.bola, custo: carteira.giro, itens: 0.194 / (0.75 * 1.3) })) {
+        ultimoEncontroPago = null; ultimoPickup = ''; tentativasEncontro = 0;
+      }
       concluirAlvo(pickupSessao.tipo); pickupSessao = null; pickupAcao = null;
     } else if (Date.now() - pickupSessao.inicio > 3000) {
       pickupSessao = null; pickupAcao = null; ultimoPickup = ''; repetirEncontro = true;

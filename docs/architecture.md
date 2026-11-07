@@ -22,6 +22,6 @@ O Auto Pickup possui ativação separada em memória. A decisão de elegibilidad
 
 O reconhecimento dos estágios do Rugido de Rhydon fica na decisão; o adaptador limita e espaça as tentativas para cada estágio visível.
 
-Durante um giro no cassino, o adaptador identifica o botão de pular animação e tenta acioná-lo; o próximo giro continua condicionado à decisão de gasto.
+Durante um giro no cassino, o adaptador tenta pular a animação e reavalia o próximo giro. Se identificar uma tela de recompensa, tenta retomar a visita após a escolha.
 
 Quando ativo, o botão do Auto Pickup mostra uma sugestão de destino mantida em memória até ser concluída ou trocada pelo usuário. A sugestão não limita as interações pagas no caminho. Nos modais próprios, indica que está avaliando itens ou giro.

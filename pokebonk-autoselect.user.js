@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.25
+// @version      0.2.26
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -37,6 +37,7 @@ function decidirPickup(texto) {
 // no cassino 0,194 item/giro e retorno médio de 25% são valores sem sorte.
 function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [] }) {
   if (![saldo, bola].every((n) => Number.isFinite(n) && n >= 0) || bola === 0) return 'aguardar';
+  if (!excluidos.includes('bola')) return saldo >= bola ? 'bola' : 'aguardar';
   const custos = [{ tipo: 'bola', custo: bola / 1.3, acessivel: saldo >= bola }];
   if (Number.isFinite(giro) && giro > 0) custos.push({ tipo: 'cassino', custo: giro * 0.75 / 0.194 * 1.3, acessivel: saldo >= giro });
   if (Number.isFinite(lojaEstimada) && lojaEstimada > 0) custos.push({ tipo: 'loja', custo: lojaEstimada, acessivel: saldo >= lojaEstimada * 4 });
@@ -46,6 +47,13 @@ function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [] }) {
   return elegiveis[0]?.acessivel ? elegiveis[0].tipo : 'aguardar';
 }
 
+// Mantém o preço de uma próxima Pokébola e tolera até o dobro do custo
+// estimado por item dela para evitar viagens entre opções por diferenças pequenas.
+function gastoViavel({ saldo, bola, custo, itens = 1 }) {
+  if (![saldo, bola, custo, itens].every(Number.isFinite) || saldo < 0 || bola <= 0 || custo <= 0 || itens <= 0) return false;
+  return saldo >= custo + bola && custo / itens <= 2 * bola / 1.3;
+}
+
 function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0 }) {
   if (!Number.isFinite(saldo) || saldo < 0 ||
       !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length !== 4 || vendidos.length !== 4 ||
@@ -53,12 +61,10 @@ function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro,
   const restantes = precos.filter((_, i) => !vendidos[i]);
   if (!restantes.length) return 'concluido';
   const total = restantes.reduce((a, b) => a + b, 0);
-  if (saldo < total) return 'aguardar';
+  if (saldo < total || (Number.isFinite(bola) && saldo < total + bola)) return 'aguardar';
   if (avaliar) {
     if (!Number.isFinite(bola) || bola <= 0 || !Number.isFinite(renovacao) || renovacao < 0) return 'aguardar';
-    const alternativas = [bola / 1.3];
-    if (Number.isFinite(giro) && giro > 0) alternativas.push(giro * 0.75 / 0.194 * 1.3);
-    if ((total + renovacao) / restantes.length > Math.min(...alternativas)) return 'sair';
+    if ((total + renovacao) / restantes.length > 2 * bola / 1.3) return 'sair';
   }
   return 'comprar';
 }
@@ -387,9 +393,7 @@ function observarModalPickup(modal, carteira) {
     if (!girar || !sair || valor === null || saldo === null) return;
     const giros = numeroPickup(cabine.querySelector?.('.sl-led span:nth-child(2) b')?.textContent);
     const assinatura = `${valor}:${saldo}:${giros}`;
-    if (pickupSessao.giroInicialAssinatura && pickupSessao.giroInicialAssinatura !== assinatura) pickupSessao.giroInicialConfirmado = true;
-    const decisao = decidirGasto({ ...carteira, saldo, giro: valor });
-    if (saldo < valor || (pickupSessao.giroInicialConfirmado && decisao !== 'cassino')) { acaoPickup(sair, `sair-cassino:${valor}`); return; }
+    if (!gastoViavel({ saldo, bola: carteira.bola, custo: valor, itens: 0.194 / (0.75 * 1.3) })) { pickupSessao.saiuPorEstrategia = true; acaoPickup(sair, `sair-cassino:${valor}`); return; }
     let tentativa = pickupSessao.giro;
     if (!tentativa || tentativa.assinatura !== assinatura) tentativa = pickupSessao.giro = { assinatura, quantidade: 0, ultima: 0 };
     const agora = Date.now();
@@ -424,11 +428,11 @@ function observarModalPickup(modal, carteira) {
   if (saldo === null) return;
   const indisponiveis = dados.map((d) => d.vendido || Number(d.capacidade[1]) >= Number(d.capacidade[2]));
   const resultado = decidirLoteLoja({ saldo, precos: dados.map((d) => d.valor), vendidos: indisponiveis,
-    avaliar: !!pickupSessao.renovacaoPendente, bola: carteira.bola, giro: carteira.giro, renovacao: pickupSessao.custoRenovacao || 0 });
+    avaliar: !pickupSessao.loteIniciado, bola: carteira.bola, giro: carteira.giro, renovacao: pickupSessao.custoRenovacao || 0 });
   const assinatura = dados.map((d) => `${d.cartao.querySelector('h3')?.textContent}:${d.vendido}:${d.valor}`).join('|');
   if (resultado === 'comprar') {
     const proximo = dados.find((_, i) => !indisponiveis[i]);
-    pickupSessao.renovacaoPendente = false;
+    pickupSessao.loteIniciado = true;
     acaoPickup(proximo.cartao, `comprar:${assinatura}`);
     return;
   }
@@ -436,10 +440,10 @@ function observarModalPickup(modal, carteira) {
     const renovar = modal.querySelector('button.shop-reroll');
     const valor = numeroPickup(/·\s*([\d.,\s]+[kmb]?)\s*₽/i.exec(renovar?.textContent || '')?.[1], 'superior');
     const custoPrevisto = pickupSessao.custoMedio;
-    if (valor !== null && custoPrevisto && saldo >= valor + custoPrevisto * 4 &&
-        decidirGasto({ ...carteira, saldo, lojaEstimada: custoPrevisto + valor / 4 }) === 'loja' && !renovar.disabled) {
+    if (valor !== null && custoPrevisto &&
+        gastoViavel({ saldo, bola: carteira.bola, custo: valor + custoPrevisto * 4, itens: 4 }) && !renovar.disabled) {
       pickupSessao.custoRenovacao = valor;
-      pickupSessao.renovacaoPendente = true;
+      pickupSessao.loteIniciado = false;
       acaoPickup(renovar, `renovar:${assinatura}:${valor}`);
       return;
     }
@@ -472,6 +476,7 @@ function observarPickup() {
     if (modais.length === 1) {
       if (interacaoLivre) interacaoLivre.viuModal = true;
       if (pickupSessao && modalDoAlvo(modais[0], pickupSessao.tipo)) pickupSessao.viuModal = true;
+      if (pickupSessao?.tipo === 'cassino' && pickupSessao.giroInicialAssinatura && !pickupSessao.saiuPorEstrategia && modalDoAlvo(modais[0], 'bola')) pickupSessao.recompensa = true;
       if (!pickupSessao && !interacaoLivre && alvoGasto && modalDoAlvo(modais[0], alvoGasto)) visitaManual = alvoGasto;
       if (pickupSessao?.tipo === 'loja' && modais[0].classList.contains('shop-modal')) texto = 'Loja: avaliando itens';
       if (pickupSessao?.tipo === 'cassino' && modais[0].querySelector('.sl-cab')) texto = 'Cassino: avaliando giro';
@@ -486,6 +491,10 @@ function observarPickup() {
     const bolaComprada = pickupSessao.tipo === 'bola' && carteira && pickupSessao.precoBase !== null &&
       (carteira.bolaBruta ?? carteira.bola) !== null && (carteira.bolaBruta ?? carteira.bola) !== pickupSessao.precoBase;
     if (pickupSessao.viuModal || bolaComprada) {
+      if (pickupSessao.tipo === 'cassino' && pickupSessao.recompensa && !pickupSessao.saiuPorEstrategia && carteira &&
+          gastoViavel({ saldo: carteira.saldo, bola: carteira.bola, custo: carteira.giro, itens: 0.194 / (0.75 * 1.3) })) {
+        ultimoEncontroPago = null; ultimoPickup = ''; tentativasEncontro = 0;
+      }
       concluirAlvo(pickupSessao.tipo); pickupSessao = null; pickupAcao = null;
     } else if (Date.now() - pickupSessao.inicio > 3000) {
       pickupSessao = null; pickupAcao = null; ultimoPickup = ''; repetirEncontro = true;
