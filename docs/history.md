@@ -2,7 +2,7 @@
 
 ## 2026-11-06
 
-Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.10` em `scripts/gerar-userscript.mjs`.
+Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.11` em `scripts/gerar-userscript.mjs`.
 
 O repositório foi publicado inicialmente com Gitflow e depois passou a trabalhar diretamente na `main`, por decisão do mantenedor.
 
@@ -35,3 +35,5 @@ Foi adicionada seleção de relíquias por raridade e bônus de dano, com compar
 A comparação de relíquias passou a usar a prioridade de status do preset ativo para desempatar raridades, considerando o melhor atributo quando houver vários. A integração segue aguardando validação em jogo.
 
 Uma captura mostrou que o banimento individual exige confirmação no mesmo cartão. O adaptador passou a confirmar seleções que ele próprio iniciou e a tentar banir kits quando a verificação conservadora dos planos permite. Ambos os fluxos precisam de confirmação em jogo.
+
+O fallback passou a melhorar itens já possuídos fora da build antes de gastar recursos e a escolher aleatoriamente quando eles se esgotarem. Avisos persistentes pedem conferência e podem ser marcados como resolvidos. Os fluxos têm testes simulados e precisam de validação no jogo.

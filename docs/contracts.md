@@ -4,6 +4,8 @@
 
 `decidir(tela, configuracao, aleatorio)` em `src/decisao.mjs` aceita `tela.tipo` igual a `build`, `status` ou `powerup`, opções com `id` e campos usados por cada tipo, e ordem de status em `configuracao.status`. Retorna `selecionar` ou `banir` com `id`, `atualizar`, `pular` ou `aguardar` com motivo quando aplicável. Raridade é numérica e crescente.
 
+Uma seleção de build fora do plano inclui `foraDoPlano: true`. O fallback aleatório exige que todos os contadores de banimento, atualização e pulo sejam reconhecidos como inteiros não negativos; contadores ausentes produzem `aguardar` quando são necessários.
+
 Para `tela.tipo` igual a `reliquia`, recebe `opcoes` e `equipadas` com `id`, `raridade` numérica e `status` como lista de atributos, além de `configuracao.status` com a ordem do preset ativo. Com três equipadas, retorna `selecionar` com os IDs da oferta e de `substituir`, ou `dispensar` se não houver melhora. Dados insuficientes produzem `aguardar`.
 
 ## Interface externa
@@ -17,6 +19,8 @@ Para relíquias, o adaptador lê `.rl-wrap`, `.rl-sub`, `.rl-card`, `.rl-stats`,
 Para avaliar kits, `kitPodeSerBanido` recebe o nome, um mapa de kits, a Pokédex e os planos. O adaptador tenta acessar os módulos do próprio jogo e lê as chaves locais `pokebonk.buildPlan.*`; verifica todos os planos encontrados, não somente a tela atual. Se os dados forem ambíguos ou ausentes, se algum plano contiver fusões ou se os módulos não forem compatíveis, retorna ao banimento individual. Fusões bloqueiam o banimento de kit porque seus ingredientes ainda não são verificados.
 
 O painel lê a ordem anterior em `localStorage` sob `pokebonk-auto-select-status` e persiste os presets em `pokebonk-auto-select-perfis`, com `ativo` (índice de 0 a 4) e `perfis` (cinco entradas com `nome` e `ordem`). Não há rotas HTTP, contrato de banco ou variáveis de ambiente próprias implementadas.
+
+Os avisos de itens fora do plano usam `sessionStorage` com a chave `pokebonk-auto-select-fora-da-build`, como lista de objetos com `nome` e `tipo`. Se esse armazenamento estiver indisponível, ficam apenas em memória.
 
 Ao ler as ordens, variações reconhecidas de nomes são unificadas pelo identificador do catálogo; quando aparecem duplicadas, permanece a primeira posição de cada preset.
 

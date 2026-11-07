@@ -91,7 +91,7 @@ test('melhoria de fusão equipada participa como golpe mesmo sem selo', () => {
   assert.deepEqual(simular([fusao]), ['Maldição Sombria']);
   assert.deepEqual(simular([vitamina, fusao]), ['Maldição Sombria']);
   assert.deepEqual(simular([{ ...vitamina, raridade: 'Raro' }, fusao]), ['Ether']);
-  assert.deepEqual(simular([{ ...fusao, nome: 'Golpe fora do plano', descricao: 'Nível 1 → 2' }]), ['Banir (1) Z']);
+  assert.deepEqual(simular([{ ...fusao, nome: 'Golpe fora do plano', descricao: 'Nível 1 → 2' }]), ['Golpe fora do plano']);
 });
 
 test('repete a escolha de Ether se o primeiro clique de level-up for ignorado', () => {

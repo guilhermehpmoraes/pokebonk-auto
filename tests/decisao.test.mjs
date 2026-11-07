@@ -29,12 +29,29 @@ test('sorteia entre golpes novos da build', () => {
   assert.equal(decidir({ tipo: 'build', opcoes }, {}, () => 0.9).id, 'b');
 });
 test('usa banimento, atualização e pulo nessa ordem', () => {
-  const tela = { tipo: 'build', opcoes: [item('fora', 'golpe', 1, false)], banimentos: 1, atualizacoes: 1, pulos: 1 };
+  const tela = { tipo: 'build', opcoes: [item('fora', 'golpe', 1, false, 'novo')], banimentos: 1, atualizacoes: 1, pulos: 1 };
   assert.deepEqual(decidir(tela, {}, primeiro), { acao: 'banir', id: 'fora' });
   tela.banimentos = 0;
   assert.equal(decidir(tela).acao, 'atualizar');
   tela.atualizacoes = 0;
   assert.equal(decidir(tela).acao, 'pular');
+});
+test('melhoria existente fora do plano antecede recursos e prioriza raridade', () => {
+  const opcoes = [item('golpe', 'golpe', 1, false), item('vitamina', 'vitamina', 2, false), item('novo', 'golpe', 3, false, 'novo')];
+  assert.deepEqual(decidir({ tipo: 'build', opcoes, banimentos: 1, atualizacoes: 1, pulos: 1 }, {}, primeiro), { acao: 'selecionar', id: 'vitamina', foraDoPlano: true });
+  opcoes[0].raridade = 2;
+  assert.equal(decidir({ tipo: 'build', opcoes }, {}, primeiro).id, 'golpe');
+});
+test('seleciona aleatoriamente fora do plano apenas após esgotar recursos', () => {
+  const opcoes = [item('a', 'golpe', undefined, false, 'novo'), item('b', 'vitamina', 1, false, 'novo')];
+  const tela = { tipo: 'build', opcoes, banimentos: 0, atualizacoes: 0, pulos: 0 };
+  assert.deepEqual(decidir(tela, {}, () => 0.99), { acao: 'selecionar', id: 'b', foraDoPlano: true });
+  tela.banimentos = null;
+  assert.equal(decidir(tela).acao, 'aguardar');
+});
+test('opção do plano prevalece sobre melhoria fora do plano', () => {
+  const opcoes = [item('nova planejada', 'vitamina', 1, true, 'novo'), item('melhoria fora', 'golpe', 5, false)];
+  assert.deepEqual(decidir({ tipo: 'build', opcoes }), { acao: 'selecionar', id: 'nova planejada' });
 });
 test('status prioriza a ordem configurada antes da raridade', () => {
   const tela = { tipo: 'status', opcoes: [{ id: 'exp', status: 'exp', raridade: 1 }, { id: 'luck', status: 'luck', raridade: 2 }] };

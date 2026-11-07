@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.10
+// @version      0.2.11
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -42,11 +42,11 @@ function decidir(tela, configuracao = {}, aleatorio = Math.random) {
     if (opcoes.some((item) => typeof item.noPlano !== 'boolean')) {
       return { acao: 'aguardar', motivo: 'indicador de plano desconhecido' };
     }
+    if (opcoes.some((item) => !['novo', 'melhoria'].includes(item.estado))) {
+      return { acao: 'aguardar', motivo: 'estado da opção desconhecido' };
+    }
     let elegiveis = opcoes.filter((item) => item.noPlano);
     if (elegiveis.length) {
-      if (elegiveis.some((item) => !['novo', 'melhoria'].includes(item.estado))) {
-        return { acao: 'aguardar', motivo: 'estado da opção desconhecido' };
-      }
       const novos = elegiveis.filter((item) => item.estado === 'novo');
       if (novos.length) {
         const golpesNovos = novos.filter((item) => item.tipo === 'golpe');
@@ -66,10 +66,23 @@ function decidir(tela, configuracao = {}, aleatorio = Math.random) {
       const golpes = melhores.filter((item) => item.tipo === 'golpe');
       return { acao: 'selecionar', id: sortear(golpes.length ? golpes : melhores).id };
     }
+    const melhorias = opcoes.filter((item) => item.estado === 'melhoria');
+    if (melhorias.length) {
+      if (melhorias.some((item) => !['golpe', 'vitamina'].includes(item.tipo))) {
+        return { acao: 'aguardar', motivo: 'tipo de opção desconhecido' };
+      }
+      const melhores = maiorRaridade(melhorias);
+      if (!melhores) return { acao: 'aguardar', motivo: 'raridade desconhecida' };
+      const golpes = melhores.filter((item) => item.tipo === 'golpe');
+      return { acao: 'selecionar', id: sortear(golpes.length ? golpes : melhores).id, foraDoPlano: true };
+    }
+    if ([tela.banimentos, tela.atualizacoes, tela.pulos].some((valor) => !Number.isInteger(valor) || valor < 0)) {
+      return { acao: 'aguardar', motivo: 'recursos desconhecidos' };
+    }
     if (tela.banimentos > 0) return { acao: 'banir', id: sortear(opcoes).id };
     if (tela.atualizacoes > 0) return { acao: 'atualizar' };
     if (tela.pulos > 0) return { acao: 'pular' };
-    return { acao: 'aguardar', motivo: 'nenhuma ação disponível' };
+    return { acao: 'selecionar', id: sortear(opcoes).id, foraDoPlano: true };
   }
   if (tela.tipo === 'status' || tela.tipo === 'powerup') {
     if (tela.tipo === 'status') {
@@ -117,7 +130,15 @@ let ativo = false;
 let ultimoConjunto = '';
 let banimentoPendente = null;
 let selecaoPendente = null;
+let avisoPendente = null;
 let timer;
+const chaveAvisos = 'pokebonk-auto-select-fora-da-build';
+let avisosForaPlano = [];
+try {
+  const dados = JSON.parse(sessionStorage.getItem(chaveAvisos) || '[]');
+  if (Array.isArray(dados)) avisosForaPlano = dados.filter((item) => item && typeof item.nome === 'string' && ['golpe', 'vitamina'].includes(item.tipo));
+} catch (_) { /* mantém os avisos em memória */ }
+let painelAvisos = null;
 const chaveStatus = 'pokebonk-auto-select-status';
 const chavePerfis = 'pokebonk-auto-select-perfis';
 const catalogoStatus = [
@@ -181,6 +202,45 @@ configuracao.type = 'button';
 configuracao.textContent = 'Prioridade de status';
 Object.assign(configuracao.style, { position: 'fixed', bottom: '8px', right: '205px', zIndex: '2147483647', padding: '8px', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer' });
 document.body.appendChild(configuracao);
+function atualizarAvisos() {
+  try { sessionStorage.setItem(chaveAvisos, JSON.stringify(avisosForaPlano)); } catch (_) { /* mantém os avisos em memória */ }
+  if (!avisosForaPlano.length && !painelAvisos) return;
+  if (!painelAvisos) {
+    painelAvisos = document.createElement('aside');
+    painelAvisos.setAttribute('aria-label', 'Itens fora da build');
+    painelAvisos.style.cssText = 'position:fixed;right:8px;bottom:58px;z-index:2147483647;width:min(360px,calc(100vw - 16px));max-height:38vh;overflow:auto;padding:12px;background:#38251c;color:#fff5e7;border:2px solid #f5a953;border-radius:12px;box-shadow:0 8px 28px #0008;font:13px system-ui,sans-serif';
+    painelAvisos.addEventListener('click', (event) => event.stopPropagation());
+    painelAvisos.addEventListener('pointerdown', (event) => event.stopPropagation());
+    document.body.appendChild(painelAvisos);
+  }
+  painelAvisos.replaceChildren();
+  painelAvisos.style.display = avisosForaPlano.length ? 'block' : 'none';
+  if (!avisosForaPlano.length) return;
+  const titulo = document.createElement('strong'); titulo.textContent = '⚠️ Fora da build — confira no Hypno';
+  const descricao = document.createElement('div'); descricao.textContent = 'Confira se o item foi adquirido e remova-o se necessário.'; descricao.style.cssText = 'margin:4px 0 8px;color:#ffe3be';
+  painelAvisos.append(titulo, descricao);
+  avisosForaPlano.forEach((aviso) => {
+    const linha = document.createElement('div'); linha.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:5px';
+    const nome = document.createElement('span'); nome.style.cssText = 'flex:1;overflow-wrap:anywhere'; nome.textContent = `${aviso.nome} (${aviso.tipo})`;
+    const resolver = document.createElement('button'); resolver.type = 'button'; resolver.textContent = 'Resolvido'; resolver.title = `Dispensar aviso de ${aviso.nome}`;
+    resolver.style.cssText = 'border:0;border-radius:7px;padding:5px 8px;background:#f5a953;color:#291609;cursor:pointer;font-weight:700';
+    resolver.addEventListener('click', () => { avisosForaPlano = avisosForaPlano.filter((item) => item !== aviso); atualizarAvisos(); });
+    linha.append(nome, resolver); painelAvisos.append(linha);
+  });
+}
+function registrarForaPlano(nome, tipo) {
+  if (!nome || !['golpe', 'vitamina'].includes(tipo)) return;
+  if (avisosForaPlano.some((item) => item.tipo === tipo && normalizar(item.nome) === normalizar(nome))) return;
+  avisosForaPlano.push({ nome, tipo }); atualizarAvisos();
+}
+function verificarAvisoPendente() {
+  if (!avisoPendente) return;
+  const { botao, nome, tipo } = avisoPendente;
+  if (botao.isConnected === false || !botao.getClientRects().length || botao.querySelector('h3')?.textContent?.trim() !== nome) {
+    avisoPendente = null; registrarForaPlano(nome, tipo);
+  }
+}
+atualizarAvisos();
 let modalAberto = false;
 configuracao.addEventListener('click', abrirPrioridades);
 function abrirPrioridades() {
@@ -273,10 +333,11 @@ function selecionarComTentativa(botoes, indice, assinatura) {
   if (!selecaoPendente || selecaoPendente.assinatura !== assinatura || selecaoPendente.botao !== botao) {
     selecaoPendente = { assinatura, botao, tentativas: 0, ultima: 0 };
   }
-  if (selecaoPendente.tentativas >= 3 || (selecaoPendente.tentativas > 0 && agora - selecaoPendente.ultima < 500)) return;
+  if (selecaoPendente.tentativas >= 3 || (selecaoPendente.tentativas > 0 && agora - selecaoPendente.ultima < 500)) return null;
   selecaoPendente.tentativas += 1;
   selecaoPendente.ultima = agora;
   botao.click();
+  return botao;
 }
 function lerPlanosDeBuild() {
   try {
@@ -311,6 +372,7 @@ async function verificarKitSeguro(nome) {
   } catch (_) { return null; }
 }
 function observar() {
+  verificarAvisoPendente();
   if (!ativo || modalAberto) return;
   if (observarReliquias()) return;
   const botoes = [...document.querySelectorAll('button.card.offer')].filter((e) => e.getClientRects().length && !e.disabled);
@@ -373,12 +435,17 @@ function observar() {
   const pular = controle('pular');
   const usos = (botao) => {
     const contador = botao?.textContent.match(/\((\d+)\)/);
-    return botao && !botao.disabled && contador ? Number(contador[1]) : 0;
+    return botao && contador ? (botao.disabled ? 0 : Number(contador[1])) : null;
   };
   const decisao = decidir({ tipo: 'build', opcoes, banimentos: usos(banir), atualizacoes: usos(atualizar), pulos: usos(pular) });
   if (decisao.acao === 'aguardar') return;
   if (decisao.acao === 'selecionar') {
-    selecionarComTentativa(botoes, decisao.id, assinatura);
+    const selecionado = selecionarComTentativa(botoes, decisao.id, assinatura);
+    if (selecionado && decisao.foraDoPlano) {
+      const indiceSelecionado = botoes.indexOf(selecionado);
+      avisoPendente = { botao: selecionado, nome: nomes[indiceSelecionado], tipo: opcoes[indiceSelecionado].tipo };
+      verificarAvisoPendente();
+    }
     return;
   }
   if (assinatura === ultimoConjunto) return;

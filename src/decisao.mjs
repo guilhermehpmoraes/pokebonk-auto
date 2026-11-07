@@ -29,11 +29,11 @@ export function decidir(tela, configuracao = {}, aleatorio = Math.random) {
     if (opcoes.some((item) => typeof item.noPlano !== 'boolean')) {
       return { acao: 'aguardar', motivo: 'indicador de plano desconhecido' };
     }
+    if (opcoes.some((item) => !['novo', 'melhoria'].includes(item.estado))) {
+      return { acao: 'aguardar', motivo: 'estado da opção desconhecido' };
+    }
     let elegiveis = opcoes.filter((item) => item.noPlano);
     if (elegiveis.length) {
-      if (elegiveis.some((item) => !['novo', 'melhoria'].includes(item.estado))) {
-        return { acao: 'aguardar', motivo: 'estado da opção desconhecido' };
-      }
       const novos = elegiveis.filter((item) => item.estado === 'novo');
       if (novos.length) {
         const golpesNovos = novos.filter((item) => item.tipo === 'golpe');
@@ -53,10 +53,23 @@ export function decidir(tela, configuracao = {}, aleatorio = Math.random) {
       const golpes = melhores.filter((item) => item.tipo === 'golpe');
       return { acao: 'selecionar', id: sortear(golpes.length ? golpes : melhores).id };
     }
+    const melhorias = opcoes.filter((item) => item.estado === 'melhoria');
+    if (melhorias.length) {
+      if (melhorias.some((item) => !['golpe', 'vitamina'].includes(item.tipo))) {
+        return { acao: 'aguardar', motivo: 'tipo de opção desconhecido' };
+      }
+      const melhores = maiorRaridade(melhorias);
+      if (!melhores) return { acao: 'aguardar', motivo: 'raridade desconhecida' };
+      const golpes = melhores.filter((item) => item.tipo === 'golpe');
+      return { acao: 'selecionar', id: sortear(golpes.length ? golpes : melhores).id, foraDoPlano: true };
+    }
+    if ([tela.banimentos, tela.atualizacoes, tela.pulos].some((valor) => !Number.isInteger(valor) || valor < 0)) {
+      return { acao: 'aguardar', motivo: 'recursos desconhecidos' };
+    }
     if (tela.banimentos > 0) return { acao: 'banir', id: sortear(opcoes).id };
     if (tela.atualizacoes > 0) return { acao: 'atualizar' };
     if (tela.pulos > 0) return { acao: 'pular' };
-    return { acao: 'aguardar', motivo: 'nenhuma ação disponível' };
+    return { acao: 'selecionar', id: sortear(opcoes).id, foraDoPlano: true };
   }
   if (tela.tipo === 'status' || tela.tipo === 'powerup') {
     if (tela.tipo === 'status') {
