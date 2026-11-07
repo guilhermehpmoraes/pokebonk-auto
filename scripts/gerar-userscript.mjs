@@ -1,14 +1,14 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
 const decisao = (await readFile(new URL('../src/decisao.mjs', import.meta.url), 'utf8'))
-  .replace('export function decidir', 'function decidir');
+  .replaceAll('export function ', 'function ');
 const kits = (await readFile(new URL('../src/kits.mjs', import.meta.url), 'utf8'))
   .replace('export function kitPodeSerBanido', 'function kitPodeSerBanido');
 const adaptador = await readFile(new URL('../src/adaptador.js', import.meta.url), 'utf8');
 const cabecalho = `// ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.11
+// @version      0.2.12
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js

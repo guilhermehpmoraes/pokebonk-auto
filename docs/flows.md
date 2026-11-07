@@ -30,3 +30,5 @@ Se uma seleção de cartão permanecer na tela após um clique, o adaptador tent
 No painel de prioridades, `abrirPrioridades` permite trocar entre cinco presets, editar o nome e reordenar com a alça ou com botões. Para copiar, selecione outro preset em **Copiar de** e confirme a substituição da ordem do preset ativo; o nome e a ordem da origem não mudam. A troca, a cópia e cada movimento salvam a configuração em `localStorage`; o nome é salvo quando o campo perde o foco. Uma configuração anterior de prioridade serve como ponto de partida para os presets.
 
 Os seletores e etapas são dependências da interface real; a simulação em `tests/integracao.test.mjs` não confirma o comportamento do jogo.
+
+O Auto Pickup independente observa o aviso de proximidade. Com a tecla E identificada e sem modal aberto, emite um pressionamento para textos gratuitos explicitamente reconhecidos; evita repetição enquanto o mesmo aviso permanecer visível. Qualquer outro texto, incluindo portais e opções pagas, permanece manual.

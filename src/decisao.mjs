@@ -1,4 +1,16 @@
 // Decide a partir de dados já identificados na tela; não interage com o jogo.
+export function decidirPickup(texto) {
+  const gratuitos = [
+    'abrir poke bola (gratis)',
+    'abrir great ball (gratis)',
+    'abrir poke bola amaldicoada (gratis... tem certeza?)',
+    'acordar o snorlax',
+    'altar de gengar · +dificuldade, +xp e +saque',
+    'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
+  ];
+  return gratuitos.includes(texto) ? { acao: 'interagir' } : { acao: 'aguardar' };
+}
+
 export function decidir(tela, configuracao = {}, aleatorio = Math.random) {
   const opcoes = tela.opcoes ?? [];
   const maiorRaridade = (lista) => {

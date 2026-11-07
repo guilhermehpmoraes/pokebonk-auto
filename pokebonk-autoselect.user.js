@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.11
+// @version      0.2.12
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -12,6 +12,18 @@
 (() => {
 'use strict';
 // Decide a partir de dados já identificados na tela; não interage com o jogo.
+function decidirPickup(texto) {
+  const gratuitos = [
+    'abrir poke bola (gratis)',
+    'abrir great ball (gratis)',
+    'abrir poke bola amaldicoada (gratis... tem certeza?)',
+    'acordar o snorlax',
+    'altar de gengar · +dificuldade, +xp e +saque',
+    'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
+  ];
+  return gratuitos.includes(texto) ? { acao: 'interagir' } : { acao: 'aguardar' };
+}
+
 function decidir(tela, configuracao = {}, aleatorio = Math.random) {
   const opcoes = tela.opcoes ?? [];
   const maiorRaridade = (lista) => {
@@ -202,6 +214,41 @@ configuracao.type = 'button';
 configuracao.textContent = 'Prioridade de status';
 Object.assign(configuracao.style, { position: 'fixed', bottom: '8px', right: '205px', zIndex: '2147483647', padding: '8px', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer' });
 document.body.appendChild(configuracao);
+let pickupAtivo = false;
+let ultimoPickup = '';
+let pickupLiberado = true;
+const botaoPickup = document.createElement('button');
+botaoPickup.type = 'button';
+botaoPickup.textContent = 'Auto Pickup: desligado';
+Object.assign(botaoPickup.style, { position: 'fixed', bottom: '48px', right: '8px', zIndex: '2147483647', padding: '8px', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer' });
+document.body.appendChild(botaoPickup);
+botaoPickup.addEventListener('click', () => {
+  pickupAtivo = !pickupAtivo;
+  ultimoPickup = '';
+  botaoPickup.textContent = pickupAtivo ? 'Auto Pickup: ligado (gratuitos)' : 'Auto Pickup: desligado';
+  agendar();
+});
+
+function observarPickup() {
+  if (!pickupAtivo || modalAberto) return;
+  if (document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')) return;
+  const visiveis = (seletor) => [...document.querySelectorAll(seletor)].filter((el) => el.getClientRects().length);
+  if (visiveis('.modal').length) return;
+  const prompts = visiveis('#hud .prompt');
+  if (prompts.length !== 1) { ultimoPickup = ''; return; }
+  const prompt = prompts[0];
+  const tecla = prompt.querySelector('kbd')?.textContent?.trim();
+  const texto = normalizar(prompt.textContent.slice(tecla?.length || 0));
+  if (decidirPickup(texto).acao !== 'interagir' || tecla !== 'E') { ultimoPickup = ''; return; }
+  if (!pickupLiberado || ultimoPickup === texto) return;
+  ultimoPickup = texto;
+  pickupLiberado = false;
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', code: 'KeyE', bubbles: true }));
+  setTimeout(() => {
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'e', code: 'KeyE', bubbles: true }));
+    pickupLiberado = true;
+  }, 100);
+}
 function atualizarAvisos() {
   try { sessionStorage.setItem(chaveAvisos, JSON.stringify(avisosForaPlano)); } catch (_) { /* mantém os avisos em memória */ }
   if (!avisosForaPlano.length && !painelAvisos) return;
@@ -373,6 +420,7 @@ async function verificarKitSeguro(nome) {
 }
 function observar() {
   verificarAvisoPendente();
+  observarPickup();
   if (!ativo || modalAberto) return;
   if (observarReliquias()) return;
   const botoes = [...document.querySelectorAll('button.card.offer')].filter((e) => e.getClientRects().length && !e.disabled);

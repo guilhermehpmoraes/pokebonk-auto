@@ -20,6 +20,8 @@ Relíquias usam maior raridade e, em caso de empate, o atributo mais alto no pre
 
 O painel oferece cinco presets de status com nomes editáveis. Cada preset guarda uma ordem independente; a aba selecionada determina a prioridade usada nas bênçãos. É possível copiar a ordem de outro preset para o ativo, mediante confirmação, preservando o nome do destino. Uma alça e botões movem cada status uma posição ou diretamente ao topo ou ao fim. As configurações ficam salvas no navegador. Na primeira utilização, a ordem anterior é usada como ponto de partida para os cinco presets.
 
+O Auto Pickup tem ativação própria, começa desligado e tenta interagir ao detectar os textos conhecidos de Poké Bola gratuita ou amaldiçoada, Great Ball gratuita, Snorlax, altar de Gengar e altar de desafio. Portais, interações desconhecidas e todos os gastos em Pokébolas, cassino e Meowth continuam manuais.
+
 ## Fora do escopo e limitações
 
-Movimentação e coleta automática no mapa não fazem parte do protótipo. A lista de atributos é parcial e nomes não reconhecidos são acrescentados ao fim; o reconhecimento, as interações reais e o desempenho não foram validados de forma completa no jogo.
+Movimentação automática e otimização de gastos ainda não fazem parte do protótipo. A coleta gratuita cobre apenas os textos reconhecidos e exige a tecla padrão E. A lista de atributos é parcial e nomes não reconhecidos são acrescentados ao fim; o reconhecimento, as interações reais e o desempenho não foram validados de forma completa no jogo.

@@ -2,7 +2,7 @@
 
 ## 2026-11-06
 
-Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.11` em `scripts/gerar-userscript.mjs`.
+Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.12` em `scripts/gerar-userscript.mjs`.
 
 O repositório foi publicado inicialmente com Gitflow e depois passou a trabalhar diretamente na `main`, por decisão do mantenedor.
 
@@ -39,3 +39,5 @@ Uma captura mostrou que o banimento individual exige confirmação no mesmo cart
 O fallback passou a melhorar itens já possuídos fora da build antes de gastar recursos e a escolher aleatoriamente quando eles se esgotarem. Avisos persistentes pedem conferência e podem ser marcados como resolvidos. Os fluxos têm testes simulados e precisam de validação no jogo.
 
 Foram adicionados testes para o ataque inicial fora da build, confirmando que a lógica existente escolhe sua melhoria depois das opções do plano. O jogo real ainda precisa ser testado.
+
+Foi adicionado um primeiro estágio do Auto Pickup para alguns rótulos gratuitos, com controle independente e desligado ao iniciar. Há testes simulados; o jogo real ainda precisa ser testado. A comparação entre gastos e a automação da loja e do cassino continuam pendentes.

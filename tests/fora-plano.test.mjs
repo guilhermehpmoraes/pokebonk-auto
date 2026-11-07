@@ -53,7 +53,7 @@ test('avisa sobre escolha fora da build e mantém o aviso até ser resolvido', (
   const chave = 'pokebonk-auto-select-fora-da-build';
   assert.deepEqual(JSON.parse(execucao.memoria.get(chave)), [{ nome: 'Toxic', tipo: 'golpe' }]);
   const reaberto = iniciar({ memoria: execucao.memoria, opcoes: [] });
-  const painel = reaberto.body.children[2];
+  const painel = reaberto.body.children.find((elemento) => elemento.children?.[2]?.children?.[0]?.textContent === "Toxic (golpe)");
   assert.equal(painel.children[2].children[0].textContent, 'Toxic (golpe)');
   painel.children[2].children[1].click();
   assert.deepEqual(JSON.parse(execucao.memoria.get(chave)), []);

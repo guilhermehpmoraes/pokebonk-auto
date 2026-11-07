@@ -10,6 +10,8 @@ O código gera um userscript para a interface em português de `https://pokebonk
 
 Instale um gerenciador de userscripts compatível, como o Tampermonkey, e abra o [link de instalação](https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js). Confirme a instalação ou atualização e recarregue o jogo. O Auto Select começa desligado. O painel salva cinco presets de prioridade no navegador.
 
+O botão Auto Pickup também começa desligado. Nesta versão, cobre apenas algumas interações gratuitas reconhecidas; compras, cassino e portais continuam manuais.
+
 O script informa ao gerenciador o endereço de atualização no GitHub. Com atualizações automáticas habilitadas, novas versões podem ser verificadas periodicamente; o intervalo e eventuais confirmações dependem do gerenciador e de suas configurações.
 
 ## Desenvolver e verificar

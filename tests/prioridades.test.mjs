@@ -39,7 +39,7 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
     document, localStorage, MutationObserver, setTimeout() {}, setInterval() {}, confirm: () => permitirCopia, Math, Date,
   });
   body.children[1].click();
-  const lista = body.children[2].lista;
+  const lista = body.children.find((elemento) => elemento.lista).lista;
   const dados = () => JSON.parse(memoria.get('pokebonk-auto-select-perfis'));
   const ordem = () => dados().perfis[dados().ativo].ordem;
   const id = (posicao) => lista.children[posicao].dataset.statusId;
@@ -55,13 +55,13 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
   arrastado.children[0].handlers.pointerdown(evento);
   arrastado.children[0].handlers.pointerup(evento);
   assert.equal(ordem()[1], 'sorte');
-  const abas = body.children[2].abas;
+  const abas = body.children.find((elemento) => elemento.lista).abas;
   assert.equal(abas.children.length, 5);
   abas.children[1].click();
   assert.equal(dados().ativo, 1);
   assert.deepEqual(dados().perfis[1].ordem.slice(0, 3), ['experiencia', 'dinheiro', 'sorte']);
   assert.equal(dados().perfis[0].ordem[1], 'sorte');
-  const nome = body.children[2].nome;
+  const nome = body.children.find((elemento) => elemento.lista).nome;
   nome.value = 'Especial'; nome.handlers.change();
   assert.equal(dados().perfis[1].nome, 'Especial');
   lista.children[1].children[3].click();
@@ -71,9 +71,9 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
   assert.equal(ordem()[1], 'sorte');
   abas.children[1].click();
   assert.equal(ordem()[0], 'dinheiro');
-  assert.equal(body.children[2].nome.value, 'Especial');
+  assert.equal(body.children.find((elemento) => elemento.lista).nome.value, 'Especial');
   assert.equal(memoria.get('pokebonk-auto-select-status'), JSON.stringify(['experiencia', 'dinheiro', 'sorte']));
-  const painel = body.children[2];
+  const painel = body.children.find((elemento) => elemento.lista);
   assert.equal(painel.copiar.disabled, true);
   assert.equal(painel.origem.children.some((opcao) => opcao.value === '1'), false);
   painel.origem.value = '0'; painel.origem.handlers.change();
@@ -94,8 +94,8 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
     document: novoDocument, localStorage, MutationObserver, setTimeout() {}, setInterval() {}, Math, Date,
   });
   novoBody.children[1].click();
-  assert.equal(novoBody.children[2].nome.value, 'Especial');
-  assert.equal(novoBody.children[2].lista.children[0].dataset.statusId, primeiraPrioridadeCopiada);
+  assert.equal(novoBody.children.find((elemento) => elemento.lista).nome.value, 'Especial');
+  assert.equal(novoBody.children.find((elemento) => elemento.lista).lista.children[0].dataset.statusId, primeiraPrioridadeCopiada);
   const antigos = dados();
   antigos.perfis[0].ordem = ['sorte', 'novo: dano em elites e chefes', 'dinheiro', 'dano elites'];
   antigos.perfis[1].ordem = ['dano elites', 'sorte', 'novo: dano em elites e chefes'];
@@ -105,7 +105,7 @@ test('painel migra prioridades e mantém cinco presets independentes', () => {
     document: { ...document, body: outroBody }, localStorage, MutationObserver, setTimeout() {}, setInterval() {}, Math, Date,
   });
   outroBody.children[1].click();
-  const outroPainel = outroBody.children[2];
+  const outroPainel = outroBody.children.find((elemento) => elemento.lista);
   const ids = () => outroPainel.lista.children.map((item) => item.dataset.statusId);
   assert.equal(ids()[0], 'dano elites');
   assert.equal(ids().filter((id) => id === 'dano elites').length, 1);

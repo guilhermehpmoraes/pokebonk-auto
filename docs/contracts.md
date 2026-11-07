@@ -27,3 +27,5 @@ Ao ler as ordens, variações reconhecidas de nomes são unificadas pelo identif
 Os metadados `@updateURL` e `@downloadURL` no script gerado apontam para o arquivo público na `main`; `@version` determina a versão anunciada ao gerenciador de userscripts. O gerador é a fonte desses campos.
 
 Após selecionar um cartão de build, bênção ou item, o adaptador pode repetir o clique no mesmo elemento enquanto a tela permanecer igual, até o limite em `selecionarComTentativa`.
+
+Para coleta gratuita, `decidirPickup` recebe o texto português normalizado, sem a tecla de interação, e só autoriza rótulos conhecidos. O adaptador depende de um único `#hud .prompt` visível com `kbd` igual a E e da ausência de `.modal` visível. Eventos de teclado sintéticos dependem do comportamento do jogo e ainda não foram verificados em partida.
