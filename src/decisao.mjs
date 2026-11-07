@@ -6,6 +6,7 @@ export function decidirPickup(texto) {
     'abrir poke bola amaldicoada (gratis... tem certeza?)',
     'acordar o snorlax',
     'rock smash',
+    'coletar oran berries',
     'altar de gengar · +dificuldade, +xp e +saque',
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
   ];

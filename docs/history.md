@@ -2,7 +2,7 @@
 
 ## 2026-11-06
 
-Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.15` em `scripts/gerar-userscript.mjs`.
+Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.16` em `scripts/gerar-userscript.mjs`.
 
 O repositório foi publicado inicialmente com Gitflow e depois passou a trabalhar diretamente na `main`, por decisão do mantenedor.
 
@@ -47,3 +47,5 @@ A etapa seguinte adicionou uma estimativa para comparar Pokébola, cassino e loj
 O botão do Auto Pickup passou a mostrar a opção paga preferida ou a espera por dados e saldo. A atualização tem teste simulado e ainda precisa de confirmação em jogo.
 
 O aviso `Rock Smash`, fornecido pelo usuário, foi adicionado às interações gratuitas reconhecidas. A interação tem teste simulado e ainda precisa de confirmação em jogo.
+
+O aviso `Coletar Oran Berries`, fornecido pelo usuário, também foi adicionado às interações gratuitas reconhecidas e tem teste simulado; ainda precisa de confirmação em jogo.
