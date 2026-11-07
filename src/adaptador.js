@@ -93,6 +93,7 @@ let tentativasEncontro = 0;
 let repetirEncontro = false;
 let interacaoLivre = null;
 let tentativaRhydon = null;
+let ultimaTentativaFenda = 0;
 const botaoPickup = document.createElement('button');
 botaoPickup.type = 'button';
 botaoPickup.textContent = 'Auto Pickup: desligado';
@@ -348,6 +349,33 @@ function modalRecompensaCassino(modal) {
     botoes.some((el) => /^pegar\s*e?$/.test(normalizar(el.textContent))) &&
     botoes.some((el) => normalizar(el.textContent).startsWith('vender'));
 }
+function observarFenda() {
+  if (!pickupAtivo || modalAberto || pickupSessao || interacaoLivre || !pickupLiberado) return;
+  if (document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')) return;
+  const instancia = mapaInstancia;
+  const run = instancia?.run;
+  const botao = document.querySelector?.('#hud .inc');
+  if (!instancia || instancia.disposed || run?.interactables !== instancia || run.state !== 'play' || run.player?.dead ||
+      !botao?.getClientRects().length || !botao.classList.contains('ready') || normalizar(botao.querySelector('kbd')?.textContent) !== 'c') return;
+  try {
+    const fendas = run.teamRifts?.enabled ? run.teamRifts : run.rifts;
+    if (typeof fendas?.useBlock !== 'function' || fendas.useBlock() !== null || Date.now() - ultimaTentativaFenda < 2000) return;
+    ultimaTentativaFenda = Date.now();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', code: 'KeyC', bubbles: true }));
+    setTimeout(() => window.dispatchEvent(new KeyboardEvent('keyup', { key: 'c', code: 'KeyC', bubbles: true })), 100);
+  } catch (_) { /* Não abre a Fenda se os dados do jogo forem ambíguos. */ }
+}
+function entradaDeFenda(texto) {
+  try {
+    const instancia = mapaInstancia, run = instancia?.run, fendas = run?.rifts;
+    if (!instancia || instancia.disposed || run?.interactables !== instancia || run.state !== 'play' ||
+        typeof fendas?.nearEntrance !== 'function' || !fendas.nearEntrance() ||
+        typeof fendas.enterBlock !== 'function' || fendas.enterBlock() !== null ||
+        typeof fendas.entranceLabel !== 'function') return false;
+    const aviso = normalizar(fendas.entranceLabel()).replace(/^\[e\]\s*/, '');
+    return !!aviso && aviso === texto;
+  } catch (_) { return false; }
+}
 function observarPickup() {
   const carteira = carteiraPickup();
   const mapa = atualizarMapa(carteira);
@@ -376,6 +404,7 @@ function observarPickup() {
     } else atualizarIndicadorPickup(texto);
     return;
   }
+  observarFenda();
   if (interacaoLivre && (interacaoLivre.viuModal || Date.now() - interacaoLivre.inicio > 3000)) interacaoLivre = null;
   if (pickupSessao) {
     if (pickupSessao.tipo === 'cassino' && pickupSessao.viuModal && pickupSessao.giroInicialAssinatura && !pickupSessao.saiuPorEstrategia && !pickupSessao.recompensa) {
@@ -417,7 +446,7 @@ function observarPickup() {
   if (encontro === 'loja' && carteira && Number.isFinite(carteira.saldo) && carteira.saldo > 0) tipo = 'loja';
   const decisaoLivre = decidirPickup(texto);
   if (decisaoLivre.custoJaula !== undefined && (!carteira || !Number.isSafeInteger(decisaoLivre.custoJaula) || carteira.saldo < decisaoLivre.custoJaula)) return;
-  if (decisaoLivre.acao !== 'interagir' && !tipo || tecla !== 'E') { ultimoPickup = ''; tentativaRhydon = null; return; }
+  if (decisaoLivre.acao !== 'interagir' && !tipo && !entradaDeFenda(texto) || tecla !== 'E') { ultimoPickup = ''; tentativaRhydon = null; return; }
   const estagioRhydon = decisaoLivre.estagioRhydon;
   if (estagioRhydon === undefined) tentativaRhydon = null;
   else if (!tentativaRhydon || tentativaRhydon.estagio !== estagioRhydon) tentativaRhydon = { estagio: estagioRhydon, tentativas: 0, ultima: 0 };

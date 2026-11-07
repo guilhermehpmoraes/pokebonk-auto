@@ -73,3 +73,5 @@ A estratégia passou a priorizar Pokébolas e reservar o preço de uma próxima 
 Na versão 0.2.27 foram adicionados painel com contagem de marcadores, projeção de reserva, Friend Ball e comparação de suportes Alfa. Jaulas de preço variável e Lançar Poké Bola passaram a ser reconhecidos. O usuário relatou falha de retomada após prêmio no cassino; foi acrescentado reconhecimento do prêmio de item único e uma espera entre telas. Tudo requer validação na partida real.
 
 O aviso fornecido pelo usuário para chamar o Alfa e encerrar as ondas passou a ser reconhecido pelo Auto Pickup. Há teste de decisão e simulação de teclado; falta validação em partida.
+
+Foi adicionada a tentativa automática de abrir Fendas e entrar nelas quando reconhecidas, a pedido do usuário. Os bloqueios foram examinados no código público do jogo e o fluxo tem teste simulado; a partida real ainda precisa de validação.

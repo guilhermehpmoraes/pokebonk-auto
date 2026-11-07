@@ -20,7 +20,7 @@ Relíquias usam maior raridade e, em caso de empate, o atributo mais alto no pre
 
 O painel oferece cinco presets de status com nomes editáveis. Cada preset guarda uma ordem independente; a aba selecionada determina a prioridade usada nas bênçãos. É possível copiar a ordem de outro preset para o ativo, mediante confirmação, preservando o nome do destino. Uma alça e botões movem cada status uma posição ou diretamente ao topo ou ao fim. As configurações ficam salvas no navegador. Na primeira utilização, a ordem anterior é usada como ponto de partida para os cinco presets.
 
-O Auto Pickup tem ativação própria, começa desligado e tenta interagir ao detectar os textos conhecidos de Poké Bola gratuita ou amaldiçoada, Great Ball gratuita, Snorlax, Rock Smash, coleta de Oran Berries, Magnemite, Ovo Pokémon, altar de Gengar, altar de desafio e altar amaldiçoado. O aviso **Chamar o Alfa agora (encerra as ondas)** também é acionado ao passar. O altar amaldiçoado concede um item raro em troca de uma maldição. Portais e interações desconhecidas continuam manuais.
+O Auto Pickup tem ativação própria, começa desligado e tenta interagir ao detectar os textos conhecidos de Poké Bola gratuita ou amaldiçoada, Great Ball gratuita, Snorlax, Rock Smash, coleta de Oran Berries, Magnemite, Ovo Pokémon, altar de Gengar, altar de desafio e altar amaldiçoado. O aviso **Chamar o Alfa agora (encerra as ondas)** também é acionado ao passar. O altar amaldiçoado concede um item raro em troca de uma maldição. Os portais do chefe e da próxima zona e interações desconhecidas continuam manuais.
 
 No Rugido de Rhydon, o pickup identifica o aviso inicial e os estágios 1/3 e 2/3 para tentar completar três ativações no total. Cada rugido fortalece o guardião e melhora a recompensa; ao chegar ao limite, o jogo mostra outro aviso que não é acionado pelo script.
 
@@ -36,8 +36,10 @@ Para agilizar os giros, o pickup tenta acionar **Pular animação** quando o bot
 
 ## Fora do escopo e limitações
 
-Movimentação automática não faz parte do protótipo. O pickup cobre apenas os textos reconhecidos e exige a tecla padrão E. A estimativa da loja não sabe o estoque antes de abrir e, sem observação recente, não usa os modificadores reais do preço; só trabalha com zonas normais identificadas. A lista de atributos é parcial e nomes não reconhecidos são acrescentados ao fim; o reconhecimento, as interações reais e o desempenho não foram validados de forma completa no jogo.
+Movimentação automática não faz parte do protótipo. O pickup cobre apenas os textos reconhecidos e usa as teclas padrão E e C. A estimativa da loja não sabe o estoque antes de abrir e, sem observação recente, não usa os modificadores reais do preço; só trabalha com zonas normais identificadas. A lista de atributos é parcial e nomes não reconhecidos são acrescentados ao fim; o reconhecimento, as interações reais e o desempenho não foram validados de forma completa no jogo.
 
 O painel de mapa apresenta as categorias e quantidades atuais da mesma lista usada na legenda do jogo; clique nele para recolher ou expandir. Mostra quantas Pokébolas pagas cabem no saldo e uma reserva estimada a partir da curva de preços atual. A reserva cobre as que cabem no saldo atual; não prevê rendimentos nem mudanças de bônus. Se a lista ou a fórmula não puderem ser verificadas, informa a limitação e reserva o preço da próxima bola. A lista não prevê objetos que ainda não foram criados.
 
 Com Auto Pickup ligado, a Friend Ball de Alfa é acionada quando reconhecida. Na tela de equipe cheia, compara os bônus de suporte usando a ordem do preset ativo; substitui o Alfa elegível de menor prioridade somente se o novo for melhor. Em empate mantém os atuais; com dados desconhecidos aguarda. O jogo pode omitir companheiros que não podem ser libertados.
+
+Com o Auto Pickup ligado, o script tenta usar Incenso para abrir uma Fenda sempre que o jogo indicar que é permitido; também tenta entrar na Fenda reconhecida ao passar perto dela. A abertura consome Incenso. A movimentação até a entrada continua manual.

@@ -36,3 +36,5 @@ Na loja, o script compra os itens disponíveis do primeiro lote quando o reconhe
 O cassino tenta novamente cliques ignorados até três vezes por estado e tenta pular animações até três vezes. Ao identificar uma tela de recompensa, tenta voltar ao cassino após a escolha. Isso depende do DOM e ainda precisa de confirmação em jogo.
 
 O painel de mapa pode ser recolhido clicando nele; mostra dados mesmo com o Auto Pickup desligado. Ele depende de uma classe interna e pode deixar de funcionar após uma atualização do jogo. A seleção de Alfa libera automaticamente um dos cartões elegíveis se o pickup estiver ligado; ao não reconhecer o bônus ou a tela, aguarda.
+
+Com Auto Pickup ativo, a Fenda consome Incenso automaticamente quando liberada pelo jogo. Sua entrada é acionada ao passar perto. O recurso depende do HUD, da tecla padrão C e de métodos internos, que podem mudar em versões futuras.

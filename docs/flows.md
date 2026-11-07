@@ -31,7 +31,7 @@ No painel de prioridades, `abrirPrioridades` permite trocar entre cinco presets,
 
 Os seletores e etapas são dependências da interface real; a simulação em `tests/integracao.test.mjs` não confirma o comportamento do jogo.
 
-O Auto Pickup observa o aviso de proximidade e interage apenas com textos identificados, inclusive para chamar o Alfa e encerrar as ondas. A sugestão prioriza Pokébolas, sem bloquear outras interações reconhecidas. Na loja, compra lotes inteiros e renova repetidamente enquanto viáveis; no cassino, avalia cada giro e tenta retomar após uma recompensa reconhecida. Preserva o custo estimado das Pokébolas pagas restantes que cabem no saldo atual e usa o dobro do custo estimado dela como limite por item. Portais e avisos desconhecidos permanecem manuais.
+O Auto Pickup observa o aviso de proximidade e interage apenas com textos identificados, inclusive para chamar o Alfa e encerrar as ondas. A sugestão prioriza Pokébolas, sem bloquear outras interações reconhecidas. Na loja, compra lotes inteiros e renova repetidamente enquanto viáveis; no cassino, avalia cada giro e tenta retomar após uma recompensa reconhecida. Preserva o custo estimado das Pokébolas pagas restantes que cabem no saldo atual e usa o dobro do custo estimado dela como limite por item. Portais do chefe, da próxima zona e avisos desconhecidos permanecem manuais.
 
 A conferência usa o preço bruto da carteira quando o HUD exibe um valor abreviado; sem preço bruto, só aceita valores exibidos por inteiro. Um preço incompatível ou saldo insuficiente mantém a interação em espera.
 
@@ -42,3 +42,5 @@ Com o Auto Pickup ligado, o botão exibe a sugestão para procurar no mapa ou um
 Depois de ler preços e raridades na loja, a estimativa observada permanece disponível por até 60 segundos na mesma zona para a sugestão. No cassino, o script tenta pular cada animação e avalia o próximo giro, com até três tentativas por estado. O retorno após recompensa depende de reconhecer a tela de escolha ou item único e tolera uma breve transição entre telas; a integração precisa de teste em jogo.
 
 O painel de mapa é independente dos controles de ativação e pode ser recolhido com um clique. Captura a lista de marcadores do jogo e atualiza a contagem e a reserva quando os dados são reconhecidos. Com o pickup ativo, a tela de substituição de Alfa compara os bônus do novo e dos existentes com o preset ativo; se qualquer informação essencial for ambígua, não escolhe.
+
+Quando o pickup está ligado, a Fenda é aberta com C se o HUD e o estado do jogo confirmarem a disponibilidade. O script aguarda situações bloqueadas e tenta novamente; ao passar pela entrada confirmada da Fenda, interage com E.

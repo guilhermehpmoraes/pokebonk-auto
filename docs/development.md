@@ -35,3 +35,5 @@ Use o WSL para operações Git. Este repositório trabalha diretamente na branch
 Os testes simulam lotes renovados repetidamente, reserva para Pokébola e retorno ao cassino após uma tela de recompensa reconhecida. Esses cenários não substituem validação em jogo.
 
 `tests/mapa.test.mjs` simula captura da instância, contagem e atualização; `tests/alfa.test.mjs` cobre prioridade, empate e dados desconhecidos. `pickup.test.mjs` cobre prêmio de item único após intervalo, jaula com saldo insuficiente e projeção de custo. A simulação não comprova compatibilidade com o módulo real do jogo.
+
+`tests/fenda.test.mjs` simula disponibilidade, bloqueios, intervalo entre pressionamentos e entrada na Fenda. Não comprova a integração com a partida real.
