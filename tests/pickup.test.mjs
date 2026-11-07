@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { decidirPickup, decidirGasto, decidirLoteLoja, gastoViavel } from '../src/decisao.mjs';
+import { decidirPickup, decidirGasto, decidirLoteLoja, gastoViavel, estimarReservaBolas } from '../src/decisao.mjs';
 
 test('estima custo e aguarda quando não pode bancar a alternativa preferida', () => {
   assert.equal(decidirGasto({ saldo: 100, bola: 32, giro: 40, lojaEstimada: 130 }), 'bola');
@@ -31,6 +31,16 @@ test('reserva uma Pokébola e limita custo comparado', () => {
   assert.equal(gastoViavel({ saldo: 1000, bola: null, custo: 20 }), false);
 });
 
+test('estima preços progressivos e reserva as bolas que cabem no saldo', () => {
+  assert.deepEqual(estimarReservaBolas({ saldo: 1000, bola: 18, compradas: 0, restantes: 2 }), { reserva: 63, acessiveis: 2, total: 63 });
+  assert.deepEqual(estimarReservaBolas({ saldo: 30, bola: 18, compradas: 0, restantes: 2 }), { reserva: 18, acessiveis: 1, total: 63 });
+  assert.deepEqual(estimarReservaBolas({ saldo: 10, bola: 18, compradas: 0, restantes: 2 }), { reserva: 18, acessiveis: 0, total: 63 });
+  assert.deepEqual(estimarReservaBolas({ saldo: 10, bola: 18, compradas: 0, restantes: 0 }), { reserva: 0, acessiveis: 0, total: 0 });
+  assert.equal(estimarReservaBolas({ saldo: 10, bola: 18, compradas: -1, restantes: 2 }), null);
+  assert.equal(gastoViavel({ saldo: 1000, bola: 100, custo: 200, reserva: 850 }), false);
+  assert.equal(decidirGasto({ saldo: 1000, bola: 100, giro: 10, bolasRestantes: 0 }), 'cassino');
+});
+
 test('renova mais de uma vez enquanto o estoque é viável', () => {
   const acoes = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [false, false, false, false], iteracoes: 11 });
   assert.equal(acoes.filter((acao) => acao === 'renovar').length, 2);
@@ -45,9 +55,11 @@ test('pickup aceita apenas interações gratuitas identificadas e bloqueia porta
   }
 });
 
-test('liberta qualquer Pokémon da jaula por 30 ₽, mas aguarda valores ou avisos diferentes', () => {
+test('liberta qualquer Pokémon da jaula pelo preço exibido', () => {
   for (const texto of ['libertar pupitar · 30 ₽', 'libertar mr. mime · 30 ₽', 'libertar nidoran♀ · 30 ₽']) assert.equal(decidirPickup(texto).acao, 'interagir');
-  for (const texto of ['libertar pupitar · 31 ₽', 'libertar pupitar · 300 ₽', 'libertar · 30 ₽', 'libertar pupitar · 30 ₽ extra']) assert.equal(decidirPickup(texto).acao, 'aguardar');
+  assert.equal(decidirPickup('libertar sandslash · 50 ₽').custoJaula, 50);
+  assert.equal(decidirPickup('lancar poke bola').acao, 'interagir');
+  for (const texto of ['libertar · 30 ₽', 'libertar pupitar · 30 ₽ extra']) assert.equal(decidirPickup(texto).acao, 'aguardar');
 });
 
 test('reconhece ovo com contagem variável sem acionar avisos de ninho indisponível', () => {
@@ -97,7 +109,10 @@ test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecid
   let texto = 'Acordar o Snorlax', tecla = 'E', modal = false;
   const criar = () => ({ style: {}, addEventListener(nome, fn) { this[nome] = fn; } });
   const prompt = { getClientRects: () => [1], get textContent() { return tecla + texto; }, querySelector: () => ({ textContent: tecla }) };
+  const chip = { getClientRects: () => [1], querySelector: () => ({ textContent: '32' }) };
+  const wallet = { getClientRects: () => [1], dataset: { g: '1000', k: '1000|32|40|40' }, querySelector: () => chip };
   const document = { body: { appendChild: (el) => controles.push(el) }, createElement: criar,
+    querySelector(s) { return s === '#hud .wallet' ? wallet : s === '#hud .ht-zone' ? { textContent: 'Zona 1/3' } : null; },
     querySelectorAll(seletor) { if (seletor === '#hud .prompt') return [prompt]; if (seletor === '.modal') return modal ? [{ getClientRects: () => [1] }] : []; return []; } };
   class MutationObserver { observe() {} }
   class KeyboardEvent { constructor(type, options) { this.type = type; this.code = options.code; } }
@@ -128,6 +143,12 @@ test('pickup inicia desligado, interage uma vez e ignora modalidades desconhecid
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
   texto = 'Pegar o Ovo Pokémon · choca após 300 derrotas'; controles[2].click(); controles[2].click(); executar(); executar();
   assert.deepEqual(eventos, ['keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE', 'keydown:KeyE', 'keyup:KeyE']);
+  texto = 'Libertar Sandslash · 50 ₽'; wallet.dataset.g = '49'; controles[2].click(); controles[2].click(); executar(); executar();
+  assert.equal(eventos.length, 14);
+  wallet.dataset.g = '50'; controles[2].click(); controles[2].click(); executar(); executar();
+  assert.equal(eventos.length, 16);
+  texto = 'Lançar Poké Bola'; controles[2].click(); controles[2].click(); executar(); executar();
+  assert.equal(eventos.length, 18);
 });
 
 test('confere preços completos com a carteira bruta quando o HUD abrevia os valores', () => {
@@ -293,6 +314,29 @@ test('retoma o cassino após uma tela reconhecida de recompensa', () => {
   controles[2].click(); executar(); executar(); tick(); tick();
   assert.deepEqual(acoes, ['abrir', 'girar']);
   tick(); tela = 'mapa'; tick(); executar();
+  assert.deepEqual(acoes, ['abrir', 'girar', 'abrir']);
+});
+
+test('retoma após prêmio de item único mesmo com intervalo entre telas', () => {
+  let tempo = 1000, tela = 'mapa', tarefas = [], intervalo, giros = 0;
+  const acoes = [], controles = [], visivel = () => [1];
+  const chip = (n) => ({ getClientRects: visivel, querySelector: () => ({ textContent: String(n) }) });
+  const carteira = { getClientRects: visivel, dataset: { g: '10000', k: '10000|400|40|40' }, querySelector(s) { return s === '.wl-ball' ? chip(400) : s === '.wl-slots' ? chip(40) : chip(40); } };
+  const prompt = { getClientRects: visivel, textContent: 'ECaça-níqueis · 40 ₽ por giro', querySelector: () => ({ textContent: 'E' }) };
+  const cabine = { classList: { contains: () => false }, querySelector: () => ({ textContent: String(giros) }) };
+  const girar = { disabled: false, textContent: 'Girar · 40 ₽E', click() { giros++; acoes.push('girar'); tela = 'recompensa'; } };
+  const sair = { disabled: false, textContent: 'Sair', click() { tela = 'mapa'; } };
+  const cassino = { getClientRects: visivel, classList: { contains: () => false }, querySelector(s) { return s === '.sl-cab' ? cabine : s === '.sl-gold' ? { textContent: '10000 ₽' } : null; }, querySelectorAll(s) { return s === '.actions button' ? [girar, sair] : []; } };
+  const recompensa = { getClientRects: visivel, classList: { contains: () => false }, querySelector: () => null, querySelectorAll(s) { return s === 'h1,h2,h3,div,span' ? [{ textContent: 'Você encontrou um item!' }] : s === 'button' ? [{ textContent: 'Pegar E' }, { textContent: 'Vender +30' }] : []; } };
+  const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }), querySelector(s) { return s === '#hud .wallet' ? carteira : s === '#hud .ht-zone' ? { textContent: 'Zona 1/3' } : null; }, querySelectorAll(s) { return s === '.modal' ? tela === 'cassino' ? [cassino] : tela === 'recompensa' ? [recompensa] : [] : s === '#hud .prompt' && tela === 'mapa' ? [prompt] : []; } };
+  class MutationObserver { observe() {} }
+  class KeyboardEvent { constructor(type) { this.type = type; } }
+  vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), { document, localStorage: { getItem: () => null }, MutationObserver, KeyboardEvent, window: { dispatchEvent(e) { if (e.type === 'keydown') { acoes.push('abrir'); tela = 'cassino'; } } }, setTimeout(fn) { tarefas.push(fn); }, setInterval(fn) { intervalo = fn; }, Date: { now: () => tempo }, Math });
+  const executar = () => { const atuais = tarefas.splice(0); atuais.forEach((fn) => fn()); };
+  const tick = () => { tempo += 600; intervalo(); executar(); };
+  controles[2].click(); executar(); executar(); tick();
+  assert.deepEqual(acoes, ['abrir', 'girar']);
+  tela = 'mapa'; tick(); assert.deepEqual(acoes, ['abrir', 'girar']); tela = 'recompensa'; tick(); tela = 'mapa'; tick(); executar();
   assert.deepEqual(acoes, ['abrir', 'girar', 'abrir']);
 });
 

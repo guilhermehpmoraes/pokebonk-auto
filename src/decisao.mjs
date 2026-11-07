@@ -6,6 +6,7 @@ export function decidirPickup(texto) {
   const gratuitos = [
     'abrir poke bola (gratis)',
     'abrir great ball (gratis)',
+    'lancar poke bola',
     'abrir poke bola amaldicoada (gratis... tem certeza?)',
     'acordar o snorlax',
     'rock smash',
@@ -15,15 +16,26 @@ export function decidirPickup(texto) {
     'altar de gengar · +dificuldade, +xp e +saque',
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
   ];
-  const jaula = /^libertar\s+\S(?:.*\S)?\s+·\s+30\s+₽$/.test(texto);
+  const jaula = /^libertar\s+\S(?:.*\S)?\s+·\s+(\d+)\s+₽$/.exec(texto);
   const ovo = /^pegar o ovo pokemon · choca apos \d+(?:[.,]\d{3})* derrotas$/.test(texto);
-  return gratuitos.includes(texto) || jaula || ovo ? { acao: 'interagir' } : { acao: 'aguardar' };
+  const alfa = /^friend ball: luta com voce nesta partida \(\d+ s\) · apoio: .+$/.test(texto);
+  if (jaula) return { acao: 'interagir', custoJaula: Number(jaula[1]) };
+  return gratuitos.includes(texto) || ovo || alfa ? { acao: 'interagir' } : { acao: 'aguardar' };
+}
+
+export function decidirAlfa({ existentes, novo, prioridade }) {
+  if (!Array.isArray(existentes) || !existentes.length || !Array.isArray(prioridade) || !prioridade.length ||
+      !novo || !existentes.every((alfa) => alfa && prioridade.includes(alfa.status)) || !prioridade.includes(novo.status)) return null;
+  let pior = existentes[0];
+  for (const alfa of existentes.slice(1)) if (prioridade.indexOf(alfa.status) > prioridade.indexOf(pior.status)) pior = alfa;
+  return prioridade.indexOf(novo.status) < prioridade.indexOf(pior.status) ? pior.id : novo.id;
 }
 
 // Estimativas de custo por item: a Pokébola tem bônus pela escolha entre ofertas;
 // no cassino 0,194 item/giro e retorno médio de 25% são valores sem sorte.
-export function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [] }) {
+export function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [], bolasRestantes = null }) {
   if (![saldo, bola].every((n) => Number.isFinite(n) && n >= 0) || bola === 0) return 'aguardar';
+  if (bolasRestantes === 0 && !excluidos.includes('bola')) excluidos = [...excluidos, 'bola'];
   if (!excluidos.includes('bola')) return saldo >= bola ? 'bola' : 'aguardar';
   const custos = [{ tipo: 'bola', custo: bola / 1.3, acessivel: saldo >= bola }];
   if (Number.isFinite(giro) && giro > 0) custos.push({ tipo: 'cassino', custo: giro * 0.75 / 0.194 * 1.3, acessivel: saldo >= giro });
@@ -36,24 +48,50 @@ export function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [] }
 
 // Mantém o preço de uma próxima Pokébola e tolera até o dobro do custo
 // estimado por item dela para evitar viagens entre opções por diferenças pequenas.
-export function gastoViavel({ saldo, bola, custo, itens = 1 }) {
+export function gastoViavel({ saldo, bola, custo, itens = 1, reserva = bola }) {
   if (![saldo, bola, custo, itens].every(Number.isFinite) || saldo < 0 || bola <= 0 || custo <= 0 || itens <= 0) return false;
-  return saldo >= custo + bola && custo / itens <= 2 * bola / 1.3;
+  if (!Number.isFinite(reserva) || reserva < 0) return false;
+  return saldo >= custo + reserva && custo / itens <= 2 * bola / 1.3;
 }
 
-export function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0 }) {
+export function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0, reserva = bola }) {
   if (!Number.isFinite(saldo) || saldo < 0 ||
       !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length !== 4 || vendidos.length !== 4 ||
       vendidos.some((v) => typeof v !== 'boolean') || precos.some((p, i) => !vendidos[i] && (!Number.isFinite(p) || p <= 0))) return 'aguardar';
   const restantes = precos.filter((_, i) => !vendidos[i]);
   if (!restantes.length) return 'concluido';
   const total = restantes.reduce((a, b) => a + b, 0);
-  if (saldo < total || (Number.isFinite(bola) && saldo < total + bola)) return 'aguardar';
+  if (saldo < total || (Number.isFinite(reserva) && saldo < total + reserva)) return 'aguardar';
   if (avaliar) {
     if (!Number.isFinite(bola) || bola <= 0 || !Number.isFinite(renovacao) || renovacao < 0) return 'aguardar';
     if ((total + renovacao) / restantes.length > 2 * bola / 1.3) return 'sair';
   }
   return 'comprar';
+}
+
+// Projeta a curva atual de preço; bônus futuros ou alterações do jogo mudam a previsão.
+export function estimarReservaBolas({ saldo, bola, compradas, restantes }) {
+  if (![saldo, bola, compradas, restantes].every(Number.isSafeInteger) || saldo < 0 || bola <= 0 || compradas < 0 || restantes < 0 || restantes > 1000) return null;
+  if (!restantes) return { reserva: 0, acessiveis: 0, total: 0 };
+  const curva = (n) => {
+    let t = 35 * n;
+    if (n > 10) t += 300 * (n - 10);
+    if (n > 20) t += 550 * (n - 20);
+    if (n > 30) t += 1200 * (n - 30);
+    if (n > 40) t += 2400 * (n - 30);
+    if (n > 50) t += 4500 * (n - 30);
+    return (1.22 ** n + t / 30) * 1.12 ** Math.max(0, n - 12);
+  };
+  const base = curva(compradas);
+  if (!Number.isFinite(base) || base <= 0) return null;
+  let total = 0, reserva = 0, acessiveis = 0;
+  for (let i = 0; i < restantes; i++) {
+    const custo = i === 0 ? bola : Math.ceil((bola + 0.5) * curva(compradas + i) / base);
+    if (!Number.isSafeInteger(custo) || !Number.isSafeInteger(total + custo)) return null;
+    total += custo;
+    if (total <= saldo) { reserva = total; acessiveis++; }
+  }
+  return { reserva: acessiveis ? reserva : bola, acessiveis, total };
 }
 
 export function decidir(tela, configuracao = {}, aleatorio = Math.random) {

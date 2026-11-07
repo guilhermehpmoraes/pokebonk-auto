@@ -25,3 +25,5 @@ O reconhecimento dos estágios do Rugido de Rhydon fica na decisão; o adaptador
 Durante um giro no cassino, o adaptador tenta pular a animação e reavalia o próximo giro. Se identificar uma tela de recompensa, tenta retomar a visita após a escolha.
 
 Quando ativo, o botão do Auto Pickup mostra uma sugestão de destino mantida em memória até ser concluída ou trocada pelo usuário. A sugestão não limita as interações pagas no caminho. Nos modais próprios, indica que está avaliando itens ou giro.
+
+O painel de mapa captura a instância de marcadores envolvendo o método da classe interna carregada pelo jogo; a extração e a projeção são conservadoras quando a versão ou os dados não são reconhecidos. O adaptador identifica a tela Alfa, e a escolha entre bônus é uma regra pura em `decisao.mjs`.

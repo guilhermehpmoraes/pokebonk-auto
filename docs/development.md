@@ -33,3 +33,5 @@ Ao mudar o script, incremente `@version` em `scripts/gerar-userscript.mjs`, gere
 Use o WSL para operações Git. Este repositório trabalha diretamente na branch `main`, sem Gitflow. Depois de verificar cada alteração, faça commit e envie a `main` ao GitHub. A convenção de commits segue a skill global `commit-message` quando aplicável.
 
 Os testes simulam lotes renovados repetidamente, reserva para Pokébola e retorno ao cassino após uma tela de recompensa reconhecida. Esses cenários não substituem validação em jogo.
+
+`tests/mapa.test.mjs` simula captura da instância, contagem e atualização; `tests/alfa.test.mjs` cobre prioridade, empate e dados desconhecidos. `pickup.test.mjs` cobre prêmio de item único após intervalo, jaula com saldo insuficiente e projeção de custo. A simulação não comprova compatibilidade com o módulo real do jogo.

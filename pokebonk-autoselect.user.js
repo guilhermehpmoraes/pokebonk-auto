@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.26
+// @version      0.2.27
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -19,6 +19,7 @@ function decidirPickup(texto) {
   const gratuitos = [
     'abrir poke bola (gratis)',
     'abrir great ball (gratis)',
+    'lancar poke bola',
     'abrir poke bola amaldicoada (gratis... tem certeza?)',
     'acordar o snorlax',
     'rock smash',
@@ -28,15 +29,26 @@ function decidirPickup(texto) {
     'altar de gengar · +dificuldade, +xp e +saque',
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
   ];
-  const jaula = /^libertar\s+\S(?:.*\S)?\s+·\s+30\s+₽$/.test(texto);
+  const jaula = /^libertar\s+\S(?:.*\S)?\s+·\s+(\d+)\s+₽$/.exec(texto);
   const ovo = /^pegar o ovo pokemon · choca apos \d+(?:[.,]\d{3})* derrotas$/.test(texto);
-  return gratuitos.includes(texto) || jaula || ovo ? { acao: 'interagir' } : { acao: 'aguardar' };
+  const alfa = /^friend ball: luta com voce nesta partida \(\d+ s\) · apoio: .+$/.test(texto);
+  if (jaula) return { acao: 'interagir', custoJaula: Number(jaula[1]) };
+  return gratuitos.includes(texto) || ovo || alfa ? { acao: 'interagir' } : { acao: 'aguardar' };
+}
+
+function decidirAlfa({ existentes, novo, prioridade }) {
+  if (!Array.isArray(existentes) || !existentes.length || !Array.isArray(prioridade) || !prioridade.length ||
+      !novo || !existentes.every((alfa) => alfa && prioridade.includes(alfa.status)) || !prioridade.includes(novo.status)) return null;
+  let pior = existentes[0];
+  for (const alfa of existentes.slice(1)) if (prioridade.indexOf(alfa.status) > prioridade.indexOf(pior.status)) pior = alfa;
+  return prioridade.indexOf(novo.status) < prioridade.indexOf(pior.status) ? pior.id : novo.id;
 }
 
 // Estimativas de custo por item: a Pokébola tem bônus pela escolha entre ofertas;
 // no cassino 0,194 item/giro e retorno médio de 25% são valores sem sorte.
-function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [] }) {
+function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [], bolasRestantes = null }) {
   if (![saldo, bola].every((n) => Number.isFinite(n) && n >= 0) || bola === 0) return 'aguardar';
+  if (bolasRestantes === 0 && !excluidos.includes('bola')) excluidos = [...excluidos, 'bola'];
   if (!excluidos.includes('bola')) return saldo >= bola ? 'bola' : 'aguardar';
   const custos = [{ tipo: 'bola', custo: bola / 1.3, acessivel: saldo >= bola }];
   if (Number.isFinite(giro) && giro > 0) custos.push({ tipo: 'cassino', custo: giro * 0.75 / 0.194 * 1.3, acessivel: saldo >= giro });
@@ -49,24 +61,50 @@ function decidirGasto({ saldo, bola, giro, lojaEstimada, excluidos = [] }) {
 
 // Mantém o preço de uma próxima Pokébola e tolera até o dobro do custo
 // estimado por item dela para evitar viagens entre opções por diferenças pequenas.
-function gastoViavel({ saldo, bola, custo, itens = 1 }) {
+function gastoViavel({ saldo, bola, custo, itens = 1, reserva = bola }) {
   if (![saldo, bola, custo, itens].every(Number.isFinite) || saldo < 0 || bola <= 0 || custo <= 0 || itens <= 0) return false;
-  return saldo >= custo + bola && custo / itens <= 2 * bola / 1.3;
+  if (!Number.isFinite(reserva) || reserva < 0) return false;
+  return saldo >= custo + reserva && custo / itens <= 2 * bola / 1.3;
 }
 
-function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0 }) {
+function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0, reserva = bola }) {
   if (!Number.isFinite(saldo) || saldo < 0 ||
       !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length !== 4 || vendidos.length !== 4 ||
       vendidos.some((v) => typeof v !== 'boolean') || precos.some((p, i) => !vendidos[i] && (!Number.isFinite(p) || p <= 0))) return 'aguardar';
   const restantes = precos.filter((_, i) => !vendidos[i]);
   if (!restantes.length) return 'concluido';
   const total = restantes.reduce((a, b) => a + b, 0);
-  if (saldo < total || (Number.isFinite(bola) && saldo < total + bola)) return 'aguardar';
+  if (saldo < total || (Number.isFinite(reserva) && saldo < total + reserva)) return 'aguardar';
   if (avaliar) {
     if (!Number.isFinite(bola) || bola <= 0 || !Number.isFinite(renovacao) || renovacao < 0) return 'aguardar';
     if ((total + renovacao) / restantes.length > 2 * bola / 1.3) return 'sair';
   }
   return 'comprar';
+}
+
+// Projeta a curva atual de preço; bônus futuros ou alterações do jogo mudam a previsão.
+function estimarReservaBolas({ saldo, bola, compradas, restantes }) {
+  if (![saldo, bola, compradas, restantes].every(Number.isSafeInteger) || saldo < 0 || bola <= 0 || compradas < 0 || restantes < 0 || restantes > 1000) return null;
+  if (!restantes) return { reserva: 0, acessiveis: 0, total: 0 };
+  const curva = (n) => {
+    let t = 35 * n;
+    if (n > 10) t += 300 * (n - 10);
+    if (n > 20) t += 550 * (n - 20);
+    if (n > 30) t += 1200 * (n - 30);
+    if (n > 40) t += 2400 * (n - 30);
+    if (n > 50) t += 4500 * (n - 30);
+    return (1.22 ** n + t / 30) * 1.12 ** Math.max(0, n - 12);
+  };
+  const base = curva(compradas);
+  if (!Number.isFinite(base) || base <= 0) return null;
+  let total = 0, reserva = 0, acessiveis = 0;
+  for (let i = 0; i < restantes; i++) {
+    const custo = i === 0 ? bola : Math.ceil((bola + 0.5) * curva(compradas + i) / base);
+    if (!Number.isSafeInteger(custo) || !Number.isSafeInteger(total + custo)) return null;
+    total += custo;
+    if (total <= saldo) { reserva = total; acessiveis++; }
+  }
+  return { reserva: acessiveis ? reserva : bola, acessiveis, total };
 }
 
 function decidir(tela, configuracao = {}, aleatorio = Math.random) {
@@ -285,6 +323,68 @@ trocarAlvo.type = 'button';
 trocarAlvo.textContent = 'Trocar sugestão';
 Object.assign(trocarAlvo.style, { position: 'fixed', bottom: '88px', right: '8px', zIndex: '2147483647', padding: '6px 8px', background: '#39435f', color: 'white', border: '1px solid #888', borderRadius: '8px', cursor: 'pointer', display: 'none' });
 document.body.appendChild(trocarAlvo);
+const painelMapa = document.createElement('div');
+Object.assign(painelMapa.style, { position: 'fixed', top: '150px', right: '8px', zIndex: '2147483646', padding: '8px', maxWidth: '210px', maxHeight: '40vh', overflow: 'auto', whiteSpace: 'pre-line', background: 'rgba(25, 28, 46, .9)', color: 'white', border: '1px solid #888', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', display: 'none' });
+painelMapa.title = 'Clique para recolher ou expandir';
+document.body.appendChild(painelMapa);
+let mapaRecolhido = false, mapaInstancia = null, mapaHookInstalado = false, mapaCarregando = false, mapaUltimaBusca = 0;
+painelMapa.addEventListener('click', () => { mapaRecolhido = !mapaRecolhido; agendar(); });
+const nomesMapa = { chest: 'Pokébolas pagas', freechest: 'Pokébolas grátis', cursedchest: 'Pokébolas amaldiçoadas', altar: 'Altares Unown', cursed: 'Altares amaldiçoados', challenge: 'Desafios', cage: 'Jaulas', rock: 'Rock Smash', shroom: 'Cogumelos', slots: 'Cassinos', magnet: 'Magnemite', berry: 'Oran Berries', meowth: 'Lojas Meowth', greed: 'Altares Gengar', ditto: 'Ditto', hypno: 'Hypno', snorlax: 'Snorlax', fossil: 'Fósseis', rhydon: 'Rhydon', porygon: 'Porygon', dojo: 'Dojo', nest: 'Ovos', bill: 'Máquinas de Bill', boss: 'Guardião', portal: 'Portais', shrine: 'Santuário', bonk: 'Bonkoins', comet: 'Fragmentos de cometa' };
+async function instalarLeituraMapa() {
+  if (mapaHookInstalado || mapaCarregando || typeof performance === 'undefined' || typeof location === 'undefined' || Date.now() - mapaUltimaBusca < 3000) return;
+  mapaUltimaBusca = Date.now(); mapaCarregando = true;
+  try {
+    const urls = [...new Set(performance.getEntriesByType('resource').map((r) => r.name).filter((endereco) => {
+      try { const url = new URL(endereco, location.href); return url.origin === location.origin && /^\/assets\/menus-[A-Za-z0-9_-]+\.js$/.test(url.pathname); } catch (_) { return false; }
+    }))];
+    if (urls.length !== 1) return;
+    const modulo = await import(urls[0]);
+    const classes = [...new Set(Object.values(modulo).filter((classe) => typeof classe === 'function' && typeof classe.prototype?.markers === 'function' && typeof classe.prototype?.chestCost === 'function' && typeof classe.prototype?.add === 'function'))];
+    if (classes.length !== 1) return;
+    const prototipo = classes[0].prototype, original = prototipo.markers;
+    prototipo.markers = function (...args) {
+      const resultado = original.apply(this, args);
+      if (this.run?.interactables === this && Array.isArray(this.list) && Array.isArray(resultado)) mapaInstancia = this;
+      return resultado;
+    };
+    mapaHookInstalado = true;
+  } catch (_) { /* Jogo incompatível: mantém a leitura indisponível. */ }
+  finally { mapaCarregando = false; }
+}
+function lerMapa(carteira) {
+  const instancia = mapaInstancia;
+  if (!instancia || instancia.disposed || instancia.run?.interactables !== instancia || !Array.isArray(instancia.list)) return null;
+  try {
+    const objetos = instancia.markers();
+    if (!Array.isArray(objetos) || objetos.some((objeto) => !objeto || typeof objeto.kind !== 'string' || typeof objeto.used !== 'boolean')) return null;
+    const contagem = {};
+    for (const objeto of objetos) {
+      const tipo = objeto.data?.comet ? 'comet' : objeto.kind;
+      contagem[tipo] = (contagem[tipo] || 0) + 1;
+    }
+    const restantes = objetos.filter((objeto) => objeto.kind === 'chest' && !objeto.used && !objeto.data?.comet).length;
+    const compilacao = document.querySelector('meta[name="pokebonk-build"]')?.content;
+    const previsao = compilacao === 'mw6akj2h' && carteira?.bolaBruta === instancia.chestCost()
+      ? estimarReservaBolas({ saldo: carteira.saldo, bola: carteira.bolaBruta, compradas: instancia.run.chestsBought, restantes }) : null;
+    return { contagem, restantes, previsao };
+  } catch (_) { return null; }
+}
+function atualizarMapa(carteira) {
+  if (!carteira) { painelMapa.style.display = 'none'; return null; }
+  void instalarLeituraMapa();
+  const mapa = lerMapa(carteira);
+  painelMapa.style.display = 'block';
+  let texto = 'Mapa · clique para ' + (mapaRecolhido ? 'expandir' : 'recolher');
+  if (!mapa) texto += '\nAguardando dados do jogo';
+  else if (!mapaRecolhido) {
+    const linhas = Object.entries(mapa.contagem).sort(([a], [b]) => a === 'chest' ? -1 : b === 'chest' ? 1 : (nomesMapa[a] || a).localeCompare(nomesMapa[b] || b));
+    texto += '\n' + (linhas.length ? linhas.map(([tipo, quantidade]) => `${nomesMapa[tipo] || tipo}: ${quantidade}`).join('\n') : 'Nenhum objeto restante');
+    if (mapa.previsao) texto += `\nBolas pagas no saldo: ${mapa.previsao.acessiveis}/${mapa.restantes}\nPara todas: ${mapa.previsao.total.toLocaleString('pt-BR')} ₽\nReserva estimada: ${mapa.previsao.reserva.toLocaleString('pt-BR')} ₽`;
+    else if (mapa.restantes) texto += '\nReserva: preço da próxima bola (estimativa indisponível)';
+  }
+  if (painelMapa.textContent !== texto) painelMapa.textContent = texto;
+  return mapa;
+}
 function limparAlvo() { alvoGasto = null; visitaManual = null; ultimoPickup = ''; }
 function concluirAlvo(tipo) {
   if (tipo === 'loja') bloqueiosGasto.loja = Date.now() + 30000;
@@ -393,7 +493,7 @@ function observarModalPickup(modal, carteira) {
     if (!girar || !sair || valor === null || saldo === null) return;
     const giros = numeroPickup(cabine.querySelector?.('.sl-led span:nth-child(2) b')?.textContent);
     const assinatura = `${valor}:${saldo}:${giros}`;
-    if (!gastoViavel({ saldo, bola: carteira.bola, custo: valor, itens: 0.194 / (0.75 * 1.3) })) { pickupSessao.saiuPorEstrategia = true; acaoPickup(sair, `sair-cassino:${valor}`); return; }
+    if (!gastoViavel({ saldo, bola: carteira.bola, reserva: carteira.reserva, custo: valor, itens: 0.194 / (0.75 * 1.3) })) { pickupSessao.saiuPorEstrategia = true; acaoPickup(sair, `sair-cassino:${valor}`); return; }
     let tentativa = pickupSessao.giro;
     if (!tentativa || tentativa.assinatura !== assinatura) tentativa = pickupSessao.giro = { assinatura, quantidade: 0, ultima: 0 };
     const agora = Date.now();
@@ -428,7 +528,7 @@ function observarModalPickup(modal, carteira) {
   if (saldo === null) return;
   const indisponiveis = dados.map((d) => d.vendido || Number(d.capacidade[1]) >= Number(d.capacidade[2]));
   const resultado = decidirLoteLoja({ saldo, precos: dados.map((d) => d.valor), vendidos: indisponiveis,
-    avaliar: !pickupSessao.loteIniciado, bola: carteira.bola, giro: carteira.giro, renovacao: pickupSessao.custoRenovacao || 0 });
+    avaliar: !pickupSessao.loteIniciado, bola: carteira.bola, reserva: carteira.reserva, giro: carteira.giro, renovacao: pickupSessao.custoRenovacao || 0 });
   const assinatura = dados.map((d) => `${d.cartao.querySelector('h3')?.textContent}:${d.vendido}:${d.valor}`).join('|');
   if (resultado === 'comprar') {
     const proximo = dados.find((_, i) => !indisponiveis[i]);
@@ -441,7 +541,7 @@ function observarModalPickup(modal, carteira) {
     const valor = numeroPickup(/·\s*([\d.,\s]+[kmb]?)\s*₽/i.exec(renovar?.textContent || '')?.[1], 'superior');
     const custoPrevisto = pickupSessao.custoMedio;
     if (valor !== null && custoPrevisto &&
-        gastoViavel({ saldo, bola: carteira.bola, custo: valor + custoPrevisto * 4, itens: 4 }) && !renovar.disabled) {
+        gastoViavel({ saldo, bola: carteira.bola, reserva: carteira.reserva, custo: valor + custoPrevisto * 4, itens: 4 }) && !renovar.disabled) {
       pickupSessao.custoRenovacao = valor;
       pickupSessao.loteIniciado = false;
       acaoPickup(renovar, `renovar:${assinatura}:${valor}`);
@@ -460,9 +560,19 @@ function modalDoAlvo(modal, tipo) {
   return cards.some((card) => !!card.querySelector?.('.top img[src*="assets/items/"]')) &&
     botoes.some((botao) => normalizar(botao.textContent).startsWith('nenhum'));
 }
+function modalRecompensaCassino(modal) {
+  if (modalDoAlvo(modal, 'bola')) return true;
+  const titulos = [...(modal.querySelectorAll?.('h1,h2,h3,div,span') || [])];
+  const botoes = [...(modal.querySelectorAll?.('button') || [])];
+  return titulos.some((el) => normalizar(el.textContent) === 'voce encontrou um item!') &&
+    botoes.some((el) => /^pegar\s*e?$/.test(normalizar(el.textContent))) &&
+    botoes.some((el) => normalizar(el.textContent).startsWith('vender'));
+}
 function observarPickup() {
-  if (!pickupAtivo || modalAberto) return;
   const carteira = carteiraPickup();
+  const mapa = atualizarMapa(carteira);
+  if (carteira) { carteira.bolasRestantes = mapa?.restantes ?? null; carteira.reserva = mapa?.previsao?.reserva ?? carteira.bola; }
+  if (!pickupAtivo || modalAberto) return;
   const nomes = { bola: 'Sugestão: Pokébola', cassino: 'Sugestão: Cassino', loja: 'Sugestão: Loja do Meowth', aguardar: 'Aguardando dados ou saldo' };
   const visiveis = (seletor) => [...document.querySelectorAll(seletor)].filter((el) => el.getClientRects().length);
   const modais = visiveis('.modal');
@@ -476,7 +586,7 @@ function observarPickup() {
     if (modais.length === 1) {
       if (interacaoLivre) interacaoLivre.viuModal = true;
       if (pickupSessao && modalDoAlvo(modais[0], pickupSessao.tipo)) pickupSessao.viuModal = true;
-      if (pickupSessao?.tipo === 'cassino' && pickupSessao.giroInicialAssinatura && !pickupSessao.saiuPorEstrategia && modalDoAlvo(modais[0], 'bola')) pickupSessao.recompensa = true;
+      if (pickupSessao?.tipo === 'cassino' && pickupSessao.giroInicialAssinatura && !pickupSessao.saiuPorEstrategia && modalRecompensaCassino(modais[0])) pickupSessao.recompensa = true;
       if (!pickupSessao && !interacaoLivre && alvoGasto && modalDoAlvo(modais[0], alvoGasto)) visitaManual = alvoGasto;
       if (pickupSessao?.tipo === 'loja' && modais[0].classList.contains('shop-modal')) texto = 'Loja: avaliando itens';
       if (pickupSessao?.tipo === 'cassino' && modais[0].querySelector('.sl-cab')) texto = 'Cassino: avaliando giro';
@@ -488,11 +598,15 @@ function observarPickup() {
   }
   if (interacaoLivre && (interacaoLivre.viuModal || Date.now() - interacaoLivre.inicio > 3000)) interacaoLivre = null;
   if (pickupSessao) {
+    if (pickupSessao.tipo === 'cassino' && pickupSessao.viuModal && pickupSessao.giroInicialAssinatura && !pickupSessao.saiuPorEstrategia && !pickupSessao.recompensa) {
+      pickupSessao.fechouEm ??= Date.now();
+      if (Date.now() - pickupSessao.fechouEm < 3000) { atualizarIndicadorPickup('Cassino: aguardando possível recompensa'); return; }
+    }
     const bolaComprada = pickupSessao.tipo === 'bola' && carteira && pickupSessao.precoBase !== null &&
       (carteira.bolaBruta ?? carteira.bola) !== null && (carteira.bolaBruta ?? carteira.bola) !== pickupSessao.precoBase;
     if (pickupSessao.viuModal || bolaComprada) {
       if (pickupSessao.tipo === 'cassino' && pickupSessao.recompensa && !pickupSessao.saiuPorEstrategia && carteira &&
-          gastoViavel({ saldo: carteira.saldo, bola: carteira.bola, custo: carteira.giro, itens: 0.194 / (0.75 * 1.3) })) {
+          gastoViavel({ saldo: carteira.saldo, bola: carteira.bola, reserva: carteira.reserva, custo: carteira.giro, itens: 0.194 / (0.75 * 1.3) })) {
         ultimoEncontroPago = null; ultimoPickup = ''; tentativasEncontro = 0;
       }
       concluirAlvo(pickupSessao.tipo); pickupSessao = null; pickupAcao = null;
@@ -522,6 +636,7 @@ function observarPickup() {
   if (precoGiro && carteira?.giroBruto !== null && carteira?.giroBruto !== undefined && numeroPickup(precoGiro[1]) === carteira.giroBruto && carteira.saldo >= carteira.giroBruto) tipo = 'cassino';
   if (encontro === 'loja' && carteira && Number.isFinite(carteira.saldo) && carteira.saldo > 0) tipo = 'loja';
   const decisaoLivre = decidirPickup(texto);
+  if (decisaoLivre.custoJaula !== undefined && (!carteira || !Number.isSafeInteger(decisaoLivre.custoJaula) || carteira.saldo < decisaoLivre.custoJaula)) return;
   if (decisaoLivre.acao !== 'interagir' && !tipo || tecla !== 'E') { ultimoPickup = ''; tentativaRhydon = null; return; }
   const estagioRhydon = decisaoLivre.estagioRhydon;
   if (estagioRhydon === undefined) tentativaRhydon = null;
@@ -711,6 +826,7 @@ async function verificarKitSeguro(nome) {
 function observar() {
   verificarAvisoPendente();
   observarPickup();
+  if (pickupAtivo && !modalAberto && observarAlfa()) return;
   if (!ativo || modalAberto) return;
   if (observarReliquias()) return;
   const botoes = [...document.querySelectorAll('button.card.offer')].filter((e) => e.getClientRects().length && !e.disabled);
@@ -795,6 +911,30 @@ function observar() {
   }
   if (decisao.acao === 'atualizar') atualizar.click();
   if (decisao.acao === 'pular') pular.click();
+}
+function observarAlfa() {
+  const modais = [...document.querySelectorAll('.modal')].filter((el) => el.getClientRects().length);
+  if (modais.length !== 1) return false;
+  const modal = modais[0];
+  const titulo = normalizar(modal.querySelector?.('h1')?.textContent);
+  const ajuda = normalizar(modal.querySelector?.('.help')?.textContent);
+  if (!titulo.endsWith('quer se juntar a sua equipe!') || !ajuda.startsWith('sua equipe esta completa: escolha quem libertar')) return false;
+  const cartoes = [...(modal.querySelectorAll?.('.cards > button.card') || [])];
+  if (cartoes.length < 2 || cartoes.length > 5) return true;
+  const prioridade = ordemStatus();
+  const dados = cartoes.map((cartao, id) => {
+    const selo = normalizar(cartao.querySelector('.rar')?.textContent);
+    const acao = normalizar(cartao.querySelector('.key')?.textContent);
+    const status = identificarStatus(cartao.querySelector('.bd > p')?.textContent, false);
+    return { id, status, novo: selo === 'novo' && acao === 'libertar o novo', existente: /^vinculo \d+$/.test(selo) && acao === 'libertar' };
+  });
+  const novos = dados.filter((item) => item.novo), existentes = dados.filter((item) => item.existente);
+  if (novos.length !== 1 || existentes.length !== dados.length - 1) return true;
+  const indice = decidirAlfa({ existentes, novo: novos[0], prioridade });
+  if (indice === null) return true;
+  const assinatura = 'alfa:' + cartoes.map((cartao) => cartao.outerHTML).join('|');
+  selecionarComTentativa(cartoes, indice, assinatura);
+  return true;
 }
 function observarReliquias() {
   const visivel = (elemento) => !!elemento && elemento.getClientRects().length > 0;

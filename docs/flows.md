@@ -31,7 +31,7 @@ No painel de prioridades, `abrirPrioridades` permite trocar entre cinco presets,
 
 Os seletores e etapas são dependências da interface real; a simulação em `tests/integracao.test.mjs` não confirma o comportamento do jogo.
 
-O Auto Pickup observa o aviso de proximidade e interage apenas com textos identificados. A sugestão prioriza Pokébolas, sem bloquear outras interações reconhecidas. Na loja, compra lotes inteiros e renova repetidamente enquanto viáveis; no cassino, avalia cada giro e tenta retomar após uma recompensa reconhecida. Preserva saldo para uma próxima Pokébola e usa o dobro do custo estimado dela como limite por item. Portais e avisos desconhecidos permanecem manuais.
+O Auto Pickup observa o aviso de proximidade e interage apenas com textos identificados. A sugestão prioriza Pokébolas, sem bloquear outras interações reconhecidas. Na loja, compra lotes inteiros e renova repetidamente enquanto viáveis; no cassino, avalia cada giro e tenta retomar após uma recompensa reconhecida. Preserva o custo estimado das Pokébolas pagas restantes que cabem no saldo atual e usa o dobro do custo estimado dela como limite por item. Portais e avisos desconhecidos permanecem manuais.
 
 A conferência usa o preço bruto da carteira quando o HUD exibe um valor abreviado; sem preço bruto, só aceita valores exibidos por inteiro. Um preço incompatível ou saldo insuficiente mantém a interação em espera.
 
@@ -39,4 +39,6 @@ O altar amaldiçoado é acionado uma vez por aviso. Para Rhydon, os avisos inici
 
 Com o Auto Pickup ligado, o botão exibe a sugestão para procurar no mapa ou uma mensagem de espera quando faltam dados ou saldo. Ela permanece fixa durante o trajeto e após interações fora da sugestão; é liberada quando a interação sugerida termina, muda a zona, uma nova partida é identificada ou o usuário usa **Trocar sugestão**. Após sair da loja, ela não volta a ser sugerida por 30 segundos. Uma interação paga concluída não é repetida enquanto seu aviso permanecer próximo, exceto na retomada do cassino após recompensa reconhecida. Durante os modais de loja e cassino abertos pelo script, o botão mostra que está avaliando a situação.
 
-Depois de ler preços e raridades na loja, a estimativa observada permanece disponível por até 60 segundos na mesma zona para a sugestão. No cassino, o script tenta pular cada animação e avalia o próximo giro, com até três tentativas por estado. O retorno após recompensa depende de reconhecer a tela de escolha; a integração precisa de teste em jogo.
+Depois de ler preços e raridades na loja, a estimativa observada permanece disponível por até 60 segundos na mesma zona para a sugestão. No cassino, o script tenta pular cada animação e avalia o próximo giro, com até três tentativas por estado. O retorno após recompensa depende de reconhecer a tela de escolha ou item único e tolera uma breve transição entre telas; a integração precisa de teste em jogo.
+
+O painel de mapa é independente dos controles de ativação e pode ser recolhido com um clique. Captura a lista de marcadores do jogo e atualiza a contagem e a reserva quando os dados são reconhecidos. Com o pickup ativo, a tela de substituição de Alfa compara os bônus do novo e dos existentes com o preset ativo; se qualquer informação essencial for ambígua, não escolhe.

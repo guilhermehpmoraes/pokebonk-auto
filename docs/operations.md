@@ -23,14 +23,16 @@ O aviso de item fora da build permanece na aba e pode sobreviver ao recarregamen
 
 As escolhas e substituições de relíquias têm testes simulados. O HTML real pode mudar; não há confirmação de teste no jogo para essa integração. Substituições afetam a partida atual.
 
-O Auto Pickup inicia desligado independentemente do Auto Select. Ele interage com alguns objetos gratuitos, inclusive os que aumentam a dificuldade, e pode gastar dinheiro automaticamente em jaulas de 30 ₽, Pokébolas, lojas e cassinos. Não automatiza portais. A estratégia usa estimativas e não garante a melhor decisão; eventos de teclado, cliques e reconhecimento precisam de teste manual no jogo.
+O Auto Pickup inicia desligado independentemente do Auto Select. Ele interage com alguns objetos gratuitos, inclusive os que aumentam a dificuldade, e pode gastar dinheiro automaticamente em jaulas pelo preço exibido, Pokébolas, lojas e cassinos. Não automatiza portais. A estratégia usa estimativas e não garante a melhor decisão; eventos de teclado, cliques e reconhecimento precisam de teste manual no jogo.
 
 O altar amaldiçoado adiciona uma maldição em troca de um item raro. O Rugido de Rhydon pode ser ativado até o limite exibido de três, fortalecendo o guardião e sua escolta em troca de Great Balls extras. Ambos têm testes simulados e precisam de confirmação no jogo.
 
-O botão sugere Pokébola enquanto houver saldo; **Trocar sugestão** permite outra opção. Ao encontrar a loja ou o cassino, avalia seus custos mesmo fora da sugestão, reserva o preço de uma próxima Pokébola e repete compras ou giros enquanto viáveis. A reserva não garante dinheiro para todas as Pokébolas restantes.
+O botão sugere Pokébola enquanto houver saldo; **Trocar sugestão** permite outra opção. Ao encontrar a loja ou o cassino, avalia seus custos mesmo fora da sugestão, reserva o custo estimado das Pokébolas restantes que cabem no saldo e repete compras ou giros enquanto viáveis. A projeção não antecipa ganhos futuros nem mudanças de bônus, e usa uma única Pokébola como reserva quando faltam dados verificáveis.
 
 Quando o preço no HUD estiver abreviado, a abertura de Pokébolas e a entrada no cassino dependem do preço bruto em `data-k` para conferir o aviso. Sem esse dado, o pickup aguarda em vez de adivinhar o preço.
 
 Na loja, o script compra os itens disponíveis do primeiro lote quando o reconhece e o saldo o cobre. Antes de renovar, estima o custo do próximo estoque pelos preços e raridades observados, além do preço da renovação; volta a comparar os preços reais depois de renovar. A estimativa não antecipa quais itens aparecerão e ainda precisa de confirmação no jogo.
 
 O cassino tenta novamente cliques ignorados até três vezes por estado e tenta pular animações até três vezes. Ao identificar uma tela de recompensa, tenta voltar ao cassino após a escolha. Isso depende do DOM e ainda precisa de confirmação em jogo.
+
+O painel de mapa pode ser recolhido clicando nele; mostra dados mesmo com o Auto Pickup desligado. Ele depende de uma classe interna e pode deixar de funcionar após uma atualização do jogo. A seleção de Alfa libera automaticamente um dos cartões elegíveis se o pickup estiver ligado; ao não reconhecer o bônus ou a tela, aguarda.

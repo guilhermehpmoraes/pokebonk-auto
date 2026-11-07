@@ -69,3 +69,5 @@ O aviso de coleta do Ovo Pokémon fornecido pelo usuário foi incluído no Auto 
 O usuário relatou que uma Pokébola deixou de ser aberta com aviso de 14498 ₽ e HUD de 14.4k. A comparação anterior tratava o valor abreviado como 14400; o adaptador passou a usar o preço bruto da carteira, com fallback apenas para valor não abreviado. O cenário tem teste simulado e ainda precisa de confirmação em jogo.
 
 A estratégia passou a priorizar Pokébolas e reservar o preço de uma próxima ao avaliar lotes e giros, com repetição até o limite heurístico de custo. A retomada após recompensa reconhecida tem teste simulado, mas precisa de validação no jogo; não há contagem automática das Pokébolas restantes.
+
+Na versão 0.2.27 foram adicionados painel com contagem de marcadores, projeção de reserva, Friend Ball e comparação de suportes Alfa. Jaulas de preço variável e Lançar Poké Bola passaram a ser reconhecidos. O usuário relatou falha de retomada após prêmio no cassino; foi acrescentado reconhecimento do prêmio de item único e uma espera entre telas. Tudo requer validação na partida real.
