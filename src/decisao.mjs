@@ -25,18 +25,21 @@ export function decidirGasto({ saldo, bola, giro, lojaEstimada }) {
   return custos[0].acessivel ? custos[0].tipo : 'aguardar';
 }
 
-export function decidirLoteLoja({ saldo, precos, vendidos, bola, giro, renovacao = 0 }) {
-  if (!Number.isFinite(saldo) || !Number.isFinite(bola) || bola <= 0 || !Number.isFinite(renovacao) || renovacao < 0 ||
+export function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0 }) {
+  if (!Number.isFinite(saldo) || saldo < 0 ||
       !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length !== 4 || vendidos.length !== 4 ||
       vendidos.some((v) => typeof v !== 'boolean') || precos.some((p, i) => !vendidos[i] && (!Number.isFinite(p) || p <= 0))) return 'aguardar';
   const restantes = precos.filter((_, i) => !vendidos[i]);
   if (!restantes.length) return 'concluido';
   const total = restantes.reduce((a, b) => a + b, 0);
   if (saldo < total) return 'aguardar';
-  const custoUnitario = (total + renovacao) / restantes.length;
-  const alternativas = [bola / 1.3];
-  if (Number.isFinite(giro) && giro > 0) alternativas.push(giro * 0.75 / 0.194 * 1.3);
-  return custoUnitario <= Math.min(...alternativas) ? 'comprar' : 'sair';
+  if (avaliar) {
+    if (!Number.isFinite(bola) || bola <= 0 || !Number.isFinite(renovacao) || renovacao < 0) return 'aguardar';
+    const alternativas = [bola / 1.3];
+    if (Number.isFinite(giro) && giro > 0) alternativas.push(giro * 0.75 / 0.194 * 1.3);
+    if ((total + renovacao) / restantes.length > Math.min(...alternativas)) return 'sair';
+  }
+  return 'comprar';
 }
 
 export function decidir(tela, configuracao = {}, aleatorio = Math.random) {

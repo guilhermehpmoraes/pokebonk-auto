@@ -12,11 +12,13 @@ test('estima custo e aguarda quando não pode bancar a alternativa preferida', (
   assert.equal(decidirGasto({ saldo: 200, bola: null, giro: 40 }), 'aguardar');
 });
 
-test('compra lote completo apenas se reconhecido, acessível e competitivo', () => {
+test('compra o lote reconhecido e acessível sem reavaliar a estratégia', () => {
   const lote = { saldo: 1000, bola: 400, giro: 80, precos: [80, 130, 220, 130], vendidos: [false, false, false, false] };
   assert.equal(decidirLoteLoja(lote), 'comprar');
   assert.equal(decidirLoteLoja({ ...lote, saldo: 500 }), 'aguardar');
-  assert.equal(decidirLoteLoja({ ...lote, bola: 50 }), 'sair');
+  assert.equal(decidirLoteLoja({ ...lote, bola: 50 }), 'comprar');
+  assert.equal(decidirLoteLoja({ ...lote, avaliar: true, bola: 50 }), 'sair');
+  assert.equal(decidirLoteLoja({ ...lote, avaliar: true, bola: null }), 'aguardar');
   assert.equal(decidirLoteLoja({ ...lote, precos: [80, 130, null, 130] }), 'aguardar');
   assert.equal(decidirLoteLoja({ ...lote, vendidos: [true, true, true, true] }), 'concluido');
 });
@@ -89,26 +91,27 @@ test('indicador acompanha a preferência mesmo longe dos objetos e informa esper
   assert.equal(pickup.textContent, 'Auto Pickup: desligado');
 });
 
-test('auto pickup compra quatro itens e considera a renovação no próximo lote', () => {
-  let tempo = 1000, saldo = 1600, atual = 'prompt', tarefa, intervalo;
-  const controles = [], acoes = [], vendidos = [false, false, false, false];
-  const valores = [80, 130, 220, 130];
+function simularLoja({ saldoInicial, precos, raridades, vendidosIniciais, iteracoes, precosRenovados, precosCompactos = false }) {
+  let tempo = 1000, saldo = saldoInicial, atual = 'prompt', tarefa, intervalo;
+  const controles = [], acoes = [], vendidos = [...vendidosIniciais];
+  const valores = [...precos];
   const visivel = () => [1];
   const textoPreco = (valor) => ({ textContent: String(valor) });
   const chip = (valor) => ({ getClientRects: visivel, querySelector: () => textoPreco(valor) });
   const wallet = { getClientRects: visivel, get dataset() { return { g: String(saldo) }; },
     querySelector(s) { return s === '.wl-ball' ? chip(400) : s === '.wl-slots' ? chip(40) : s === '.wl-shop' ? chip(40) : null; } };
-  const cartoes = valores.map((preco, i) => ({ getClientRects: visivel,
+  const cartoes = valores.map((_, i) => ({ getClientRects: visivel,
     querySelector(s) {
-      if (s === '.price') return { classList: { contains: () => vendidos[i] }, textContent: vendidos[i] ? 'VENDIDO' : `${preco} ₽` };
+      if (s === '.price') return { classList: { contains: () => vendidos[i] }, textContent: vendidos[i] ? 'VENDIDO' : `${precosCompactos ? (valores[i] / 1000).toFixed(1) + 'k' : valores[i]} ₽` };
       if (s === '.cap') return { textContent: 'Você tem 0/10' };
+      if (s === '.rar') return { textContent: raridades[i] };
       if (s === 'h3') return { textContent: `Item ${i}` };
-    }, click() { vendidos[i] = true; saldo -= preco; acoes.push(`comprou ${i}`); } }));
+    }, click() { vendidos[i] = true; saldo -= valores[i]; acoes.push(`comprou ${i}`); } }));
   const sair = { click() { acoes.push('sair'); atual = 'prompt'; }, disabled: false };
-  const renovar = { textContent: 'Renovar estoque · 40 ₽', disabled: false, click() { acoes.push('renovar'); saldo -= 40; vendidos.fill(false); } };
+  const renovar = { textContent: 'Renovar estoque · 40 ₽', disabled: false, click() { acoes.push('renovar'); saldo -= 40; vendidos.fill(false); if (precosRenovados) valores.splice(0, 4, ...precosRenovados); } };
   const modal = { getClientRects: visivel, classList: { contains: (s) => s === 'shop-modal' },
     querySelectorAll(s) { return s === '.cards > button.card' ? cartoes : []; },
-    querySelector(s) { if (s === 'h1') return { textContent: `Meowth · ${saldo} ₽` }; if (s === 'button.shop-exit') return sair; if (s === 'button.shop-reroll') return renovar; return null; } };
+    querySelector(s) { if (s === 'h1') return { textContent: `Meowth · ${(saldo / 1000).toFixed(1)}k ₽` }; if (s === 'button.shop-exit') return sair; if (s === 'button.shop-reroll') return renovar; return null; } };
   const prompt = { getClientRects: visivel, textContent: 'EFalar com o Meowth (loja)', querySelector: () => ({ textContent: 'E' }) };
   const criar = () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } });
   const document = { body: { appendChild: (el) => controles.push(el) }, createElement: criar,
@@ -126,8 +129,33 @@ test('auto pickup compra quatro itens e considera a renovação no próximo lote
   assert.deepEqual(acoes, ['abrir']);
   // Conclui o keyup pendente e, em seguida, observa cada atualização da loja.
   tarefa();
-  for (let i = 0; i < 6; i++) tick();
-  assert.deepEqual(acoes, ['abrir', 'comprou 0', 'comprou 1', 'comprou 2', 'comprou 3', 'renovar', 'comprou 0']);
+  for (let i = 0; i < iteracoes; i++) tick();
+  return acoes;
+}
+
+test('loja com saldo abreviado conclui lote parcialmente vendido e renova conforme estratégia', () => {
+  const acoes = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [true, false, false, false], iteracoes: 6 });
+  assert.deepEqual(acoes, ['abrir', 'comprou 1', 'comprou 2', 'comprou 3', 'renovar', 'comprou 0', 'comprou 1']);
+});
+
+test('não renova loja com itens caros mesmo se a renovação for barata', () => {
+  const acoes = simularLoja({ saldoInicial: 60200, precos: [9092, 5001, 9092, 9092], raridades: ['Épico', 'Raro', 'Épico', 'Épico'], vendidosIniciais: [false, false, false, false], iteracoes: 5 });
+  assert.deepEqual(acoes, ['abrir', 'comprou 0', 'comprou 1', 'comprou 2', 'comprou 3', 'sair']);
+});
+
+test('interpreta preços abreviados com limite conservador', () => {
+  const acoes = simularLoja({ saldoInicial: 60200, precos: [9092, 5001, 9092, 9092], raridades: ['Épico', 'Raro', 'Épico', 'Épico'], vendidosIniciais: [false, false, false, false], iteracoes: 5, precosCompactos: true });
+  assert.deepEqual(acoes, ['abrir', 'comprou 0', 'comprou 1', 'comprou 2', 'comprou 3', 'sair']);
+});
+
+test('não renova quando não observou preço de nenhum item', () => {
+  const acoes = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [true, true, true, true], iteracoes: 1 });
+  assert.deepEqual(acoes, ['abrir', 'sair']);
+});
+
+test('sai sem comprar quando o estoque renovado aparece caro demais', () => {
+  const acoes = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [true, false, false, false], precosRenovados: [9092, 5001, 9092, 9092], iteracoes: 5 });
+  assert.deepEqual(acoes, ['abrir', 'comprou 1', 'comprou 2', 'comprou 3', 'renovar', 'sair']);
 });
 
 test('cassino gira e sai quando o preço crescente deixa a Pokébola melhor', () => {

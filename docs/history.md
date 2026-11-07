@@ -2,7 +2,7 @@
 
 ## 2026-11-06
 
-Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.16` em `scripts/gerar-userscript.mjs`.
+Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.17` em `scripts/gerar-userscript.mjs`.
 
 O repositório foi publicado inicialmente com Gitflow e depois passou a trabalhar diretamente na `main`, por decisão do mantenedor.
 
@@ -49,3 +49,5 @@ O botão do Auto Pickup passou a mostrar a opção paga preferida ou a espera po
 O aviso `Rock Smash`, fornecido pelo usuário, foi adicionado às interações gratuitas reconhecidas. A interação tem teste simulado e ainda precisa de confirmação em jogo.
 
 O aviso `Coletar Oran Berries`, fornecido pelo usuário, também foi adicionado às interações gratuitas reconhecidas e tem teste simulado; ainda precisa de confirmação em jogo.
+
+O usuário relatou uma loja que parou depois de uma compra, com saldo exibido como `67.0k`, e outra com itens caros apesar da renovação barata. O adaptador passou a interpretar valores abreviados de forma conservadora; conclui o primeiro lote disponível antes de avaliar a renovação, usa preços e raridades observados nessa avaliação e confere o novo lote antes de comprá-lo. Cenários reproduzidos em testes simulados; a correção ainda precisa de confirmação em jogo.

@@ -26,3 +26,5 @@ As escolhas e substituições de relíquias têm testes simulados. O HTML real p
 O Auto Pickup inicia desligado independentemente do Auto Select. Ele interage com alguns objetos gratuitos, inclusive os que aumentam a dificuldade, e pode gastar dinheiro automaticamente na Pokébola, na loja e no cassino. Não automatiza portais. A estratégia usa estimativas e não garante a melhor decisão; eventos de teclado, cliques e reconhecimento precisam de teste manual no jogo.
 
 O botão informa qual alternativa paga a estratégia prefere procurar; se não conseguir decidir, indica espera por dados ou saldo. A indicação reflete uma estimativa, não garante que o objeto esteja próximo ou que a loja tenha itens vantajosos.
+
+Na loja, o script compra os itens disponíveis do primeiro lote quando o reconhece e o saldo o cobre. Antes de renovar, estima o custo do próximo estoque pelos preços e raridades observados, além do preço da renovação; volta a comparar os preços reais depois de renovar. A estimativa não antecipa quais itens aparecerão e ainda precisa de confirmação no jogo.

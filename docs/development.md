@@ -16,6 +16,8 @@ O gerador escreve `pokebonk-autoselect.user.js`. Os testes em `tests/decisao.tes
 
 `tests/pickup.test.mjs` verifica decisões de custo, o indicador de preferência, reconhecimento e simulações do teclado, da loja e do cassino; não comprova que o jogo aceita os eventos nem que a estratégia seja ótima.
 
+Os cenários da loja incluem saldo abreviado, lote parcialmente vendido e itens caros com renovação barata.
+
 Ao mudar o script, incremente `@version` em `scripts/gerar-userscript.mjs`, gere o arquivo e inclua-o no commit. O gerenciador usa o endereço configurado no cabeçalho para consultar versões publicadas na `main`.
 
 ## Git
