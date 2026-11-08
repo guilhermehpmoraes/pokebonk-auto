@@ -1,4 +1,4 @@
-// Protótipo para a interface em português.
+// Adaptador para a interface em português.
 const normalizar = (texto) => (texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
 const raridades = { comum: 1, incomum: 2, raro: 3, rara: 3, epico: 4, epica: 4, lendario: 5, lendaria: 5 };
 let ativo = false;
@@ -617,7 +617,7 @@ painel.addEventListener('click', () => {
   ultimoConjunto = '';
   banimentoPendente = null;
   selecaoPendente = null;
-  painel.textContent = ativo ? 'Auto Select: ligado (protótipo)' : 'Auto Select: desligado';
+  painel.textContent = ativo ? 'Auto Select: ligado' : 'Auto Select: desligado';
   agendar();
 });
 

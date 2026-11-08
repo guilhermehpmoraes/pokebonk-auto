@@ -2,7 +2,7 @@
 
 ## Problema e vocabulário
 
-Reduzir escolhas repetitivas no PokéBonk. **Plano** é a build marcada no jogo; **status** são atributos oferecidos em bênçãos; **itens** são recompensas apresentadas pelo jogo. O userscript é um protótipo que age quando ativado.
+Reduzir escolhas repetitivas no PokéBonk. **Plano** é a build marcada no jogo; **status** são atributos oferecidos em bênçãos; **itens** são recompensas apresentadas pelo jogo. O userscript age quando ativado.
 
 ## Regras implementadas
 
@@ -38,7 +38,7 @@ Para agilizar os giros, o pickup tenta acionar **Pular animação** quando o bot
 
 ## Fora do escopo e limitações
 
-Movimentação automática não faz parte do protótipo. O pickup cobre apenas os textos reconhecidos e usa as teclas padrão E e C. A estimativa da loja não sabe o estoque antes de abrir e, sem observação recente, não usa os modificadores reais do preço; só trabalha com zonas normais identificadas. A lista de atributos é parcial e nomes não reconhecidos são acrescentados ao fim; o reconhecimento, as interações reais e o desempenho não foram validados de forma completa no jogo.
+Movimentação automática não faz parte do script. O pickup cobre apenas os textos reconhecidos e usa as teclas padrão E e C. A estimativa da loja não sabe o estoque antes de abrir e, sem observação recente, não usa os modificadores reais do preço; só trabalha com zonas normais identificadas. A lista de atributos é parcial e nomes não reconhecidos são acrescentados ao fim. O usuário relatou uma partida sem erros, mas não identificou quais interações ocorreram nela.
 
 O painel de mapa apresenta as categorias e quantidades atuais da mesma lista usada na legenda do jogo; clique nele para recolher ou expandir. Mostra quantas Pokébolas pagas cabem no saldo e uma reserva estimada a partir da curva de preços atual. A reserva cobre as que cabem no saldo atual; não prevê rendimentos nem mudanças de bônus. Se a lista ou a fórmula não puderem ser verificadas, informa a limitação e reserva o preço da próxima bola. A lista não prevê objetos que ainda não foram criados.
 

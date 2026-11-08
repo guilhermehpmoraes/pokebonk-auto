@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         PokéBonk Auto Select — protótipo de upgrades
+// @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.34
-// @description  Protótipo: seleciona opções do plano na tela de upgrades.
+// @version      0.2.35
+// @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
 // @downloadURL  https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -234,7 +234,7 @@ function kitPodeSerBanido(nome, kits, pokedex, planos) {
   return true;
 }
 
-// Protótipo para a interface em português.
+// Adaptador para a interface em português.
 const normalizar = (texto) => (texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
 const raridades = { comum: 1, incomum: 2, raro: 3, rara: 3, epico: 4, epica: 4, lendario: 5, lendaria: 5 };
 let ativo = false;
@@ -853,7 +853,7 @@ painel.addEventListener('click', () => {
   ultimoConjunto = '';
   banimentoPendente = null;
   selecaoPendente = null;
-  painel.textContent = ativo ? 'Auto Select: ligado (protótipo)' : 'Auto Select: desligado';
+  painel.textContent = ativo ? 'Auto Select: ligado' : 'Auto Select: desligado';
   agendar();
 });
 

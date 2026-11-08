@@ -8,13 +8,15 @@ O repositório foi publicado inicialmente com Gitflow e depois passou a trabalha
 
 ## Estado atual
 
-O código existe no repositório local. Os testes simulados verificam regras e um cenário de bênção; não comprovam a integração completa com o jogo.
+O script está publicado na branch `main`. Em 08/11/2026, o usuário relatou que ele e um amigo o usaram durante uma partida sem erros; não informou quais fluxos apareceram ou quais versões e navegadores foram utilizados. Os testes automatizados continuam cobrindo decisões e fluxos simulados.
 
-## Ainda não lançado
+## Distribuição
 
-Os metadados para atualizações pelo GitHub foram adicionados, mas o fluxo automático no Tampermonkey ainda não foi verificado. Não há release ou pipeline de entrega confirmados.
+O arquivo é distribuído pela `main` do GitHub, com metadados de atualização. O fluxo automático no Tampermonkey ainda não foi confirmado. A mudança de nome na versão 0.2.35 pode exigir nova instalação e remoção da cópia antiga.
 
-## Limitações conhecidas
+## Registros anteriores e limitações
+
+Os registros a seguir descrevem o estado de confirmação conhecido quando cada alteração foi feita. O relato posterior de partida sem erros não identifica individualmente os fluxos exercitados.
 
 O usuário relatou telas de bênção sem seleção em versões anteriores. Um ajuste no agendamento foi adicionado e testado em simulação; sua eficácia em jogo permanece não verificada. A lista completa de status, a captura de item único e o desempenho de cerca de um segundo ainda precisam de validação em jogo.
 

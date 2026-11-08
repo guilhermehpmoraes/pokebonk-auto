@@ -12,7 +12,7 @@ node --check pokebonk-autoselect.user.js
 node --test tests/*.test.mjs
 ```
 
-O gerador escreve `pokebonk-autoselect.user.js`. Os testes em `tests/decisao.test.mjs` cobrem decisões e `tests/integracao.test.mjs` simula um cenário de bênção; o navegador e o jogo real precisam de teste manual separado.
+O gerador escreve `pokebonk-autoselect.user.js`. Os testes em `tests/decisao.test.mjs` cobrem decisões e `tests/integracao.test.mjs` simula cenários de bênção e itens; a simulação não substitui testes no navegador e no jogo. O usuário relatou uma partida sem erros com um amigo, sem especificar os fluxos exercitados.
 
 `tests/pickup.test.mjs` verifica decisões de custo, o indicador de preferência, reconhecimento e simulações do teclado, da loja e do cassino; não comprova que o jogo aceita os eventos nem que a estratégia seja ótima.
 

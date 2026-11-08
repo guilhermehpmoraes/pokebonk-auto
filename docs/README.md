@@ -1,6 +1,6 @@
 # Documentação
 
-O repositório contém um protótipo local de userscript; testes em jogo e a distribuição publicada ainda não estão confirmados. [Histórico e limitações](history.md).
+O repositório contém um userscript publicado. O usuário relatou uma partida sem erros em que ele e um amigo usaram o script. [Histórico e limitações](history.md).
 
 ## Ordem de leitura
 

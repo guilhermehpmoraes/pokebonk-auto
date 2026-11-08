@@ -6,10 +6,10 @@ const kits = (await readFile(new URL('../src/kits.mjs', import.meta.url), 'utf8'
   .replace('export function kitPodeSerBanido', 'function kitPodeSerBanido');
 const adaptador = await readFile(new URL('../src/adaptador.js', import.meta.url), 'utf8');
 const cabecalho = `// ==UserScript==
-// @name         PokéBonk Auto Select — protótipo de upgrades
+// @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.34
-// @description  Protótipo: seleciona opções do plano na tela de upgrades.
+// @version      0.2.35
+// @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
 // @downloadURL  https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js

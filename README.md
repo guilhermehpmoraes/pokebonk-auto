@@ -1,16 +1,18 @@
 # PokéBonk Auto Select
 
-Protótipo de userscript para automatizar escolhas no jogo de navegador PokéBonk. Usa o plano de build do jogo, uma prioridade configurável de atributos e a raridade dos itens. O projeto é independente e não é afiliado ao jogo.
+Userscript para automatizar escolhas no jogo de navegador PokéBonk. Usa o plano de build do jogo, uma prioridade configurável de atributos e a raridade dos itens. O projeto é independente e não é afiliado ao jogo.
 
 ## Estado
 
-O código gera um userscript para a interface em português de `https://pokebonk.com/`. As decisões são testadas localmente; a integração com o jogo, o tempo de resposta e a compatibilidade entre navegadores ainda precisam de validação completa. Veja [limitações](docs/history.md).
+O código gera um userscript para a interface em português de `https://pokebonk.com/`. O usuário relatou que ele e um amigo usaram o script em uma partida sem erros. As decisões também têm testes locais; o relato não identifica quais fluxos ocorreram nem cobre todas as configurações e navegadores. Veja [histórico e limitações](docs/history.md).
 
 ## Usar
 
 Instale um gerenciador de userscripts compatível, como o Tampermonkey, e abra o [link de instalação](https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js). Confirme a instalação ou atualização e recarregue o jogo. O Auto Select começa desligado. O painel salva cinco presets de prioridade no navegador.
 
-O botão Auto Pickup também começa desligado. Quando ligado, mantém uma sugestão de qual opção paga procurar, mas tenta interagir com as outras opções pagas e com alguns objetos gratuitos encontrados no caminho. Os portais do chefe e da próxima zona continuam manuais. A estimativa e a integração precisam de validação em jogo; veja [regras e limitações](docs/product.md).
+A versão 0.2.35 mudou o nome do script. O gerenciador pode tratá-la como uma nova instalação: instale pelo link acima e desative ou remova a versão antiga **PokéBonk Auto Select — protótipo de upgrades** para evitar duas cópias ativas. As prioridades são salvas no armazenamento do site, separadas do script.
+
+O botão Auto Pickup também começa desligado. Quando ligado, mantém uma sugestão de qual opção paga procurar, mas tenta interagir com as outras opções pagas e com alguns objetos gratuitos encontrados no caminho. Os portais do chefe e da próxima zona continuam manuais. Veja [regras e limitações](docs/product.md).
 
 O Auto Pickup também aciona as Ruínas do Fóssil e escolhe o Fóssil de Domo quando reconhecido: ele oferece uma bênção ancestral em troca de 20% do HP máximo pelo resto da partida.
 
