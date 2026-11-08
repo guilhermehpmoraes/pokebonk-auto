@@ -68,6 +68,25 @@ function identificarStatus(texto, registrar = true) {
   if (registrar && !ordem.includes(novo)) salvarStatus([...ordem, novo]);
   return novo;
 }
+function statusDeItem(texto) {
+  const descricao = normalizar(texto);
+  const termos = catalogoStatus.flatMap(([id, , aliases]) => aliases.map((termo) => ({ id, termo })))
+    .sort((a, b) => b.termo.length - a.termo.length);
+  const encontrados = [];
+  let resto = descricao;
+  let primeiro = true;
+  while (resto) {
+    const prefixo = (primeiro ? /^\+\d+(?:[.,]\d+)?\s*%?\s*(?:de\s+)?/ : /^\s*(?:[,;·]|e)\s*\+\d+(?:[.,]\d+)?\s*%?\s*(?:de\s+)?/).exec(resto);
+    if (!prefixo) break;
+    resto = resto.slice(prefixo[0].length);
+    const correspondente = termos.find(({ termo }) => resto.startsWith(termo) && (!resto[termo.length] || /[\s.,;:!?]/.test(resto[termo.length])));
+    if (!correspondente) break;
+    if (!encontrados.includes(correspondente.id)) encontrados.push(correspondente.id);
+    resto = resto.slice(correspondente.termo.length);
+    primeiro = false;
+  }
+  return encontrados;
+}
 const painel = document.createElement('button');
 painel.type = 'button';
 painel.textContent = 'Auto Select: desligado';
@@ -856,9 +875,10 @@ function observarItens() {
   const nenhum = [...document.querySelectorAll('button')].some((b) => visivel(b) && normalizar(b.textContent).startsWith('nenhum'));
   const botoes = [...document.querySelectorAll('button.card')].filter((e) => visivel(e) && !e.classList.contains('offer') && e.querySelector('.cap') && e.querySelector('.top img[src*="assets/items/"]'));
   if (!nenhum || !botoes.length) { observarItemUnico(); return; }
-  const opcoes = botoes.map((botao, indice) => ({ id: indice, raridade: raridades[normalizar(botao.querySelector('.rar')?.textContent)] }));
+  const opcoes = botoes.map((botao, indice) => ({ id: indice, raridade: raridades[normalizar(botao.querySelector('.rar')?.textContent)],
+    status: statusDeItem(botao.querySelector('.bd > p')?.textContent) }));
   const assinatura = botoes.map((b) => b.outerHTML).join('|');
-  const decisao = decidir({ tipo: 'powerup', opcoes });
+  const decisao = decidir({ tipo: 'powerup', opcoes }, { status: ordemStatus() });
   if (decisao.acao !== 'selecionar') return;
   selecionarComTentativa(botoes, decisao.id, assinatura);
 }

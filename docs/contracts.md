@@ -4,6 +4,8 @@
 
 `decidir(tela, configuracao, aleatorio)` em `src/decisao.mjs` aceita `tela.tipo` igual a `build`, `status` ou `powerup`, opções com `id` e campos usados por cada tipo, e ordem de status em `configuracao.status`. Retorna `selecionar` ou `banir` com `id`, `atualizar`, `pular` ou `aguardar` com motivo quando aplicável. Raridade é numérica e crescente.
 
+Para `powerup`, cada opção contém `raridade` e `status` como lista de atributos. Raridade 5 prevalece, com sorteio entre lendários; sem ela, compara a melhor posição de status no preset, seguida da raridade, com sorteio no empate. Status ausentes ficam depois dos reconhecidos. Se não houver lendário reconhecido e uma raridade for desconhecida, aguarda.
+
 Uma seleção de build fora do plano inclui `foraDoPlano: true`. O fallback aleatório exige que todos os contadores de banimento, atualização e pulo sejam reconhecidos como inteiros não negativos; contadores ausentes produzem `aguardar` quando são necessários.
 
 Para `tela.tipo` igual a `reliquia`, recebe `opcoes` e `equipadas` com `id`, `raridade` numérica e `status` como lista de atributos, além de `configuracao.status` com a ordem do preset ativo. Com três equipadas, retorna `selecionar` com os IDs da oferta e de `substituir`, ou `dispensar` se não houver melhora. Dados insuficientes produzem `aguardar`.
@@ -13,6 +15,8 @@ Para `tela.tipo` igual a `reliquia`, recebe `opcoes` e `equipadas` com `id`, `ra
 `src/adaptador.js` depende, entre outros elementos, de `button.card.offer`, `.bp-badge`, `.kind`, `.rar`, `.typeicon`, imagens de bênção e rótulos portugueses de botões. A disponibilidade de recursos é lida dos contadores e do estado desabilitado. Esses seletores são observados em exemplos fornecidos pelo usuário; não são uma API estável do jogo.
 
 Uma oferta de golpe marcada como `MELHORIA`, com subtítulo `.bd > .sub` iniciado por `Fusão ★`, é considerada melhoria de uma fusão equipada, mesmo sem `.bp-badge`. Ela participa da ordenação por raridade e tipo.
+
+Para power-ups, o adaptador lê `.bd > p`: identifica somente bônus positivos diretos iniciando a descrição, e bônus adicionais ligados por separadores ou `e`, quando seus nomes constam do catálogo. Não interpreta efeitos condicionais ou especiais. O DOM dos exemplos foi fornecido pelo usuário; a integração precisa de teste em jogo.
 
 Para relíquias, o adaptador lê `.rl-wrap`, `.rl-sub`, `.rl-card`, `.rl-stats`, `.rl-mine .rl-chip` e `.rl-swap`. Atributos separados por `·` são interpretados individualmente; os não reconhecidos não são adicionados automaticamente ao preset ao aparecerem em relíquias. A passiva não é interpretada. Classes `r0` a `r4` indicam raridade crescente.
 

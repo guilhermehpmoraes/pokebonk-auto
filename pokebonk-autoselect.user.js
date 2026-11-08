@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.33
+// @version      0.2.34
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -188,19 +188,26 @@ function decidir(tela, configuracao = {}, aleatorio = Math.random) {
     if (tela.pulos > 0) return { acao: 'pular' };
     return { acao: 'selecionar', id: sortear(opcoes).id, foraDoPlano: true };
   }
-  if (tela.tipo === 'status' || tela.tipo === 'powerup') {
-    if (tela.tipo === 'status') {
-      const ordem = configuracao.status ?? [];
-      const elegiveis = opcoes.filter((item) => ordem.includes(item.status));
-      if (!elegiveis.length) return { acao: 'aguardar', motivo: 'status sem prioridade configurada' };
-      const melhorPrioridade = Math.min(...elegiveis.map((item) => ordem.indexOf(item.status)));
-      const melhoresStatus = elegiveis.filter((item) => ordem.indexOf(item.status) === melhorPrioridade);
-      if (melhoresStatus.length === 1) return { acao: 'selecionar', id: melhoresStatus[0].id };
-      const melhores = maiorRaridade(melhoresStatus);
-      if (!melhores) return { acao: 'aguardar', motivo: 'raridade desconhecida' };
-      return { acao: 'selecionar', id: sortear(melhores).id };
-    }
-    const melhores = maiorRaridade(opcoes);
+  if (tela.tipo === 'powerup') {
+    const lendarios = opcoes.filter((item) => item.raridade === 5);
+    if (lendarios.length) return { acao: 'selecionar', id: sortear(lendarios).id };
+    if (opcoes.some((item) => !Number.isInteger(item.raridade) || item.raridade < 1 || item.raridade > 5)) return { acao: 'aguardar', motivo: 'raridade desconhecida' };
+    const ordem = Array.isArray(configuracao.status) ? configuracao.status : [];
+    const prioridade = (item) => Math.min(ordem.length, ...(Array.isArray(item.status) ? item.status : []).map((status) => {
+      const indice = ordem.indexOf(status); return indice < 0 ? ordem.length : indice;
+    }));
+    const melhorPrioridade = Math.min(...opcoes.map(prioridade));
+    const melhores = maiorRaridade(opcoes.filter((item) => prioridade(item) === melhorPrioridade));
+    return { acao: 'selecionar', id: sortear(melhores).id };
+  }
+  if (tela.tipo === 'status') {
+    const ordem = configuracao.status ?? [];
+    const elegiveis = opcoes.filter((item) => ordem.includes(item.status));
+    if (!elegiveis.length) return { acao: 'aguardar', motivo: 'status sem prioridade configurada' };
+    const melhorPrioridade = Math.min(...elegiveis.map((item) => ordem.indexOf(item.status)));
+    const melhoresStatus = elegiveis.filter((item) => ordem.indexOf(item.status) === melhorPrioridade);
+    if (melhoresStatus.length === 1) return { acao: 'selecionar', id: melhoresStatus[0].id };
+    const melhores = maiorRaridade(melhoresStatus);
     if (!melhores) return { acao: 'aguardar', motivo: 'raridade desconhecida' };
     return { acao: 'selecionar', id: sortear(melhores).id };
   }
@@ -296,6 +303,25 @@ function identificarStatus(texto, registrar = true) {
   const ordem = ordemStatus();
   if (registrar && !ordem.includes(novo)) salvarStatus([...ordem, novo]);
   return novo;
+}
+function statusDeItem(texto) {
+  const descricao = normalizar(texto);
+  const termos = catalogoStatus.flatMap(([id, , aliases]) => aliases.map((termo) => ({ id, termo })))
+    .sort((a, b) => b.termo.length - a.termo.length);
+  const encontrados = [];
+  let resto = descricao;
+  let primeiro = true;
+  while (resto) {
+    const prefixo = (primeiro ? /^\+\d+(?:[.,]\d+)?\s*%?\s*(?:de\s+)?/ : /^\s*(?:[,;·]|e)\s*\+\d+(?:[.,]\d+)?\s*%?\s*(?:de\s+)?/).exec(resto);
+    if (!prefixo) break;
+    resto = resto.slice(prefixo[0].length);
+    const correspondente = termos.find(({ termo }) => resto.startsWith(termo) && (!resto[termo.length] || /[\s.,;:!?]/.test(resto[termo.length])));
+    if (!correspondente) break;
+    if (!encontrados.includes(correspondente.id)) encontrados.push(correspondente.id);
+    resto = resto.slice(correspondente.termo.length);
+    primeiro = false;
+  }
+  return encontrados;
 }
 const painel = document.createElement('button');
 painel.type = 'button';
@@ -1085,9 +1111,10 @@ function observarItens() {
   const nenhum = [...document.querySelectorAll('button')].some((b) => visivel(b) && normalizar(b.textContent).startsWith('nenhum'));
   const botoes = [...document.querySelectorAll('button.card')].filter((e) => visivel(e) && !e.classList.contains('offer') && e.querySelector('.cap') && e.querySelector('.top img[src*="assets/items/"]'));
   if (!nenhum || !botoes.length) { observarItemUnico(); return; }
-  const opcoes = botoes.map((botao, indice) => ({ id: indice, raridade: raridades[normalizar(botao.querySelector('.rar')?.textContent)] }));
+  const opcoes = botoes.map((botao, indice) => ({ id: indice, raridade: raridades[normalizar(botao.querySelector('.rar')?.textContent)],
+    status: statusDeItem(botao.querySelector('.bd > p')?.textContent) }));
   const assinatura = botoes.map((b) => b.outerHTML).join('|');
-  const decisao = decidir({ tipo: 'powerup', opcoes });
+  const decisao = decidir({ tipo: 'powerup', opcoes }, { status: ordemStatus() });
   if (decisao.acao !== 'selecionar') return;
   selecionarComTentativa(botoes, decisao.id, assinatura);
 }

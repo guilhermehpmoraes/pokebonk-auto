@@ -74,6 +74,15 @@ test('powerups empatados usam sorteio', () => {
   const opcoes = [{ id: 'a', raridade: 2 }, { id: 'b', raridade: 2 }];
   assert.equal(decidir({ tipo: 'powerup', opcoes }, {}, () => 0.99).id, 'b');
 });
+test('powerups priorizam lendários, depois atributo e raridade', () => {
+  const config = { status: ['dano', 'sorte'] };
+  const opcoes = [{ id: 'dano', raridade: 1, status: ['dano'] }, { id: 'sorte', raridade: 4, status: ['sorte'] }];
+  assert.equal(decidir({ tipo: 'powerup', opcoes }, config, primeiro).id, 'dano');
+  assert.equal(decidir({ tipo: 'powerup', opcoes: [...opcoes, { id: 'revive', raridade: 5, status: [] }] }, config, primeiro).id, 'revive');
+  assert.equal(decidir({ tipo: 'powerup', opcoes: [...opcoes, { id: 'dano-raro', raridade: 3, status: ['dano', 'sorte'] }] }, config, primeiro).id, 'dano-raro');
+  assert.equal(decidir({ tipo: 'powerup', opcoes: [{ id: 'a', raridade: 1, status: [] }, { id: 'b', raridade: 4, status: [] }] }, config, primeiro).id, 'b');
+  assert.equal(decidir({ tipo: 'powerup', opcoes: [...opcoes, { id: 'desconhecido' }] }, config, primeiro).acao, 'aguardar');
+});
 test('relíquias priorizam raridade e depois o melhor atributo do preset', () => {
   const opcoes = [{ id: 'dano comum', raridade: 1, status: ['dano'] }, { id: 'area incomum', raridade: 2, status: ['area'] }, { id: 'dano incomum', raridade: 2, status: ['dano', 'sorte'] }];
   assert.equal(decidir({ tipo: 'reliquia', opcoes, equipadas: [] }, { status: ['sorte', 'area', 'dano'] }, primeiro).id, 'dano incomum');

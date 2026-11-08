@@ -17,6 +17,8 @@ Não há serviço, banco, pipeline de deploy ou telemetria próprios identificad
 
 Uma seleção de cartão ignorada pode ser tentada novamente até três vezes. As ações de consumo de banimento, atualização e pulo não são repetidas automaticamente.
 
+Na escolha de power-ups, o reconhecimento cobre bônus diretos de atributos do catálogo, não todos os efeitos. Itens com efeitos especiais sem atributo reconhecido ficam atrás dos que têm prioridade reconhecida, salvo quando são lendários. A seleção tem teste simulado com cartões fornecidos pelo usuário; a integração precisa de validação em jogo.
+
 Banimento individual usa dois cliques no cartão quando o jogo pede confirmação. O banimento de kit depende da leitura de módulos internos do jogo e dos planos armazenados localmente; por precaução, um plano com fusão impede o banimento automático de kit. A verificação tem tempo limitado e recorre ao banimento individual quando falha. A integração real ainda não foi validada.
 
 O aviso de item fora da build permanece na aba e pode sobreviver ao recarregamento por `sessionStorage`. O botão **Resolvido** remove apenas o aviso, não o item. A remoção por Hypno, o início de outra partida e a aquisição efetiva ainda não são detectados automaticamente; o jogador deve conferir e limpar os avisos quando apropriado.

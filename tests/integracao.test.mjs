@@ -3,6 +3,45 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
+test('escolha de itens usa o preset para bônus diretos e prioriza lendários', () => {
+  function simular(ofertas, ordem) {
+    let tarefa, escolhido;
+    const controles = [];
+    const criar = () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } });
+    const cartoes = ofertas.map(({ nome, raridade, descricao }) => ({ disabled: false, outerHTML: nome,
+      classList: { contains: () => false }, getClientRects: () => [1],
+      querySelector(s) {
+        if (s === '.rar') return { textContent: raridade };
+        if (s === '.bd > p') return descricao == null ? null : { textContent: descricao };
+        if (s === '.cap' || s.includes('assets/items/')) return {};
+        return null;
+      }, click() { escolhido = nome; } }));
+    const nenhum = { disabled: false, textContent: 'Nenhum (+315 ₽)', getClientRects: () => [1] };
+    const document = { body: { appendChild: (e) => controles.push(e) }, createElement: criar,
+      querySelectorAll(s) { return s === 'button.card' ? cartoes : s === 'button' ? [nenhum] : []; } };
+    class MutationObserver { observe() {} }
+    const localStorage = { getItem(k) { return k === 'pokebonk-auto-select-perfis' ? JSON.stringify({ ativo: 0, perfis: [{ ordem }] }) : null; } };
+    vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
+      document, localStorage, MutationObserver, setTimeout(fn) { tarefa = fn; return 1; }, setInterval() {}, Date, Math,
+    });
+    controles[0].click(); tarefa(); return escolhido;
+  }
+  const itens = [
+    { nome: 'Sitrus Berry', raridade: 'Incomum', descricao: '+10 de HP máx. Ao cair abaixo de 30% de HP, você recupera 35% (a cada 45 s).' },
+    { nome: 'White Herb', raridade: 'Incomum', descricao: '+25% de chance de status.' },
+    { nome: 'Quick Claw', raridade: 'Incomum', descricao: '+10% de velocidade de ataque.' },
+  ];
+  assert.equal(simular(itens, ['velocidade ataque', 'sorteio', 'vida']), 'Quick Claw');
+  assert.equal(simular(itens, ['sorteio', 'velocidade ataque', 'vida']), 'White Herb');
+  assert.equal(simular(itens, ['vida', 'sorteio', 'velocidade ataque']), 'Sitrus Berry');
+  assert.equal(simular([...itens, { nome: 'Max Revive', raridade: 'Lendário', descricao: 'Revive uma vez.' }], ['vida']), 'Max Revive');
+  assert.equal(simular([{ nome: 'Especial', raridade: 'Épico', descricao: 'Ao atacar, +20% de dano.' }, itens[0]], ['dano', 'vida']), 'Sitrus Berry');
+  assert.equal(simular([{ nome: 'Múltiplo', raridade: 'Raro', descricao: '+10% de sorte e +5% de dano.' }, itens[1]], ['dano', 'sorteio']), 'Múltiplo');
+  const macho = { nome: 'Macho Brace', raridade: 'Raro', descricao: '+50% de experiência, -10% de velocidade.' };
+  assert.equal(simular([macho, { nome: 'Outro', raridade: 'Épico', descricao: '+20% de dano.' }], ['experiencia', 'dano']), 'Macho Brace');
+  assert.equal(simular([macho, { nome: 'Max Revive', raridade: 'Lendário', descricao: 'Revive uma vez.' }], ['experiencia']), 'Max Revive');
+});
+
 test('bênção de Unown continua sendo detectada com mudanças frequentes', () => {
   const jobs = new Map(); let next = 0; let observer; let escolhido = null;
   const criar = () => ({ style: {}, addEventListener(event, fn) { this[event] = fn; }, click() { this.click?.(); } });

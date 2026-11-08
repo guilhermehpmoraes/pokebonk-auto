@@ -41,3 +41,5 @@ Os testes simulam lotes renovados repetidamente, reserva para Pokébola e retorn
 `tests/fossil.test.mjs` simula a abertura das ruínas e a seleção do Domo, inclusive dados ambíguos e botão desabilitado; não comprova a integração em jogo.
 
 `tests/alfa.test.mjs` também simula a comparação de dois brilhantes, empate e dados ambíguos com Auto Pickup ligado ou desligado. A tela real de brilhante ainda não foi validada.
+
+`tests/decisao.test.mjs` e `tests/integracao.test.mjs` verificam a precedência de lendários e a ordem de atributos e raridade em power-ups, incluindo os cartões fornecidos pelo usuário. Isso não substitui teste em jogo.

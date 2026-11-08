@@ -14,7 +14,7 @@ Essa regra também vale para o ataque inicial: se aparecer como melhoria fora do
 
 Após uma escolha fora do plano e o cartão deixar a tela, um aviso persistente informa o nome e recomenda conferir a remoção com Hypno. O usuário marca o aviso como resolvido; o script não verifica automaticamente se o item foi removido ou se uma nova partida começou.
 
-Para bênçãos, prioridade configurada vem antes de raridade; a raridade desempata opções do mesmo status. Itens apresentados em conjunto usam maior raridade e sorteio no empate. `src/adaptador.js` tenta identificar a tela de item único e clicar em Pegar.
+Para bênçãos, prioridade configurada vem antes de raridade; a raridade desempata opções do mesmo status. Na escolha de power-ups, qualquer lendário reconhecido vem primeiro, com sorteio entre lendários. Sem lendário, usa o atributo direto mais prioritário do preset ativo e, no empate, a maior raridade; se nenhuma opção tiver atributo reconhecido, usa a maior raridade. Empates restantes são sorteados. Efeitos condicionais e atributos não reconhecidos não entram na comparação. `src/adaptador.js` tenta identificar a tela de item único e clicar em Pegar.
 
 Relíquias usam maior raridade e, em caso de empate, o atributo mais alto no preset de status ativo. Em relíquias com vários atributos, vale o de maior prioridade. Com três espaços cheios, uma oferta substitui a menos prioritária apenas se melhorar a raridade ou, na mesma raridade, a prioridade do atributo. Caso nenhuma oferta melhore o conjunto, o script tenta escolher **Não levar nenhuma**. Atributos ausentes do preset ficam após os configurados; a passiva não entra na comparação.
 

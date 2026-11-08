@@ -175,19 +175,26 @@ export function decidir(tela, configuracao = {}, aleatorio = Math.random) {
     if (tela.pulos > 0) return { acao: 'pular' };
     return { acao: 'selecionar', id: sortear(opcoes).id, foraDoPlano: true };
   }
-  if (tela.tipo === 'status' || tela.tipo === 'powerup') {
-    if (tela.tipo === 'status') {
-      const ordem = configuracao.status ?? [];
-      const elegiveis = opcoes.filter((item) => ordem.includes(item.status));
-      if (!elegiveis.length) return { acao: 'aguardar', motivo: 'status sem prioridade configurada' };
-      const melhorPrioridade = Math.min(...elegiveis.map((item) => ordem.indexOf(item.status)));
-      const melhoresStatus = elegiveis.filter((item) => ordem.indexOf(item.status) === melhorPrioridade);
-      if (melhoresStatus.length === 1) return { acao: 'selecionar', id: melhoresStatus[0].id };
-      const melhores = maiorRaridade(melhoresStatus);
-      if (!melhores) return { acao: 'aguardar', motivo: 'raridade desconhecida' };
-      return { acao: 'selecionar', id: sortear(melhores).id };
-    }
-    const melhores = maiorRaridade(opcoes);
+  if (tela.tipo === 'powerup') {
+    const lendarios = opcoes.filter((item) => item.raridade === 5);
+    if (lendarios.length) return { acao: 'selecionar', id: sortear(lendarios).id };
+    if (opcoes.some((item) => !Number.isInteger(item.raridade) || item.raridade < 1 || item.raridade > 5)) return { acao: 'aguardar', motivo: 'raridade desconhecida' };
+    const ordem = Array.isArray(configuracao.status) ? configuracao.status : [];
+    const prioridade = (item) => Math.min(ordem.length, ...(Array.isArray(item.status) ? item.status : []).map((status) => {
+      const indice = ordem.indexOf(status); return indice < 0 ? ordem.length : indice;
+    }));
+    const melhorPrioridade = Math.min(...opcoes.map(prioridade));
+    const melhores = maiorRaridade(opcoes.filter((item) => prioridade(item) === melhorPrioridade));
+    return { acao: 'selecionar', id: sortear(melhores).id };
+  }
+  if (tela.tipo === 'status') {
+    const ordem = configuracao.status ?? [];
+    const elegiveis = opcoes.filter((item) => ordem.includes(item.status));
+    if (!elegiveis.length) return { acao: 'aguardar', motivo: 'status sem prioridade configurada' };
+    const melhorPrioridade = Math.min(...elegiveis.map((item) => ordem.indexOf(item.status)));
+    const melhoresStatus = elegiveis.filter((item) => ordem.indexOf(item.status) === melhorPrioridade);
+    if (melhoresStatus.length === 1) return { acao: 'selecionar', id: melhoresStatus[0].id };
+    const melhores = maiorRaridade(melhoresStatus);
     if (!melhores) return { acao: 'aguardar', motivo: 'raridade desconhecida' };
     return { acao: 'selecionar', id: sortear(melhores).id };
   }

@@ -80,6 +80,8 @@ Na versão 0.2.32, o catálogo passa a reconhecer Cura, bônus presente no Goldu
 
 Na versão 0.2.33, a tela de escolha de um único brilhante passa a usar a comparação de prioridades dos suportes quando o pickup está ligado. A simulação cobre os textos e bônus da imagem recebida, empate e dados ambíguos; o DOM e a interação em partida ainda precisam ser verificados.
 
+Na versão 0.2.34, a escolha de power-ups passa a priorizar lendários e, nos demais, os atributos diretos reconhecidos pelo preset antes da raridade. Os testes usam exemplos de cartões fornecidos pelo usuário; a integração em partida não foi confirmada.
+
 Foi adicionada a tentativa automática de abrir Fendas e entrar nelas quando reconhecidas, a pedido do usuário. Os bloqueios foram examinados no código público do jogo e o fluxo tem teste simulado; a partida real ainda precisa de validação.
 
 Após relato de sobreposição do minimapa e do inventário, os controles e a lista foram deslocados para o lado esquerdo e o aviso de itens para uma posição superior. A disposição ainda precisa de confirmação visual em jogo.
