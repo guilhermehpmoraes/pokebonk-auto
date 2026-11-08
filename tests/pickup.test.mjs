@@ -61,6 +61,11 @@ test('chama o Alfa apenas com o aviso exato de encerramento das ondas', () => {
   assert.equal(decidirPickup('chamar o alfa agora').acao, 'aguardar');
 });
 
+test('reconhece apenas o aviso conhecido das Ruínas do Fóssil', () => {
+  assert.equal(decidirPickup('ruinas do fossil · reviva um fossil em troca de hp maximo').acao, 'interagir');
+  assert.equal(decidirPickup('ruinas do fossil · reviva um fossil em troca de dinheiro').acao, 'aguardar');
+});
+
 test('liberta qualquer Pokémon da jaula pelo preço exibido', () => {
   for (const texto of ['libertar pupitar · 30 ₽', 'libertar mr. mime · 30 ₽', 'libertar nidoran♀ · 30 ₽']) assert.equal(decidirPickup(texto).acao, 'interagir');
   assert.equal(decidirPickup('libertar sandslash · 50 ₽').custoJaula, 50);

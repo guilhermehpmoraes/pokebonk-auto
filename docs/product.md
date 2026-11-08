@@ -24,6 +24,8 @@ O Auto Pickup tem ativação própria, começa desligado e tenta interagir ao de
 
 No Rugido de Rhydon, o pickup identifica o aviso inicial e os estágios 1/3 e 2/3 para tentar completar três ativações no total. Cada rugido fortalece o guardião e melhora a recompensa; ao chegar ao limite, o jogo mostra outro aviso que não é acionado pelo script.
 
+Com o Auto Pickup ligado, as Ruínas do Fóssil são acionadas ao passar e o Fóssil de Domo é escolhido na tela reconhecida. Ele concede uma bênção ancestral e reduz permanentemente o HP máximo em 20% na partida. Se o cartão ou seus efeitos não forem reconhecidos, aguarda.
+
 Jaulas com o aviso **Libertar [Pokémon] · [preço] ₽** são acionadas ao passar quando o saldo cobre o valor exibido; o custo varia com a zona. Os avisos de Lançar Poké Bola e Friend Ball também são reconhecidos.
 
 A sugestão prioriza Pokébolas quando há saldo e elas não estão esgotadas na zona; **Trocar sugestão** permite comparar cassino e loja. Os custos estimados por item usam bônus de escolha de 30% para Pokébolas, 0,194 item por giro, retorno de 25% e penalidade de risco de 30% para o cassino. A estimativa da loja começa em 130 ₽ na zona 1, multiplicada por 2,2 por zona, e usa preços observados por até 60 segundos. São heurísticas e não garantem a melhor build.

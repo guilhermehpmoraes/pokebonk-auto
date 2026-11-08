@@ -37,6 +37,8 @@ A conferência usa o preço bruto da carteira quando o HUD exibe um valor abrevi
 
 O altar amaldiçoado é acionado uma vez por aviso. Para Rhydon, os avisos inicial, 1/3 e 2/3 permitem tentar a próxima ativação; cada estágio recebe no máximo três tentativas espaçadas de 800 ms enquanto o mesmo aviso continuar. Um aviso de altar esgotado não é acionado.
 
+Nas Ruínas do Fóssil, o pickup envia E para o aviso reconhecido e seleciona o cartão de Domo quando nome, benefício e custo coincidem. A seleção também funciona se a tela for aberta manualmente com o pickup ligado; cartões ausentes, duplicados, desabilitados ou diferentes aguardam.
+
 Com o Auto Pickup ligado, o botão exibe a sugestão para procurar no mapa ou uma mensagem de espera quando faltam dados ou saldo. Ela permanece fixa durante o trajeto e após interações fora da sugestão; é liberada quando a interação sugerida termina, muda a zona, uma nova partida é identificada ou o usuário usa **Trocar sugestão**. Após sair da loja, ela não volta a ser sugerida por 30 segundos. Uma interação paga concluída não é repetida enquanto seu aviso permanecer próximo, exceto na retomada do cassino após recompensa reconhecida. Durante os modais de loja e cassino abertos pelo script, o botão mostra que está avaliando a situação.
 
 Depois de ler preços e raridades na loja, a estimativa observada permanece disponível por até 60 segundos na mesma zona para a sugestão. No cassino, o script tenta pular cada animação e avalia o próximo giro, com até três tentativas por estado. O retorno após recompensa depende de reconhecer a tela de escolha ou item único e tolera uma breve transição entre telas; a integração precisa de teste em jogo.

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select — protótipo de upgrades
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.30
+// @version      0.2.31
 // @description  Protótipo: seleciona opções do plano na tela de upgrades.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -29,12 +29,20 @@ function decidirPickup(texto) {
     'altar de gengar · +dificuldade, +xp e +saque',
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
     'chamar o alfa agora (encerra as ondas)',
+    'ruinas do fossil · reviva um fossil em troca de hp maximo',
   ];
   const jaula = /^libertar\s+\S(?:.*\S)?\s+·\s+(\d+)\s+₽$/.exec(texto);
   const ovo = /^pegar o ovo pokemon · choca apos \d+(?:[.,]\d{3})* derrotas$/.test(texto);
   const alfa = /^friend ball: luta com voce nesta partida \(\d+ s\) · apoio: .+$/.test(texto);
   if (jaula) return { acao: 'interagir', custoJaula: Number(jaula[1]) };
   return gratuitos.includes(texto) || ovo || alfa ? { acao: 'interagir' } : { acao: 'aguardar' };
+}
+
+function decidirFossil(opcoes) {
+  if (!Array.isArray(opcoes)) return null;
+  const domos = opcoes.filter((opcao) => opcao.nome === 'fossil de domo' &&
+    opcao.ganho === 'escolha uma bencao ancestral (lendaria ×1,5)' && opcao.custo === '−20% de hp max');
+  return domos.length === 1 ? domos[0].id : null;
 }
 
 function decidirAlfa({ existentes, novo, prioridade }) {
@@ -876,6 +884,7 @@ function observar() {
   verificarAvisoPendente();
   observarPickup();
   if (pickupAtivo && !modalAberto && observarAlfa()) return;
+  if (pickupAtivo && !modalAberto && observarFossil()) return;
   if (!ativo || modalAberto) return;
   if (observarReliquias()) return;
   const botoes = [...document.querySelectorAll('button.card.offer')].filter((e) => e.getClientRects().length && !e.disabled);
@@ -960,6 +969,21 @@ function observar() {
   }
   if (decisao.acao === 'atualizar') atualizar.click();
   if (decisao.acao === 'pular') pular.click();
+}
+function observarFossil() {
+  const modais = [...document.querySelectorAll('.modal')].filter((el) => el.getClientRects().length);
+  if (modais.length !== 1) return false;
+  const cartoes = [...(modais[0].querySelectorAll?.('button.card.pact.trade') || [])];
+  if (!cartoes.length) return false;
+  const opcoes = cartoes.map((cartao, id) => ({ id,
+    nome: normalizar(cartao.querySelector('h3')?.textContent),
+    ganho: normalizar(cartao.querySelector('.pact-line.boon b')?.textContent),
+    custo: normalizar(cartao.querySelector('.pact-line.bane b')?.textContent).replace(/[.!]+$/, ''),
+  }));
+  const indice = decidirFossil(opcoes);
+  if (indice === null || cartoes[indice].disabled || !cartoes[indice].getClientRects().length) return true;
+  selecionarComTentativa(cartoes, indice, 'fossil:' + cartoes.map((cartao) => cartao.outerHTML).join('|'));
+  return true;
 }
 function observarAlfa() {
   const modais = [...document.querySelectorAll('.modal')].filter((el) => el.getClientRects().length);

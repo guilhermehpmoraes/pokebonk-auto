@@ -655,6 +655,7 @@ function observar() {
   verificarAvisoPendente();
   observarPickup();
   if (pickupAtivo && !modalAberto && observarAlfa()) return;
+  if (pickupAtivo && !modalAberto && observarFossil()) return;
   if (!ativo || modalAberto) return;
   if (observarReliquias()) return;
   const botoes = [...document.querySelectorAll('button.card.offer')].filter((e) => e.getClientRects().length && !e.disabled);
@@ -739,6 +740,21 @@ function observar() {
   }
   if (decisao.acao === 'atualizar') atualizar.click();
   if (decisao.acao === 'pular') pular.click();
+}
+function observarFossil() {
+  const modais = [...document.querySelectorAll('.modal')].filter((el) => el.getClientRects().length);
+  if (modais.length !== 1) return false;
+  const cartoes = [...(modais[0].querySelectorAll?.('button.card.pact.trade') || [])];
+  if (!cartoes.length) return false;
+  const opcoes = cartoes.map((cartao, id) => ({ id,
+    nome: normalizar(cartao.querySelector('h3')?.textContent),
+    ganho: normalizar(cartao.querySelector('.pact-line.boon b')?.textContent),
+    custo: normalizar(cartao.querySelector('.pact-line.bane b')?.textContent).replace(/[.!]+$/, ''),
+  }));
+  const indice = decidirFossil(opcoes);
+  if (indice === null || cartoes[indice].disabled || !cartoes[indice].getClientRects().length) return true;
+  selecionarComTentativa(cartoes, indice, 'fossil:' + cartoes.map((cartao) => cartao.outerHTML).join('|'));
+  return true;
 }
 function observarAlfa() {
   const modais = [...document.querySelectorAll('.modal')].filter((el) => el.getClientRects().length);

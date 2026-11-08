@@ -74,6 +74,8 @@ Na versão 0.2.27 foram adicionados painel com contagem de marcadores, projeçã
 
 O aviso fornecido pelo usuário para chamar o Alfa e encerrar as ondas passou a ser reconhecido pelo Auto Pickup. Há teste de decisão e simulação de teclado; falta validação em partida.
 
+Na versão 0.2.31, o Auto Pickup passa a acionar as Ruínas do Fóssil e selecionar o Domo quando seus efeitos são reconhecidos. Há testes de decisão e simulação do fluxo; falta validação em partida.
+
 Foi adicionada a tentativa automática de abrir Fendas e entrar nelas quando reconhecidas, a pedido do usuário. Os bloqueios foram examinados no código público do jogo e o fluxo tem teste simulado; a partida real ainda precisa de validação.
 
 Após relato de sobreposição do minimapa e do inventário, os controles e a lista foram deslocados para o lado esquerdo e o aviso de itens para uma posição superior. A disposição ainda precisa de confirmação visual em jogo.

@@ -16,12 +16,20 @@ export function decidirPickup(texto) {
     'altar de gengar · +dificuldade, +xp e +saque',
     'altar de desafio · invoca uma onda; se voce a derrotar, great ball',
     'chamar o alfa agora (encerra as ondas)',
+    'ruinas do fossil · reviva um fossil em troca de hp maximo',
   ];
   const jaula = /^libertar\s+\S(?:.*\S)?\s+·\s+(\d+)\s+₽$/.exec(texto);
   const ovo = /^pegar o ovo pokemon · choca apos \d+(?:[.,]\d{3})* derrotas$/.test(texto);
   const alfa = /^friend ball: luta com voce nesta partida \(\d+ s\) · apoio: .+$/.test(texto);
   if (jaula) return { acao: 'interagir', custoJaula: Number(jaula[1]) };
   return gratuitos.includes(texto) || ovo || alfa ? { acao: 'interagir' } : { acao: 'aguardar' };
+}
+
+export function decidirFossil(opcoes) {
+  if (!Array.isArray(opcoes)) return null;
+  const domos = opcoes.filter((opcao) => opcao.nome === 'fossil de domo' &&
+    opcao.ganho === 'escolha uma bencao ancestral (lendaria ×1,5)' && opcao.custo === '−20% de hp max');
+  return domos.length === 1 ? domos[0].id : null;
 }
 
 export function decidirAlfa({ existentes, novo, prioridade }) {

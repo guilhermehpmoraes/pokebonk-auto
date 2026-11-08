@@ -12,6 +12,8 @@ Instale um gerenciador de userscripts compatível, como o Tampermonkey, e abra o
 
 O botão Auto Pickup também começa desligado. Quando ligado, mantém uma sugestão de qual opção paga procurar, mas tenta interagir com as outras opções pagas e com alguns objetos gratuitos encontrados no caminho. Os portais do chefe e da próxima zona continuam manuais. A estimativa e a integração precisam de validação em jogo; veja [regras e limitações](docs/product.md).
 
+O Auto Pickup também aciona as Ruínas do Fóssil e escolhe o Fóssil de Domo quando reconhecido: ele oferece uma bênção ancestral em troca de 20% do HP máximo pelo resto da partida.
+
 O script informa ao gerenciador o endereço de atualização no GitHub. Com atualizações automáticas habilitadas, novas versões podem ser verificadas periodicamente; o intervalo e eventuais confirmações dependem do gerenciador e de suas configurações.
 
 ## Desenvolver e verificar

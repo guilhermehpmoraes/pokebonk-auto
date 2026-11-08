@@ -27,6 +27,8 @@ O Auto Pickup inicia desligado independentemente do Auto Select. Ele interage co
 
 O altar amaldiçoado adiciona uma maldição em troca de um item raro. O Rugido de Rhydon pode ser ativado até o limite exibido de três, fortalecendo o guardião e sua escolta em troca de Great Balls extras. Ambos têm testes simulados e precisam de confirmação no jogo.
 
+As Ruínas do Fóssil são acionadas pelo pickup e o Domo selecionado automaticamente quando reconhecido, sacrificando 20% do HP máximo pelo resto da partida. O fluxo tem teste simulado e precisa de confirmação em jogo.
+
 O botão sugere Pokébola enquanto houver saldo; **Trocar sugestão** permite outra opção. Ao encontrar a loja ou o cassino, avalia seus custos mesmo fora da sugestão, reserva o custo estimado das Pokébolas restantes que cabem no saldo e repete compras ou giros enquanto viáveis. A projeção não antecipa ganhos futuros nem mudanças de bônus, e usa uma única Pokébola como reserva quando faltam dados verificáveis.
 
 Quando o preço no HUD estiver abreviado, a abertura de Pokébolas e a entrada no cassino dependem do preço bruto em `data-k` para conferir o aviso. Sem esse dado, o pickup aguarda em vez de adivinhar o preço.
