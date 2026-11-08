@@ -763,9 +763,11 @@ function observarAlfa() {
   const modal = modais[0];
   const titulo = normalizar(modal.querySelector?.('h1')?.textContent);
   const ajuda = normalizar(modal.querySelector?.('.help')?.textContent);
-  if (!titulo.endsWith('quer se juntar a sua equipe!') || !ajuda.startsWith('sua equipe esta completa: escolha quem libertar')) return false;
+  const alfa = titulo.endsWith('quer se juntar a sua equipe!') && ajuda.startsWith('sua equipe esta completa: escolha quem libertar');
+  const brilhante = titulo.endsWith('brilhante quer te acompanhar!') && ajuda.startsWith('so um brilhante pode te acompanhar: escolha qual libertar.');
+  if (!alfa && !brilhante) return false;
   const cartoes = [...(modal.querySelectorAll?.('.cards > button.card') || [])];
-  if (cartoes.length < 2 || cartoes.length > 5) return true;
+  if (cartoes.length < 2 || cartoes.length > 5 || (brilhante && cartoes.length !== 2)) return true;
   const prioridade = ordemStatus();
   const dados = cartoes.map((cartao, id) => {
     const selo = normalizar(cartao.querySelector('.rar')?.textContent);
@@ -777,7 +779,7 @@ function observarAlfa() {
   if (novos.length !== 1 || existentes.length !== dados.length - 1) return true;
   const indice = decidirAlfa({ existentes, novo: novos[0], prioridade });
   if (indice === null) return true;
-  const assinatura = 'alfa:' + cartoes.map((cartao) => cartao.outerHTML).join('|');
+  const assinatura = (brilhante ? 'brilhante:' : 'alfa:') + cartoes.map((cartao) => cartao.outerHTML).join('|');
   selecionarComTentativa(cartoes, indice, assinatura);
   return true;
 }

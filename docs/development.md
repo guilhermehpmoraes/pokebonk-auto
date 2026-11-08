@@ -39,3 +39,5 @@ Os testes simulam lotes renovados repetidamente, reserva para Pokébola e retorn
 `tests/fenda.test.mjs` simula disponibilidade, bloqueios, intervalo entre pressionamentos e entrada na Fenda. Não comprova a integração com a partida real.
 
 `tests/fossil.test.mjs` simula a abertura das ruínas e a seleção do Domo, inclusive dados ambíguos e botão desabilitado; não comprova a integração em jogo.
+
+`tests/alfa.test.mjs` também simula a comparação de dois brilhantes, empate e dados ambíguos com Auto Pickup ligado ou desligado. A tela real de brilhante ainda não foi validada.

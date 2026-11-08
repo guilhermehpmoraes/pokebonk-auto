@@ -78,6 +78,8 @@ Na versão 0.2.31, o Auto Pickup passa a acionar as Ruínas do Fóssil e selecio
 
 Na versão 0.2.32, o catálogo passa a reconhecer Cura, bônus presente no Golduck da imagem de equipe cheia relatada pelo usuário. A simulação cobre os bônus exibidos e diferentes prioridades; o HTML real da tela e a seleção no jogo ainda não foram confirmados.
 
+Na versão 0.2.33, a tela de escolha de um único brilhante passa a usar a comparação de prioridades dos suportes quando o pickup está ligado. A simulação cobre os textos e bônus da imagem recebida, empate e dados ambíguos; o DOM e a interação em partida ainda precisam ser verificados.
+
 Foi adicionada a tentativa automática de abrir Fendas e entrar nelas quando reconhecidas, a pedido do usuário. Os bloqueios foram examinados no código público do jogo e o fluxo tem teste simulado; a partida real ainda precisa de validação.
 
 Após relato de sobreposição do minimapa e do inventário, os controles e a lista foram deslocados para o lado esquerdo e o aviso de itens para uma posição superior. A disposição ainda precisa de confirmação visual em jogo.

@@ -46,4 +46,6 @@ Com Auto Pickup ligado, a Friend Ball de Alfa é acionada quando reconhecida. Na
 
 O bônus de cura tem uma prioridade própria, separada de regeneração. Nos presets existentes que ainda não a incluem, Cura é acrescentada após as prioridades já salvas; ajuste sua posição no painel conforme desejado.
 
+Com Auto Pickup ligado, a tela que permite apenas um companheiro brilhante compara os bônus do atual e do novo usando o mesmo preset. Liberta o atual apenas se o bônus do novo tiver prioridade maior; em empate mantém o atual e, com dados desconhecidos, aguarda. A comparação considera o tipo de bônus, não seu valor numérico.
+
 Com o Auto Pickup ligado, o script tenta usar Incenso para abrir uma Fenda sempre que o jogo indicar que é permitido; também tenta entrar na Fenda reconhecida ao passar perto dela. A abertura consome Incenso. A movimentação até a entrada continua manual.

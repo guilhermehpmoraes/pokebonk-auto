@@ -41,6 +41,8 @@ O painel de mapa pode ser recolhido clicando nele; mostra dados mesmo com o Auto
 
 Confira a posição de Cura em cada preset: em perfis sem a entrada, ela é adicionada após os atributos já salvos. A tela de Alfa com cura tem simulação baseada na imagem fornecida, mas o DOM e o clique em partida ainda precisam ser confirmados.
 
+Com pickup ativo, uma troca de brilhante reconhecida também liberta automaticamente um dos dois cartões segundo o preset. A comparação foi simulada com os textos de uma imagem; os seletores e o clique precisam de confirmação no jogo.
+
 Com Auto Pickup ativo, a Fenda consome Incenso automaticamente quando liberada pelo jogo. Sua entrada é acionada ao passar perto. O recurso depende do HUD, da tecla padrão C e de métodos internos, que podem mudar em versões futuras.
 
 Os controles e a lista de mapa ficam à esquerda, abaixo da equipe quando ela é identificada. O aviso de itens fora da build aparece mais acima, afastado do inventário; a disposição precisa de confirmação nas resoluções e modos de jogo usados.
