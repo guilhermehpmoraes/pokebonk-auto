@@ -61,6 +61,11 @@ test('chama o Alfa apenas com o aviso exato de encerramento das ondas', () => {
   assert.equal(decidirPickup('chamar o alfa agora').acao, 'aguardar');
 });
 
+test('reconhece chamadas de ondas válidas e rejeita avisos ambíguos', () => {
+  for (const texto of ['chamar a onda 2/6 ja', 'chamar a onda 6/6 ja', 'chamar a onda 10/12 ja']) assert.equal(decidirPickup(texto).acao, 'interagir');
+  for (const texto of ['chamar a onda 0/6 ja', 'chamar a onda 7/6 ja', 'chamar a onda 2/0 ja', 'chamar a onda 2/6 ja e entrar no portal', 'chamar a onda 2/6', 'chamar a onda 999999999999999999999/6 ja']) assert.equal(decidirPickup(texto).acao, 'aguardar');
+});
+
 test('reconhece apenas o aviso conhecido das Ruínas do Fóssil', () => {
   assert.equal(decidirPickup('ruinas do fossil · reviva um fossil em troca de hp maximo').acao, 'interagir');
   assert.equal(decidirPickup('ruinas do fossil · reviva um fossil em troca de dinheiro').acao, 'aguardar');

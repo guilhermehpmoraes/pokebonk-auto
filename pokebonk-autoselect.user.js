@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.35
+// @version      0.2.36
 // @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -34,8 +34,9 @@ function decidirPickup(texto) {
   const jaula = /^libertar\s+\S(?:.*\S)?\s+·\s+(\d+)\s+₽$/.exec(texto);
   const ovo = /^pegar o ovo pokemon · choca apos \d+(?:[.,]\d{3})* derrotas$/.test(texto);
   const alfa = /^friend ball: luta com voce nesta partida \(\d+ s\) · apoio: .+$/.test(texto);
+  const onda = /^chamar a onda ([1-9]\d*)\/([1-9]\d*) ja$/.exec(texto);
   if (jaula) return { acao: 'interagir', custoJaula: Number(jaula[1]) };
-  return gratuitos.includes(texto) || ovo || alfa ? { acao: 'interagir' } : { acao: 'aguardar' };
+  return gratuitos.includes(texto) || ovo || alfa || (onda && Number.isSafeInteger(Number(onda[1])) && Number.isSafeInteger(Number(onda[2])) && Number(onda[1]) <= Number(onda[2])) ? { acao: 'interagir' } : { acao: 'aguardar' };
 }
 
 function decidirFossil(opcoes) {

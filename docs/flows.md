@@ -53,4 +53,6 @@ Na tela reconhecida de um único brilhante, o adaptador exige exatamente dois ca
 
 Quando o pickup está ligado, a Fenda é aberta com C se o HUD e o estado do jogo confirmarem a disponibilidade. O script aguarda situações bloqueadas e tenta novamente; ao passar pela entrada confirmada da Fenda, interage com E.
 
+Ao encontrar o aviso reconhecido para chamar uma onda, o pickup tenta antecipá-la com E. Cada texto de onda é acionado uma vez enquanto permanece visível.
+
 Os controles e a lista de mapa aparecem à esquerda, com a posição vertical ajustada à equipe visível. A lista continua recolhível e pode rolar quando não couber no espaço disponível.

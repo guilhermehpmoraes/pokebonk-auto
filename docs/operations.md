@@ -49,4 +49,6 @@ Com pickup ativo, uma troca de brilhante reconhecida também liberta automaticam
 
 Com Auto Pickup ativo, a Fenda consome Incenso automaticamente quando liberada pelo jogo. Sua entrada é acionada ao passar perto. O recurso depende do HUD, da tecla padrão C e de métodos internos, que podem mudar em versões futuras.
 
+O pickup também tenta antecipar ondas ao encontrar o aviso reconhecido, usando E. A interação foi simulada e ainda precisa de confirmação em partida.
+
 Os controles e a lista de mapa ficam à esquerda, abaixo da equipe quando ela é identificada. O aviso de itens fora da build aparece mais acima, afastado do inventário; a disposição precisa de confirmação nas resoluções e modos de jogo usados.

@@ -34,4 +34,11 @@ test('abre a Fenda disponível, respeita bloqueios e evita repetição rápida',
   bloqueio = 'Já existe uma fenda'; aviso = 'Entrar no portal da próxima zona'; tick(); assert.equal(eventos.length, 4);
   aviso = 'Entrar na Fenda de Fogo (Rara) · 30 s de ondas e seu Alfa'; tick();
   assert.deepEqual(eventos.slice(-2), ['keydown:KeyE', 'keyup:KeyE']);
+  aviso = 'Chamar a onda 2/6 já'; tick();
+  assert.equal(eventos.length, 8);
+  tick(); assert.equal(eventos.length, 8);
+  aviso = 'Chamar a onda 3/6 já'; tick();
+  assert.equal(eventos.length, 10);
+  aviso = 'Chamar a onda 7/6 já'; tick(); assert.equal(eventos.length, 10);
+  controles[2].click(); aviso = 'Chamar a onda 4/6 já'; tick(); assert.equal(eventos.length, 10);
 });

@@ -38,4 +38,6 @@ O adaptador também reconhece a tela de escolha entre dois brilhantes e reutiliz
 
 A automação de Fenda usa a instância de partida já capturada para o painel de mapa e consulta as verificações de bloqueio do jogo antes de enviar C ou reconhecer sua entrada.
 
+O reconhecimento do aviso de chamada de onda é uma regra de texto em `decisao.mjs`; o adaptador usa o fluxo habitual de interação do pickup.
+
 Os controles e o painel de mapa ficam no lado esquerdo; o adaptador ajusta sua altura abaixo da equipe visível e limita a altura da lista. Os avisos de itens fora da build ficam afastados do canto inferior direito.
