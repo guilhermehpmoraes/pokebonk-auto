@@ -76,6 +76,8 @@ O aviso fornecido pelo usuário para chamar o Alfa e encerrar as ondas passou a 
 
 Na versão 0.2.31, o Auto Pickup passa a acionar as Ruínas do Fóssil e selecionar o Domo quando seus efeitos são reconhecidos. Há testes de decisão e simulação do fluxo; falta validação em partida.
 
+Na versão 0.2.32, o catálogo passa a reconhecer Cura, bônus presente no Golduck da imagem de equipe cheia relatada pelo usuário. A simulação cobre os bônus exibidos e diferentes prioridades; o HTML real da tela e a seleção no jogo ainda não foram confirmados.
+
 Foi adicionada a tentativa automática de abrir Fendas e entrar nelas quando reconhecidas, a pedido do usuário. Os bloqueios foram examinados no código público do jogo e o fluxo tem teste simulado; a partida real ainda precisa de validação.
 
 Após relato de sobreposição do minimapa e do inventário, os controles e a lista foram deslocados para o lado esquerdo e o aviso de itens para uma posição superior. A disposição ainda precisa de confirmação visual em jogo.

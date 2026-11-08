@@ -44,4 +44,6 @@ O painel de mapa apresenta as categorias e quantidades atuais da mesma lista usa
 
 Com Auto Pickup ligado, a Friend Ball de Alfa é acionada quando reconhecida. Na tela de equipe cheia, compara os bônus de suporte usando a ordem do preset ativo; substitui o Alfa elegível de menor prioridade somente se o novo for melhor. Em empate mantém os atuais; com dados desconhecidos aguarda. O jogo pode omitir companheiros que não podem ser libertados.
 
+O bônus de cura tem uma prioridade própria, separada de regeneração. Nos presets existentes que ainda não a incluem, Cura é acrescentada após as prioridades já salvas; ajuste sua posição no painel conforme desejado.
+
 Com o Auto Pickup ligado, o script tenta usar Incenso para abrir uma Fenda sempre que o jogo indicar que é permitido; também tenta entrar na Fenda reconhecida ao passar perto dela. A abertura consome Incenso. A movimentação até a entrada continua manual.

@@ -45,6 +45,8 @@ Depois de ler preços e raridades na loja, a estimativa observada permanece disp
 
 O painel de mapa é independente dos controles de ativação e pode ser recolhido com um clique. Captura a lista de marcadores do jogo e atualiza a contagem e a reserva quando os dados são reconhecidos. Com o pickup ativo, a tela de substituição de Alfa compara os bônus do novo e dos existentes com o preset ativo; se qualquer informação essencial for ambígua, não escolhe.
 
+A comparação reconhece também o bônus de cura mostrado nos cartões; sua posição é configurável no preset e não é confundida com regeneração.
+
 Quando o pickup está ligado, a Fenda é aberta com C se o HUD e o estado do jogo confirmarem a disponibilidade. O script aguarda situações bloqueadas e tenta novamente; ao passar pela entrada confirmada da Fenda, interage com E.
 
 Os controles e a lista de mapa aparecem à esquerda, com a posição vertical ajustada à equipe visível. A lista continua recolhível e pode rolar quando não couber no espaço disponível.

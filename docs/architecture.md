@@ -30,6 +30,8 @@ Quando ativo, o botão do Auto Pickup mostra uma sugestão de destino mantida em
 
 O painel de mapa captura a instância de marcadores envolvendo o método da classe interna carregada pelo jogo; a extração e a projeção são conservadoras quando a versão ou os dados não são reconhecidos. O adaptador identifica a tela Alfa, e a escolha entre bônus é uma regra pura em `decisao.mjs`.
 
+O catálogo compartilhado de atributos no adaptador reconhece cura como entrada independente para leitura e ordenação dos bônus.
+
 A automação de Fenda usa a instância de partida já capturada para o painel de mapa e consulta as verificações de bloqueio do jogo antes de enviar C ou reconhecer sua entrada.
 
 Os controles e o painel de mapa ficam no lado esquerdo; o adaptador ajusta sua altura abaixo da equipe visível e limita a altura da lista. Os avisos de itens fora da build ficam afastados do canto inferior direito.

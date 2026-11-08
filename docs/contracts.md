@@ -24,6 +24,8 @@ Os avisos de itens fora do plano usam `sessionStorage` com a chave `pokebonk-aut
 
 Ao ler as ordens, variações reconhecidas de nomes são unificadas pelo identificador do catálogo; quando aparecem duplicadas, permanece a primeira posição de cada preset.
 
+O catálogo reconhece `cura` como atributo próprio, distinto de `regeneracao`. Uma entrada salva como `novo: cura` é normalizada para `cura` preservando sua posição; presets sem essa entrada recebem o atributo depois dos itens já salvos.
+
 Os metadados `@updateURL` e `@downloadURL` no script gerado apontam para o arquivo público na `main`; `@version` determina a versão anunciada ao gerenciador de userscripts. O gerador é a fonte desses campos.
 
 Após selecionar um cartão de build, bênção ou item, o adaptador pode repetir o clique no mesmo elemento enquanto a tela permanecer igual, até o limite em `selecionarComTentativa`.
