@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.42
+// @version      0.2.43
 // @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -68,6 +68,15 @@ function prioridadeGolpePlano({ receitas, concluidas, equipados, id }) {
     const comParceiro = pares.some((par) => par.some((outro) => outro !== id && equipados.includes(outro)));
     return total + (pares.length ? 1 / r.pares.length : 0) + (comParceiro ? 10 : 0);
   }, 0);
+}
+
+// Nunca bane um golpe que pertence ao plano apenas por ainda ser cedo para ele.
+function decidirSemGolpeSeguro({ atualizacoes, pulos, temporarios }) {
+  if (!Number.isInteger(atualizacoes) || atualizacoes < 0 || !Array.isArray(temporarios)) return { acao: 'aguardar' };
+  if (atualizacoes > 0) return { acao: 'atualizar' };
+  if (!Number.isInteger(pulos) || pulos < 0) return { acao: 'aguardar' };
+  if (pulos > 0) return { acao: 'pular' };
+  return temporarios.length ? { acao: 'selecionar', id: temporarios[0] } : { acao: 'aguardar' };
 }
 
 // Decide a partir de dados já identificados na tela; não interage com o jogo.
@@ -1074,7 +1083,7 @@ function estadoPlanoPartida() {
     if (!decisao) return falhaPlano('dados insuficientes para planejar');
     const ceder = errados.length ? [] : golpesParaAbrirEspaco(entrada);
     motivoPlano = '';
-    return { run, plano, defs: cacheReceitasBill.defs, receitas: cacheReceitasBill.receitas, presentes, errados, ceder, decisao };
+    return { run, plano, defs: cacheReceitasBill.defs, receitas: cacheReceitasBill.receitas, presentes, errados, ceder, decisao, entrada };
   } catch (erro) {
     const classe = ['TypeError', 'RangeError', 'ReferenceError'].includes(erro?.name) ? ` (${erro.name})` : '';
     return falhaPlano(`erro ao ler dados da partida${classe}`);
@@ -1241,6 +1250,14 @@ function observar() {
   // Não gastar recursos se a tela estiver incompleta ou tiver um formato desconhecido.
   if (opcoes.some((item, i) => !nomes[i] || !item.tipo || !item.estado)) return;
   const assinatura = botoes.map((b) => b.outerHTML).join('|');
+  const controle = (nome) => controles.find((b) => normalizar(b.textContent).startsWith(nome));
+  const banir = controle('banir');
+  const atualizar = controle('atualizar');
+  const pular = controle('pular');
+  const usos = (botao) => {
+    const contador = botao?.textContent.match(/\((\d+)\)/);
+    return botao && contador ? (botao.disabled ? 0 : Number(contador[1])) : null;
+  };
   const estadoBuild = estadoPlanoPartida();
   if (!estadoBuild && mapaInstancia?.run?.planSnap?.fus?.length) return;
   if (estadoBuild && estadoBuild.plano.fus.length) {
@@ -1259,17 +1276,23 @@ function observar() {
         return;
       }
       for (const opcao of novas) opcao.noPlano = false;
-      if (!opcoes.some((opcao) => opcao.noPlano)) return;
+      if (!opcoes.some((opcao) => opcao.noPlano || opcao.estado === 'melhoria')) {
+        const temporarios = pickupAtivo && !estadoBuild.errados.length ? novas.flatMap((opcao) => {
+          const defs = estadoBuild.defs.filter((def) => normalizar(def.name) === normalizar(nomes[opcao.id]));
+          if (defs.length !== 1 || estadoBuild.entrada.equipados.includes(defs[0].id) || estadoBuild.entrada.consumidos.includes(defs[0].id)) return [];
+          const depois = { ...estadoBuild.entrada, equipados: [...estadoBuild.entrada.equipados, defs[0].id] };
+          return golpesParaAbrirEspaco(depois).includes(defs[0].id) ? [opcao.id] : [];
+        }) : [];
+        const acao = decidirSemGolpeSeguro({ atualizacoes: usos(atualizar), pulos: usos(pular), temporarios });
+        if (acao.acao === 'selecionar') selecionarComTentativa(botoes, acao.id, assinatura);
+        else if (acao.acao !== 'aguardar' && assinatura !== ultimoConjunto) {
+          ultimoConjunto = assinatura;
+          (acao.acao === 'atualizar' ? atualizar : pular).click();
+        }
+        return;
+      }
     }
   }
-  const controle = (nome) => controles.find((b) => normalizar(b.textContent).startsWith(nome));
-  const banir = controle('banir');
-  const atualizar = controle('atualizar');
-  const pular = controle('pular');
-  const usos = (botao) => {
-    const contador = botao?.textContent.match(/\((\d+)\)/);
-    return botao && contador ? (botao.disabled ? 0 : Number(contador[1])) : null;
-  };
   const decisao = decidir({ tipo: 'build', opcoes, banimentos: usos(banir), atualizacoes: usos(atualizar), pulos: usos(pular) });
   if (decisao.acao === 'aguardar') return;
   if (decisao.acao === 'selecionar') {

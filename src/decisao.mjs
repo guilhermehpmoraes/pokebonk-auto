@@ -57,6 +57,15 @@ export function prioridadeGolpePlano({ receitas, concluidas, equipados, id }) {
   }, 0);
 }
 
+// Nunca bane um golpe que pertence ao plano apenas por ainda ser cedo para ele.
+export function decidirSemGolpeSeguro({ atualizacoes, pulos, temporarios }) {
+  if (!Number.isInteger(atualizacoes) || atualizacoes < 0 || !Array.isArray(temporarios)) return { acao: 'aguardar' };
+  if (atualizacoes > 0) return { acao: 'atualizar' };
+  if (!Number.isInteger(pulos) || pulos < 0) return { acao: 'aguardar' };
+  if (pulos > 0) return { acao: 'pular' };
+  return temporarios.length ? { acao: 'selecionar', id: temporarios[0] } : { acao: 'aguardar' };
+}
+
 // Decide a partir de dados já identificados na tela; não interage com o jogo.
 export function decidirPickup(texto) {
   const primeiroRugido = 'rugido de rhydon · guardiao mais forte e com escolta, +1 great ball por rugido';

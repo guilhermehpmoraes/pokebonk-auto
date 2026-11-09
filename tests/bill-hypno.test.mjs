@@ -8,7 +8,7 @@ function preparar() {
   let modal = null, prompt = null, build = 'mw88813m', ofertas = []; const eventos = [];
   const defs = Array.from({ length: 7 }, (_, i) => ({ id: i + 1, key: `golpe-${i + 1}`, name: `Golpe ${i + 1}`, type: 'normal' }));
   const pares = [{ id: 'assinatura', pares: [[1, 2]], nome: 'Fusão especial' }, { id: 'tipo', pares: [[1, 3], [3, 4], [3, 5]], nome: 'Fusão tipo' }, { id: 'terceira', pares: [[5, 6]], nome: 'Fusão final' }];
-  const modulo = { Qi: (id) => defs.find((d) => d.id === id), Dr: ({ player }) => pares.flatMap((r) => r.pares.map(([a, b]) => ({ a: player.moves.findIndex((m) => m.def.id === a), b: player.moves.findIndex((m) => m.def.id === b), r: { key: r.id, name: r.nome } }))) };
+  const modulo = { Qi: (id) => defs.find((d) => d.id === id), Dr: ({ player }) => pares.flatMap((r) => r.pares.map(([a, b]) => ({ a: player.moves.findIndex((m) => m?.def.id === a), b: player.moves.findIndex((m) => m?.def.id === b), r: { key: r.id, name: r.nome } }))) };
   const player = { moveSlots: 4, roster: { id: 106 }, moves: [1, 2, 3, 4].map((id) => ({ def: defs[id - 1], level: 8, parents: [] })) };
   const run = { player, planSnap: { moves: defs.map((d) => d.id), fus: pares.map((p) => p.id), links: [] }, fusions: [], banished: new Set(), state: 'play' };
   const instancia = { run }; run.interactables = instancia;
@@ -19,8 +19,58 @@ function preparar() {
   const codigo = readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8').replace('new MutationObserver(agendar).observe', 'globalThis.testeBuild = { iniciar(i, m) { mapaInstancia = i; moduloDadosJogo = m; ativo = true; pickupAtivo = true; }, estadoPlanoPartida, observarBuildEspecial, observarPickup, observar };\nnew MutationObserver(agendar).observe');
   const ctx = { document, localStorage: { getItem: () => null }, sessionStorage: { getItem: () => null, setItem() {} }, MutationObserver, KeyboardEvent, window: { dispatchEvent(e) { eventos.push(e.type); } }, setTimeout(fn) { tarefas.push(fn); }, setInterval() {}, Date, Math, Set };
   vm.runInNewContext(codigo, ctx); ctx.testeBuild.iniciar(instancia, modulo);
-  return { api: ctx.testeBuild, player, run, defs, pares, eventos, controles, setOfertas: (o) => { ofertas = o; }, setPrompt: (p) => { prompt = p; }, setModal: (m) => { modal = m; }, setBuild: (b) => { build = b; } };
+  return { api: ctx.testeBuild, player, run, defs, pares, eventos, controles, comandos, setOfertas: (o) => { ofertas = o; }, setPrompt: (p) => { prompt = p; }, setModal: (m) => { modal = m; }, setBuild: (b) => { build = b; } };
 }
+
+function telaComUltimoEspaco({ atualizacoes = 0, pulos = 0 } = {}) {
+  const t = preparar(), acoes = [];
+  t.pares.splice(0, t.pares.length, { id: 'assinatura', pares: [[1, 2]], nome: 'A' }, { id: 'terceira', pares: [[3, 4]], nome: 'B' }, { id: 'tipo', pares: [[5, 6]], nome: 'C' });
+  t.run.fusions = ['assinatura', 'terceira'];
+  t.player.moves = [{ def: { id: 90, key: 'assinatura', fusion: {} }, level: 6, parents: [1, 2] }, { def: { id: 91, key: 'terceira', fusion: {} }, level: 6, parents: [3, 4] }, { def: t.defs[4], level: 10, parents: [] }, null];
+  for (const [indice, nome, quantidade] of [[0, 'Banir', 6], [1, 'Atualizar', atualizacoes], [2, 'Pular', pulos]]) {
+    t.comandos[indice].textContent = `${nome} (${quantidade})`;
+    t.comandos[indice].disabled = quantidade === 0;
+    t.comandos[indice].click = () => acoes.push(nome);
+  }
+  const card = (id, planejado) => ({ disabled: false, outerHTML: `golpe-${id}`, getClientRects: () => [1], querySelector(s) { return s === 'h3' ? { textContent: `Golpe ${id}` } : s === '.kind' ? { textContent: 'NOVO' } : s === '.top .typeicon' || (s === '.bp-badge' && planejado) ? {} : null; }, click() { acoes.push(`Golpe ${id}`); } });
+  t.setOfertas([card(10, false), card(11, false), card(7, true), card(12, false)]);
+  return { t, acoes };
+}
+
+test('com o último espaço reservado atualiza uma vez, sem banir o golpe planejado', () => {
+  const { t, acoes } = telaComUltimoEspaco({ atualizacoes: 8, pulos: 8 });
+  t.api.observar(); t.api.observar();
+  assert.deepEqual(acoes, ['Atualizar']);
+});
+
+test('sem atualizações pula; sem recursos aceita apenas golpe temporário reversível', () => {
+  const pulo = telaComUltimoEspaco({ pulos: 8 });
+  pulo.t.api.observar(); assert.deepEqual(pulo.acoes, ['Pular']);
+  const temporario = telaComUltimoEspaco();
+  temporario.t.api.observar(); assert.deepEqual(temporario.acoes, ['Golpe 7']);
+  temporario.t.player.moves[3] = { def: temporario.t.defs[6], level: 1, parents: [] };
+  assert.ok(temporario.t.api.estadoPlanoPartida().ceder.includes(7));
+});
+
+test('aguarda quando não pode confirmar os recursos da tela', () => {
+  const { t, acoes } = telaComUltimoEspaco();
+  t.comandos[1].textContent = 'Atualizar'; t.comandos[1].disabled = false;
+  t.api.observar(); assert.deepEqual(acoes, []);
+});
+
+test('uma melhoria já adquirida continua precedendo o gasto de atualização', () => {
+  const { t, acoes } = telaComUltimoEspaco({ atualizacoes: 8, pulos: 8 });
+  const card = (nome, novo) => ({ disabled: false, outerHTML: nome, getClientRects: () => [1], querySelector(s) {
+    if (s === 'h3') return { textContent: nome };
+    if (s === '.kind') return { textContent: novo ? 'NOVO' : 'MELHORIA' };
+    if (s === '.top .typeicon') return {};
+    if (s === '.bp-badge' && novo) return {};
+    if (s === '.rar') return { textContent: 'Comum' };
+    return null;
+  }, click() { acoes.push(nome); } });
+  t.setOfertas([card('Golpe 7', true), card('Melhoria adquirida', false)]);
+  t.api.observar(); assert.deepEqual(acoes, ['Melhoria adquirida']);
+});
 
 test('ao subir de nível prioriza ingrediente específico e espera se a build do jogo for desconhecida', () => {
   const t = preparar(), acoes = [];

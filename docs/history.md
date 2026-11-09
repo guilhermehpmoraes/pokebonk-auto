@@ -6,6 +6,8 @@ Após relato de que Bill não foi acionada com a 0.2.40, a combinação do plano
 
 Depois de novo relato com uma fusão pronta, a verificação foi corrigida de nível exatamente 8 para nível 8 ou superior, conforme o código do jogo permite. O cenário foi simulado; o nível interno da partida relatada e a causa exata da parada não foram confirmados.
 
+O usuário confirmou que a máquina funcionou após a alteração e relatou uma parada posterior no level-up com um golpe do plano ainda inadequado para o último espaço. O fluxo passou a atualizar ou pular e, sem recursos, admitir uma escolha temporária reversível no modelo. A nova regra tem testes simulados e ainda requer confirmação em jogo.
+
 Após relato de parada na escolha de Alfa com Arcanine, dano de status passou a ser reconhecido no catálogo. O cenário da imagem foi simulado; a causa e a correção ainda precisam de confirmação em jogo.
 
 Após o usuário mostrar a opção de até dez giros, o pickup passou a avaliar o preço do lote e a confirmar o resumo reconhecido. A implementação tem teste simulado e precisa de confirmação na partida real.

@@ -8,6 +8,8 @@ Reduzir escolhas repetitivas no PokéBonk. **Plano** é a build marcada no jogo;
 
 Em `src/decisao.mjs`, as opções do plano têm prioridade. O adaptador também considera elegível uma melhoria de fusão já equipada identificada pelo cartão, mesmo sem o selo do plano. Opções novas do plano precedem melhorias; golpes novos precedem vitaminas novas. Com dados de fusão reconhecidos, a seleção de golpes novos usa o planejador para descartar escolhas que bloqueiam a sequência e prioriza as que têm parceiro equipado e receitas mais específicas. Entre melhorias, prioriza-se raridade e, no empate, golpe. Empates de golpes novos são sorteados.
 
+Quando os únicos golpes novos do plano ocupariam um espaço necessário, e não há outra opção planejada ou melhoria, o script tenta atualizar e depois pular. Com ambos esgotados e o pickup ligado, pode aprender um desses golpes temporariamente se o modelo indicar que removê-lo no Hypno permitirá continuar. Se não puder comprovar isso, aguarda.
+
 Sem opção do plano, prioriza melhorias de golpes ou vitaminas já adquiridos, mesmo fora do plano, por raridade e, no empate, por golpe. Sem essas melhorias, tenta banir aleatoriamente, atualizar e pular, nessa ordem. Quando todos os recursos acabam, seleciona aleatoriamente uma opção fora do plano. Quando o jogo oferece banir o kit, o adaptador o faz apenas se comprovar que nenhum golpe do kit aparece nos planos disponíveis; caso contrário, confirma o banimento individual.
 
 Essa regra também vale para o ataque inicial: se aparecer como melhoria fora do plano, pode ser escolhido enquanto houver níveis disponíveis. Ele não recebe identificação ou prioridade especial, e continua gerando o aviso de fora da build.

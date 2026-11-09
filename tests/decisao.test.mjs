@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { decidir, planejarFusoes, golpesParaAbrirEspaco, prioridadeGolpePlano } from '../src/decisao.mjs';
+import { decidir, planejarFusoes, golpesParaAbrirEspaco, prioridadeGolpePlano, decidirSemGolpeSeguro } from '../src/decisao.mjs';
 
 test('planejamento reserva ingredientes específicos e aceita alternativas flexíveis seguras', () => {
   const base = { golpes: [1, 2, 3, 4, 5, 6, 7], equipados: [1, 2, 3, 4], consumidos: [], concluidas: [], espacos: 4,
@@ -31,6 +31,15 @@ test('prioriza parceiro equipado e ingrediente com menos alternativas', () => {
   const base = { receitas: [{ id: 'a', pares: [[1, 2]] }, { id: 'b', pares: [[3, 4], [3, 5]] }], concluidas: [], equipados: [1, 3] };
   assert.ok(prioridadeGolpePlano({ ...base, id: 2 }) > prioridadeGolpePlano({ ...base, id: 4 }));
   assert.ok(prioridadeGolpePlano({ ...base, id: 4 }) > prioridadeGolpePlano({ ...base, id: 5, equipados: [1] }));
+});
+
+test('sem golpe seguro atualiza, pula e só então permite oferta temporária comprovada', () => {
+  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: 8, pulos: 8, temporarios: [2] }), { acao: 'atualizar' });
+  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: 0, pulos: 8, temporarios: [2] }), { acao: 'pular' });
+  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: 0, pulos: 0, temporarios: [2] }), { acao: 'selecionar', id: 2 });
+  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: 0, pulos: 0, temporarios: [] }), { acao: 'aguardar' });
+  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: null, pulos: 0, temporarios: [2] }), { acao: 'aguardar' });
+  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: 1, pulos: null, temporarios: [2] }), { acao: 'atualizar' });
 });
 
 const primeiro = () => 0;

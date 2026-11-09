@@ -6,6 +6,8 @@ Após a falha relatada diante de Bill, um teste do planejador reproduz uma estru
 
 Os cenários de Bill incluem ataques acima do nível 8 depois de outra fusão concluída e um par com ataque abaixo do nível necessário. A integração real ainda requer confirmação.
 
+Os testes de level-up simulam duas fusões prontas, um último espaço reservado, atualização, pulo e escolha temporária quando ambos se esgotam; não confirmam a interação real nem a disponibilidade futura das ofertas.
+
 O teste de Alfa inclui a equipe com Arcanine e dano de status mostrada pelo usuário, em ordens diferentes de prioridade; a interação real ainda requer confirmação.
 
 ## Ambiente
