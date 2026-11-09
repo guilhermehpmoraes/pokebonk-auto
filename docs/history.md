@@ -122,6 +122,8 @@ Foi acrescentada a escolha de uniões na Máquina do Bill, com prioridade às fu
 
 Após relatos de parada nas escolhas de Hitmontop e Tyrogue brilhante, o texto `dano em elites` passou a ser reconhecido na comparação. Os testes reproduzem os cartões e ordens de prioridade, inclusive empate entre brilhantes; ainda requer confirmação em partida.
 
+Após relato de parada na loja com três cartões, o pickup passou a avaliar estoques de um a quatro itens. O cenário com três preços iguais é simulado; ainda requer confirmação em partida.
+
 Após relato de sobreposição do minimapa e do inventário, os controles e a lista foram deslocados para o lado esquerdo e o aviso de itens para uma posição superior. A disposição ainda precisa de confirmação visual em jogo.
 
 Na versão 0.2.36, o aviso de chamada de onda fornecido pelo usuário passou a ser reconhecido pelo Auto Pickup. A numeração variável e o envio de E têm testes simulados; falta validação em partida.

@@ -44,6 +44,8 @@ A sugestão permanece até a interação sugerida ser concluída, mesmo se os cu
 
 Na loja aberta pelo pickup, compara o custo médio dos itens disponíveis com o da Pokébola e exige saldo para o lote inteiro e a reserva estimada para as Pokébolas restantes. Se viável, compra todos os itens disponíveis; ao acabar, estima o próximo lote usando preços e raridades observados e pode renovar repetidamente. Após renovar, compara os preços reais antes de iniciar as compras. No cassino, compara cada giro com a Pokébola e pode girar repetidamente. O limite heurístico é o dobro do custo estimado por item da Pokébola; ao passar desse limite ou faltar reserva, sai. A seleção de recompensas depende do Auto Select ou do jogador. O pickup tenta retomar o cassino após uma tela reconhecida de recompensa.
 
+A avaliação também aceita lojas com menos de quatro itens exibidos, mantendo as mesmas verificações de preço e reserva.
+
 Para agilizar os giros, o pickup tenta acionar **Pular animação** quando o botão aparece no cassino aberto por ele. O resultado do giro continua sendo processado pelo jogo antes da próxima decisão.
 
 Quando o cassino oferecer um lote de 2 a 10 giros, o pickup pode usá-lo se o custo total preservar a reserva e o custo máximo conservador de um giro respeitar o mesmo limite da estratégia. Caso contrário, avalia o giro individual. O resumo reconhecido é confirmado para continuar ou ver os prêmios.

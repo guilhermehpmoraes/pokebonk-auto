@@ -400,7 +400,7 @@ function observarModalPickup(modal, carteira) {
   }
   if (!carteira || pickupSessao.tipo !== 'loja' || !modal.classList.contains('shop-modal')) return;
   const cartoes = [...modal.querySelectorAll('.cards > button.card')];
-  if (cartoes.length !== 4) return;
+  if (cartoes.length < 1 || cartoes.length > 4) return;
   const dados = cartoes.map((cartao) => {
     const preco = cartao.querySelector('.price');
     const vendido = preco?.classList.contains('sold');

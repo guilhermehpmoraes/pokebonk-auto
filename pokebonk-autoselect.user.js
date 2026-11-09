@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.55
+// @version      0.2.56
 // @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -181,7 +181,7 @@ function loteCassinoViavel({ saldo, bola, reserva, custo, primeiroMinimo, quanti
 
 function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0, reserva = bola }) {
   if (!Number.isFinite(saldo) || saldo < 0 ||
-      !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length !== 4 || vendidos.length !== 4 ||
+      !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length < 1 || precos.length > 4 || vendidos.length !== precos.length ||
       vendidos.some((v) => typeof v !== 'boolean') || precos.some((p, i) => !vendidos[i] && (!Number.isFinite(p) || p <= 0))) return 'aguardar';
   const restantes = precos.filter((_, i) => !vendidos[i]);
   if (!restantes.length) return 'concluido';
@@ -739,7 +739,7 @@ function observarModalPickup(modal, carteira) {
   }
   if (!carteira || pickupSessao.tipo !== 'loja' || !modal.classList.contains('shop-modal')) return;
   const cartoes = [...modal.querySelectorAll('.cards > button.card')];
-  if (cartoes.length !== 4) return;
+  if (cartoes.length < 1 || cartoes.length > 4) return;
   const dados = cartoes.map((cartao) => {
     const preco = cartao.querySelector('.price');
     const vendido = preco?.classList.contains('sold');

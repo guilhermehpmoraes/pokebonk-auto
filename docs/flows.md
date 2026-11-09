@@ -57,6 +57,8 @@ Com o Auto Pickup ligado, o botão exibe a sugestão para procurar no mapa ou um
 
 Depois de ler preços e raridades na loja, a estimativa observada permanece disponível por até 60 segundos na mesma zona para a sugestão. No cassino, o script tenta pular cada animação e avalia o próximo giro, com até três tentativas por estado. O retorno após recompensa depende de reconhecer a tela de escolha ou item único e tolera uma breve transição entre telas; a integração precisa de teste em jogo.
 
+O estoque da loja pode ter de um a quatro cartões; o custo é avaliado sobre os itens disponíveis observados. Na renovação, mantém-se a previsão conservadora de quatro itens.
+
 O cassino pode executar o lote exibido de 2 a 10 giros após conferir o total e um limite conservador para o último giro. Se o lote não for viável, volta ao giro individual. No resumo identificado, tenta continuar ou exibir os prêmios; se os elementos forem ambíguos, aguarda.
 
 O painel de mapa é independente dos controles de ativação e pode ser recolhido com um clique. Captura a lista de marcadores do jogo e atualiza a contagem e a reserva quando os dados são reconhecidos. Com o pickup ativo, a tela de substituição de Alfa compara os bônus do novo e dos existentes com o preset ativo; se qualquer informação essencial for ambígua, não escolhe.

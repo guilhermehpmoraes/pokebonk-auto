@@ -463,6 +463,15 @@ test('loja com saldo abreviado conclui lote parcialmente vendido e renova confor
   assert.deepEqual(acoes, ['abrir', 'comprou 1', 'comprou 2', 'comprou 3', 'renovar', 'comprou 0', 'comprou 1']);
 });
 
+test('avalia loja com três itens como na tela relatada', () => {
+  const base = { saldo: 360500, precos: [2406, 2406, 2406], vendidos: [false, false, false], avaliar: true, bola: 3000, reserva: 3000 };
+  assert.equal(decidirLoteLoja(base), 'comprar');
+  assert.equal(decidirLoteLoja({ ...base, bola: 100 }), 'sair');
+  assert.equal(decidirLoteLoja({ ...base, vendidos: [false, false] }), 'aguardar');
+  const acoes = simularLoja({ saldoInicial: 360500, precos: base.precos, raridades: ['Incomum', 'Incomum', 'Incomum'], vendidosIniciais: base.vendidos, iteracoes: 3, bolaHud: 3000 });
+  assert.deepEqual(acoes, ['abrir', 'comprou 0', 'comprou 1', 'comprou 2']);
+});
+
 test('não compra lote inviável mesmo com saldo suficiente', () => {
   const acoes = simularLoja({ saldoInicial: 67000, precos: [130, 115, 316, 187], raridades: ['Incomum', 'Comum', 'Raro', 'Incomum'], vendidosIniciais: [true, false, false, false], iteracoes: 4, bolaHud: 32 });
   assert.deepEqual(acoes, ['abrir', 'sair']);

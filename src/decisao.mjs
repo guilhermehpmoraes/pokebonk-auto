@@ -168,7 +168,7 @@ export function loteCassinoViavel({ saldo, bola, reserva, custo, primeiroMinimo,
 
 export function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0, reserva = bola }) {
   if (!Number.isFinite(saldo) || saldo < 0 ||
-      !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length !== 4 || vendidos.length !== 4 ||
+      !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length < 1 || precos.length > 4 || vendidos.length !== precos.length ||
       vendidos.some((v) => typeof v !== 'boolean') || precos.some((p, i) => !vendidos[i] && (!Number.isFinite(p) || p <= 0))) return 'aguardar';
   const restantes = precos.filter((_, i) => !vendidos[i]);
   if (!restantes.length) return 'concluido';

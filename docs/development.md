@@ -42,6 +42,8 @@ O gerador escreve `pokebonk-autoselect.user.js`. Os testes em `tests/decisao.tes
 
 Os cenários da loja incluem saldo abreviado, lote parcialmente vendido e itens caros com renovação barata.
 
+Um cenário reproduz uma loja com três cartões e verifica a compra do lote quando viável e a recusa quando o custo supera o limite.
+
 Os cenários do cassino incluem saldo abreviado, clique ignorado, botão de pular animação, contador de giros e mudança de preferência após uma loja cara observada.
 
 O teste de lote do cassino cobre reserva, limite conservador por giro e um resumo simulado que leva aos prêmios. Não confirma a integração em partida.
