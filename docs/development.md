@@ -58,6 +58,8 @@ Os testes simulam lotes renovados repetidamente, reserva para Pokébola e retorn
 
 `tests/fenda.test.mjs` simula controle independente iniciado desligado, disponibilidade, bloqueios, intervalo entre pressionamentos e entrada na Fenda, inclusive com o pickup ligado e desligado. Não comprova a integração com a partida real.
 
+O teste também simula a ausência de carteira e instância interna, a tentativa pelo HUD pronto, o intervalo maior, modal aberto e a distinção entre entrada de Fenda e portal. Não comprova o resultado dos eventos no jogo.
+
 O mesmo teste simula chamadas de ondas sucessivas e o pickup desligado; `tests/pickup.test.mjs` cobre o formato e contagens inválidas.
 
 `tests/fossil.test.mjs` simula a abertura das ruínas e a seleção do Domo, inclusive dados ambíguos e botão desabilitado; não comprova a integração em jogo.

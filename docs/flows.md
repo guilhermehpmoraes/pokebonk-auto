@@ -67,6 +67,8 @@ Na tela reconhecida de um único brilhante, o adaptador exige exatamente dois ca
 
 Quando o Auto Fenda está ligado, a Fenda é aberta com C se o HUD e o estado do jogo confirmarem a disponibilidade. O script aguarda situações bloqueadas e tenta novamente; ao passar pela entrada confirmada da Fenda, interage com E. O botão começa desligado e funciona independentemente do Auto Pickup.
 
+Se a instância interna não estiver disponível, o script pode tentar pelo indicador de incenso pronto e pelo aviso específico de entrada, deixando ao jogo a decisão final sobre bloqueios. No cooperativo, a Fenda de equipe aparece no mapa e o combate ocorre ali, sem a entrada solo.
+
 Ao encontrar o aviso reconhecido para chamar uma onda, o pickup tenta antecipá-la com E. Cada texto de onda é acionado uma vez enquanto permanece visível.
 
 Os controles aparecem na parte inferior central, com mapa e avisos acima. A lista continua recolhível e pode rolar quando não couber no espaço disponível.

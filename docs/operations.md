@@ -64,6 +64,8 @@ Com pickup ativo, uma troca de brilhante reconhecida também liberta automaticam
 
 Com Auto Fenda ativo, a abertura consome Incenso automaticamente quando liberada pelo jogo. Sua entrada é acionada ao passar perto. O recurso depende do HUD, da tecla padrão C e de métodos internos, que podem mudar em versões futuras. O botão inicia desligado e não depende do Auto Pickup.
 
+Na falta da instância interna, o script tenta usar o HUD pronto e reconhece apenas o aviso português específico de entrada; o jogo ainda pode bloquear a ação. No cooperativo, a Fenda de equipe é combatida no mapa, sem entrada solo.
+
 O pickup também tenta antecipar ondas ao encontrar o aviso reconhecido, usando E. A interação foi simulada e ainda precisa de confirmação em partida.
 
 Os controles ficam na faixa inferior central, com mapa e avisos logo acima. A disposição precisa de confirmação nas resoluções e modos de jogo usados.

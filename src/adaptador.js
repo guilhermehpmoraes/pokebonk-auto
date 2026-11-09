@@ -206,8 +206,8 @@ function lerMapa(carteira) {
   } catch (_) { return null; }
 }
 function atualizarMapa(carteira) {
-  if (!carteira) { painelMapa.style.display = 'none'; return null; }
   void instalarLeituraMapa();
+  if (!carteira) { painelMapa.style.display = 'none'; return null; }
   const mapa = lerMapa(carteira);
   painelMapa.style.display = 'block';
   let texto = 'Mapa · clique para ' + (mapaRecolhido ? 'expandir' : 'recolher');
@@ -440,11 +440,14 @@ function observarFenda() {
   const instancia = mapaInstancia;
   const run = instancia?.run;
   const botao = document.querySelector?.('#hud .inc');
-  if (!instancia || instancia.disposed || run?.interactables !== instancia || run.state !== 'play' || run.player?.dead ||
-      !botao?.getClientRects().length || !botao.classList.contains('ready') || normalizar(botao.querySelector('kbd')?.textContent) !== 'c') return;
+  if (!botao?.getClientRects().length || !botao.classList.contains('ready') || normalizar(botao.querySelector('kbd')?.textContent) !== 'c') return;
   try {
-    const fendas = run.teamRifts?.enabled ? run.teamRifts : run.rifts;
-    if (typeof fendas?.useBlock !== 'function' || fendas.useBlock() !== null || Date.now() - ultimaTentativaFenda < 2000) return;
+    if (instancia) {
+      if (instancia.disposed || run?.interactables !== instancia || run.state !== 'play' || run.player?.dead) return;
+      const fendas = run.teamRifts?.enabled ? run.teamRifts : run.rifts;
+      if (typeof fendas?.useBlock !== 'function' || fendas.useBlock() !== null) return;
+    }
+    if (Date.now() - ultimaTentativaFenda < (instancia ? 2000 : 5000)) return;
     ultimaTentativaFenda = Date.now();
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', code: 'KeyC', bubbles: true }));
     setTimeout(() => window.dispatchEvent(new KeyboardEvent('keyup', { key: 'c', code: 'KeyC', bubbles: true })), 100);
@@ -453,6 +456,9 @@ function observarFenda() {
 function entradaDeFenda(texto) {
   try {
     const instancia = mapaInstancia, run = instancia?.run, fendas = run?.rifts;
+    // O aviso de entrada só aparece na interação de Fenda solo; o próprio jogo
+    // verifica impedimentos ao receber E, mesmo se a captura do mapa falhar.
+    if (!instancia) return /^entrar na fenda de [a-z ]+ \((?:comum|incomum|rara|epica|lendaria)\) · (?:\d+ ondas|\d+ s de ondas) e seu alfa$/.test(texto);
     if (!instancia || instancia.disposed || run?.interactables !== instancia || run.state !== 'play' ||
         typeof fendas?.nearEntrance !== 'function' || !fendas.nearEntrance() ||
         typeof fendas.enterBlock !== 'function' || fendas.enterBlock() !== null ||

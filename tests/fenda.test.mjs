@@ -60,3 +60,24 @@ test('Auto Fenda começa desligado, independe do pickup e respeita os bloqueios'
   aviso = 'Chamar a onda 7/6 já'; tick(); assert.equal(eventos.length, 10);
   controles[2].click(); aviso = 'Chamar a onda 4/6 já'; tick(); assert.equal(eventos.length, 10);
 });
+
+test('Auto Fenda usa HUD e aviso específico se a instância do mapa não estiver disponível', () => {
+  let intervalo, tempo = 10000, aviso = '', pronta = true, modal = false;
+  const controles = [], tarefas = [], eventos = [];
+  const incenso = { getClientRects: () => [1], classList: { contains: () => pronta }, querySelector: () => ({ textContent: 'C' }) };
+  const prompt = { getClientRects: () => [1], get textContent() { return `E${aviso}`; }, querySelector: () => ({ textContent: 'E' }) };
+  const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }), querySelector: (s) => s === '#hud .inc' ? incenso : null, querySelectorAll: (s) => s === '.modal' && modal ? [{ getClientRects: () => [1] }] : s === '#hud .prompt' && aviso ? [prompt] : [] };
+  class MutationObserver { observe() {} }
+  class KeyboardEvent { constructor(tipo, dados) { this.type = tipo; this.code = dados.code; } }
+  const codigo = readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8');
+  vm.runInNewContext(codigo, { document, localStorage: { getItem: () => null }, MutationObserver, KeyboardEvent, window: { dispatchEvent(e) { eventos.push(`${e.type}:${e.code}`); } }, URL, location: { href: 'https://pokebonk.com/', origin: 'https://pokebonk.com' }, performance: { getEntriesByType: () => [] }, setTimeout(fn) { tarefas.push(fn); }, setInterval(fn) { intervalo = fn; }, Date: { now: () => tempo }, Math });
+  const tick = () => { intervalo(); for (let i = 0; i < 3; i++) tarefas.splice(0).forEach((fn) => fn()); };
+  controles[5].click(); tick();
+  assert.deepEqual(eventos, ['keydown:KeyC', 'keyup:KeyC']);
+  tempo += 3000; tick(); assert.equal(eventos.length, 2);
+  tempo += 2500; modal = true; tick(); assert.equal(eventos.length, 2);
+  modal = false; pronta = false; aviso = 'Entrar no portal da próxima zona'; tick(); assert.equal(eventos.length, 2);
+  aviso = 'Entrar na Fenda de Fogo (Rara) · 30 s de ondas e seu Alfa'; tick();
+  assert.deepEqual(eventos.slice(-2), ['keydown:KeyE', 'keyup:KeyE']);
+  tick(); assert.equal(eventos.length, 4);
+});
