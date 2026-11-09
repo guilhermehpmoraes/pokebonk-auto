@@ -26,6 +26,8 @@ Banimento individual usa dois cliques no cartão quando o jogo pede confirmaçã
 
 Os avisos de itens fora da build podem sobreviver ao recarregamento por `sessionStorage`; não há botão de limpeza manual. O script tenta removê-los quando o inventário estável confirma a ausência dos itens. A leitura depende da instância e da compilação reconhecidas; se ela falhar, os avisos permanecem. Ingredientes de fusões e ataques unidos são considerados presentes. A sincronização ainda precisa de confirmação em jogo.
 
+Os avisos ficam ocultos quando a carteira do HUD não está visível, por exemplo na sala cooperativa. Ocultar não os apaga; eles podem reaparecer até que o inventário da partida seja reconhecido.
+
 Bill e Hypno exigem Auto Select e Auto Pickup ligados, além da compilação `mw88813m` e dos dados internos reconhecidos. O script pode esquecer um golpe do plano para destravar os espaços quando o modelo identifica uma sequência possível; o golpe esquecido volta ao nível inicial se for aprendido de novo. As ações têm testes simulados, não confirmação em jogo. A atualização do jogo pode desativá-las até que a compatibilidade seja revista.
 
 Quando não houver banimento elegível e atualização e pulo estiverem esgotados, um golpe do plano pode ser escolhido temporariamente e precisar ser esquecido no Hypno para liberar espaço. O jogador precisa ir até o Hypno; a simulação de sequência não garante que o jogo oferecerá novamente o golpe ou seus parceiros.

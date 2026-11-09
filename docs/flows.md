@@ -23,6 +23,8 @@ Ao interpretar a tela de nível, melhorias identificadas como fusões equipadas 
 
 Na ausência de opção do plano, a decisão prioriza melhorias já adquiridas; sem elas, tenta banir, atualizar e pular. Se os três contadores forem reconhecidos como esgotados, escolhe uma opção aleatória. Quando um cartão escolhido fora do plano deixa a tela, o adaptador mostra um aviso; o desaparecimento do cartão não garante que o jogo aceitou a escolha. Ao reconhecer um inventário estável, reconcilia cada categoria e remove os avisos dos itens que não estão mais presentes.
 
+O aviso fica oculto fora da partida, inclusive na sala cooperativa. Ao voltar para uma partida, só é removido quando a leitura estável confirma que o item não está no inventário.
+
 Com estado e receitas reconhecidos, novas ofertas de golpes são filtradas pelo planejador antes de escolher; são favorecidos parceiros já equipados e receitas específicas. Se nenhuma oferta nova planejada for segura, escolhe outra opção planejada ou uma melhoria existente; sem elas, tenta banir um alvo fora do plano, atualizar e depois pular. Quando os recursos acabam e o pickup está ligado, pode escolher temporariamente um golpe planejado apenas se a simulação demonstrar que esquecê-lo no Hypno destrava uma sequência. Se os dados ou recursos necessários forem desconhecidos, aguarda. Sem dados compatíveis de um plano com fusões identificado na instância da partida, a escolha de nível aguarda.
 
 Com o pickup ligado, um ataque fora do plano e espaço livre, a escolha pode considerar uma sequência que dependa de removê-lo depois no Hypno. Uma oferta que não dependa dessa remoção tem preferência quando ambas estiverem disponíveis. O aviso ao jogador continua necessário, pois o script não se desloca até o Hypno.

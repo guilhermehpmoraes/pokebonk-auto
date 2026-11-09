@@ -40,6 +40,8 @@ O painel lê a ordem anterior em `localStorage` sob `pokebonk-auto-select-status
 
 Os avisos de itens fora do plano usam `sessionStorage` com a chave `pokebonk-auto-select-fora-da-build`, como lista de objetos com `nome` e `tipo`. Se esse armazenamento estiver indisponível, ficam apenas em memória.
 
+O painel só é exibido enquanto a carteira `#hud .wallet` estiver visível. Ao sair da partida, ocultá-lo não apaga os avisos; eles voltam a ser reconciliados quando o inventário for reconhecido.
+
 Para remover avisos, o adaptador exige instância ativa, compilação `mw88813m`, estado de partida reconhecido e inventário estável por pelo menos 500 ms. Confere nomes de `player.moves`, ataques unidos e ingredientes de fusões pelo catálogo `Qi`; vitaminas são comparadas a `player.vitamins` e ao catálogo `ao` do módulo `defineProperty`. Se uma categoria ou seu catálogo não for reconhecido, conserva os avisos dessa categoria. Não altera o inventário nem depende de botão manual. A reconciliação tem testes simulados e ainda precisa de confirmação em jogo.
 
 Ao ler as ordens, variações reconhecidas de nomes são unificadas pelo identificador do catálogo; quando aparecem duplicadas, permanece a primeira posição de cada preset.

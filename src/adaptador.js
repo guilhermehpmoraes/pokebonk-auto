@@ -599,6 +599,11 @@ function observarPickup() {
     pickupLiberado = true;
   }, 100);
 }
+function atualizarVisibilidadeAvisos() {
+  if (!painelAvisos) return;
+  const hud = document.querySelector('#hud .wallet');
+  painelAvisos.style.display = avisosForaPlano.length && hud?.getClientRects().length ? 'block' : 'none';
+}
 function atualizarAvisos() {
   try { sessionStorage.setItem(chaveAvisos, JSON.stringify(avisosForaPlano)); } catch (_) { /* mantém os avisos em memória */ }
   if (!avisosForaPlano.length && !painelAvisos) return;
@@ -611,7 +616,7 @@ function atualizarAvisos() {
     document.body.appendChild(painelAvisos);
   }
   painelAvisos.replaceChildren();
-  painelAvisos.style.display = avisosForaPlano.length ? 'block' : 'none';
+  atualizarVisibilidadeAvisos();
   if (!avisosForaPlano.length) return;
   const titulo = document.createElement('strong'); titulo.textContent = '⚠️ Fora da build — confira no Hypno';
   const descricao = document.createElement('div'); descricao.textContent = 'Remova os itens fora do plano no Hypno.'; descricao.style.cssText = 'margin:4px 0 8px;color:#ffe3be';
@@ -979,6 +984,7 @@ async function verificarKitSeguro(nome) {
 }
 function observar() {
   reposicionarInterface();
+  atualizarVisibilidadeAvisos();
   verificarAvisoPendente();
   observarPickup();
   sincronizarAvisosComInventario();

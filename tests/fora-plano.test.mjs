@@ -29,7 +29,7 @@ function iniciar({ memoria = new Map(), aceitarNaTentativa = 1, opcoes = ['Toxic
     click() { acoes.push(nome); tentativas++; if (tentativas >= aceitarNaTentativa) cartas.forEach((carta) => { carta.isConnected = false; }); },
   }));
   const botoes = [`Banir (${recursos}) Z`, `Atualizar (${recursos}) F`, `Pular (${recursos}) X`].map((textContent) => ({ textContent, disabled: recursos === 0, getClientRects: () => [1] }));
-  const document = { body, createElement: () => new Elemento(), querySelectorAll(seletor) {
+  const document = { body, createElement: () => new Elemento(), querySelector(seletor) { return seletor === '#hud .wallet' ? { getClientRects: () => [1], querySelector: () => null, dataset: {} } : null; }, querySelectorAll(seletor) {
     if (seletor === 'button.card.offer') return cartas.filter((carta) => carta.isConnected);
     if (seletor === 'button') return botoes;
     return [];

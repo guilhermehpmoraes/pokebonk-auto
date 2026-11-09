@@ -44,6 +44,8 @@ Quando ativo, o botão do Auto Pickup mostra uma sugestão de destino mantida em
 
 O painel de mapa captura a instância de marcadores envolvendo os métodos de marcadores e de custo da classe interna carregada pelo jogo. Quando o registro do recurso não está disponível, há uma URL alternativa para a build conferida. A extração e a projeção são conservadoras quando a versão ou os dados não são reconhecidos. O adaptador identifica a tela Alfa, e a escolha entre bônus é uma regra pura em `decisao.mjs`.
 
+A visibilidade do aviso de itens fora da build acompanha a carteira do HUD, sem depender da captura da instância; a remoção dos avisos continua dependente da reconciliação do inventário.
+
 O catálogo compartilhado de atributos no adaptador reconhece cura como entrada independente para leitura e ordenação dos bônus.
 
 O adaptador também reconhece a tela de escolha entre dois brilhantes e reutiliza a decisão pura de comparação de suportes.

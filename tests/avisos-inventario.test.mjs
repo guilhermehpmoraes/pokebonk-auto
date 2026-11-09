@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 function preparar(avisos) {
-  let tempo = 1000, compilacao = 'mw88813m';
+  let tempo = 1000, compilacao = 'mw88813m', hudVisivel = true;
   const memoria = new Map([['pokebonk-auto-select-fora-da-build', JSON.stringify(avisos)]]);
   class Elemento {
     constructor() { this.style = {}; this.children = []; }
@@ -12,22 +12,37 @@ function preparar(avisos) {
     appendChild(item) { this.children.push(item); } replaceChildren(...itens) { this.children = itens; }
   }
   const body = new Elemento();
-  const document = { body, createElement: () => new Elemento(), querySelector(s) { return s === 'meta[name="pokebonk-build"]' ? { content: compilacao } : null; }, querySelectorAll() { return []; } };
+  const document = { body, createElement: () => new Elemento(), querySelector(s) { return s === 'meta[name="pokebonk-build"]' ? { content: compilacao } : s === '#hud .wallet' && hudVisivel ? { getClientRects: () => [1] } : null; }, querySelectorAll() { return []; } };
   class MutationObserver { observe() {} }
   const sessionStorage = { getItem: (k) => memoria.get(k) ?? null, setItem: (k, v) => memoria.set(k, v) };
   const catalogo = new Map([['vit-a', { name: 'Vitamina A' }], ['vit-b', { name: 'Vitamina B' }]]);
-  const codigo = readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8').replaceAll('await import(urls[0])', 'await Promise.resolve(moduloTeste)').replace('new MutationObserver(agendar).observe', 'globalThis.testeAvisos = { definir(i, m, v) { mapaInstancia = i; moduloDadosJogo = m; catalogoVitaminas = v; }, sincronizarAvisosComInventario, carregarCatalogoVitaminas };\nnew MutationObserver(agendar).observe');
+  const codigo = readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8').replaceAll('await import(urls[0])', 'await Promise.resolve(moduloTeste)').replace('new MutationObserver(agendar).observe', 'globalThis.testeAvisos = { definir(i, m, v) { mapaInstancia = i; moduloDadosJogo = m; catalogoVitaminas = v; }, sincronizarAvisosComInventario, carregarCatalogoVitaminas, atualizarVisibilidadeAvisos };\nnew MutationObserver(agendar).observe');
   const ctx = { document, sessionStorage, localStorage: { getItem: () => null }, MutationObserver, window: {}, URL, location: { href: 'https://pokebonk.com/', origin: 'https://pokebonk.com' }, performance: { getEntriesByType: () => [{ name: 'https://pokebonk.com/assets/defineProperty-teste.js' }] }, moduloTeste: { ao: catalogo }, setTimeout() {}, setInterval() {}, Date: { now: () => tempo }, Math };
   vm.runInNewContext(codigo, ctx);
   const player = { moveSlots: 4, roster: { id: 1 }, moves: [], vitamins: new Map() };
   const run = { state: 'play', player }, instancia = { run }; run.interactables = instancia;
   const defs = { 8: { name: 'Swift' }, 9: { name: 'Outro' } };
   ctx.testeAvisos.definir(instancia, { Qi: (id) => defs[id] }, catalogo);
-  return { player, run, instancia, catalogo, api: ctx.testeAvisos, body, memoria, setCompilacao(valor) { compilacao = valor; }, passar(ms = 600) { tempo += ms; }, avisos() { return JSON.parse(memoria.get('pokebonk-auto-select-fora-da-build')); } };
+  return { player, run, instancia, catalogo, api: ctx.testeAvisos, body, memoria, setHud(valor) { hudVisivel = valor; }, setCompilacao(valor) { compilacao = valor; }, passar(ms = 600) { tempo += ms; }, avisos() { return JSON.parse(memoria.get('pokebonk-auto-select-fora-da-build')); } };
 }
 
 const movimento = (nome) => ({ def: { name: nome }, parents: [], link: null });
 const aviso = (nome, tipo = 'golpe') => ({ nome, tipo });
+
+test('oculta avisos fora da partida e os recupera sem apagar dados ao voltar', () => {
+  const t = preparar([aviso('Swift')]);
+  const painel = t.body.children.find((el) => el.children?.[2]?.children?.[0]?.textContent === 'Swift (golpe)');
+  assert.equal(painel.style.display, 'block');
+  t.setHud(false); t.api.atualizarVisibilidadeAvisos();
+  assert.equal(painel.style.display, 'none');
+  assert.deepEqual(t.avisos(), [aviso('Swift')]);
+  t.setHud(true); t.api.atualizarVisibilidadeAvisos();
+  assert.equal(painel.style.display, 'block');
+  t.player.moves = [null, null, null, null];
+  t.api.sincronizarAvisosComInventario(); t.passar(); t.api.sincronizarAvisosComInventario();
+  assert.deepEqual(t.avisos(), []);
+  assert.equal(painel.style.display, 'none');
+});
 
 test('aviso some individualmente após confirmar remoção, sem botão manual', () => {
   const t = preparar([aviso('Swift'), aviso('Scary Face'), aviso('Burning Jealousy')]);
