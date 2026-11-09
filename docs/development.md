@@ -50,7 +50,7 @@ Os testes simulam lotes renovados repetidamente, reserva para Pokébola e retorn
 
 `tests/mapa.test.mjs` simula captura da instância, contagem e atualização; `tests/alfa.test.mjs` cobre prioridade, empate, cura e dados desconhecidos. `pickup.test.mjs` cobre prêmio de item único após intervalo, jaula com saldo insuficiente e projeção de custo. A simulação não comprova compatibilidade com o módulo real do jogo.
 
-`tests/fenda.test.mjs` simula disponibilidade, bloqueios, intervalo entre pressionamentos e entrada na Fenda. Não comprova a integração com a partida real.
+`tests/fenda.test.mjs` simula controle independente iniciado desligado, disponibilidade, bloqueios, intervalo entre pressionamentos e entrada na Fenda, inclusive com o pickup ligado e desligado. Não comprova a integração com a partida real.
 
 O mesmo teste simula chamadas de ondas sucessivas e o pickup desligado; `tests/pickup.test.mjs` cobre o formato e contagens inválidas.
 

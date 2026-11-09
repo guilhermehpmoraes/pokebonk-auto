@@ -14,6 +14,8 @@ A versão 0.2.35 mudou o nome do script. O gerenciador pode tratá-la como uma n
 
 O botão Auto Pickup também começa desligado. Quando ligado, mantém uma sugestão de qual opção paga procurar, mas tenta interagir com as outras opções pagas e com alguns objetos gratuitos encontrados no caminho. Os portais do chefe e da próxima zona continuam manuais. Veja [regras e limitações](docs/product.md).
 
+O botão **Auto Fenda** começa desligado e é independente do Auto Pickup. Ligue-o quando quiser que o script tente usar Incenso e entrar nas Fendas reconhecidas; a abertura consome Incenso.
+
 O Auto Pickup também aciona as Ruínas do Fóssil e escolhe o Fóssil de Domo quando reconhecido: ele oferece uma bênção ancestral em troca de 20% do HP máximo pelo resto da partida.
 
 Com Auto Select e Auto Pickup ligados, o script tenta usar a Máquina do Bill e o Hypno conforme o plano, preservando os ingredientes das outras fusões. A integração depende da compilação reconhecida do jogo e ainda precisa de teste em partida; consulte [regras e limitações](docs/product.md).

@@ -11,6 +11,7 @@ Na versão 0.2.35 o `@name` mudou. Como o gerenciador pode considerá-lo um scri
 | `pokebonk-auto-select-status` | Ordem anterior, usada como base ao criar presets |
 | `pokebonk-auto-select-perfis` | Cinco presets e índice ativo em `localStorage` do site no navegador |
 | Estado ativo | Mantido em memória; inicia desligado |
+| Auto Fenda | Mantido em memória, independente do pickup e inicia desligado |
 | Variáveis de ambiente | Nenhuma identificada no código |
 
 ## Observabilidade, riscos e dívidas
@@ -59,7 +60,7 @@ Confira também Dano de status nos presets: quando ausente, é acrescentado depo
 
 Com pickup ativo, uma troca de brilhante reconhecida também liberta automaticamente um dos dois cartões segundo o preset. A comparação foi simulada com os textos de uma imagem; os seletores e o clique precisam de confirmação no jogo.
 
-Com Auto Pickup ativo, a Fenda consome Incenso automaticamente quando liberada pelo jogo. Sua entrada é acionada ao passar perto. O recurso depende do HUD, da tecla padrão C e de métodos internos, que podem mudar em versões futuras.
+Com Auto Fenda ativo, a abertura consome Incenso automaticamente quando liberada pelo jogo. Sua entrada é acionada ao passar perto. O recurso depende do HUD, da tecla padrão C e de métodos internos, que podem mudar em versões futuras. O botão inicia desligado e não depende do Auto Pickup.
 
 O pickup também tenta antecipar ondas ao encontrar o aviso reconhecido, usando E. A interação foi simulada e ainda precisa de confirmação em partida.
 

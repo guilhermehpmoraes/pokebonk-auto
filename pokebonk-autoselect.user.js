@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.44
+// @version      0.2.45
 // @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -437,6 +437,8 @@ let repetirEncontro = false;
 let interacaoLivre = null;
 let tentativaRhydon = null;
 let ultimaTentativaFenda = 0;
+let fendaAtiva = false;
+let ultimoAvisoEntradaFenda = '';
 let visitaHypnoAutomatica = false;
 const botaoPickup = document.createElement('button');
 botaoPickup.type = 'button';
@@ -446,12 +448,23 @@ document.body.appendChild(botaoPickup);
 const trocarAlvo = document.createElement('button');
 trocarAlvo.type = 'button';
 trocarAlvo.textContent = 'Trocar sugestão';
-Object.assign(trocarAlvo.style, { position: 'fixed', top: 'calc(40vh + 102px)', left: '8px', zIndex: '2147483647', height: '30px', boxSizing: 'border-box', padding: '4px 8px', background: '#39435f', color: 'white', border: '1px solid #888', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', display: 'none' });
+Object.assign(trocarAlvo.style, { position: 'fixed', top: 'calc(40vh + 136px)', left: '8px', zIndex: '2147483647', height: '30px', boxSizing: 'border-box', padding: '4px 8px', background: '#39435f', color: 'white', border: '1px solid #888', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', display: 'none' });
 document.body.appendChild(trocarAlvo);
 const painelMapa = document.createElement('div');
-Object.assign(painelMapa.style, { position: 'fixed', top: 'calc(40vh + 136px)', left: '8px', zIndex: '2147483646', padding: '8px', maxWidth: 'min(240px, calc(100vw - 16px))', maxHeight: 'max(48px, calc(60vh - 268px))', overflow: 'auto', whiteSpace: 'pre-line', background: 'rgba(25, 28, 46, .9)', color: 'white', border: '1px solid #888', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', display: 'none' });
+Object.assign(painelMapa.style, { position: 'fixed', top: 'calc(40vh + 170px)', left: '8px', zIndex: '2147483646', padding: '8px', maxWidth: 'min(240px, calc(100vw - 16px))', maxHeight: 'max(48px, calc(60vh - 302px))', overflow: 'auto', whiteSpace: 'pre-line', background: 'rgba(25, 28, 46, .9)', color: 'white', border: '1px solid #888', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', display: 'none' });
 painelMapa.title = 'Clique para recolher ou expandir';
 document.body.appendChild(painelMapa);
+const botaoFenda = document.createElement('button');
+botaoFenda.type = 'button';
+botaoFenda.textContent = 'Auto Fenda: desligado';
+Object.assign(botaoFenda.style, { position: 'fixed', top: 'calc(40vh + 102px)', left: '8px', zIndex: '2147483647', height: '30px', boxSizing: 'border-box', padding: '4px 8px', background: '#242639', color: 'white', border: '2px solid #888', borderRadius: '8px', cursor: 'pointer', fontSize: '12px' });
+document.body.appendChild(botaoFenda);
+botaoFenda.addEventListener('click', () => {
+  fendaAtiva = !fendaAtiva;
+  ultimoAvisoEntradaFenda = '';
+  botaoFenda.textContent = fendaAtiva ? 'Auto Fenda: ligado' : 'Auto Fenda: desligado';
+  agendar();
+});
 let ultimaPosicaoInterface = '';
 function reposicionarInterface() {
   const altura = typeof window === 'undefined' ? null : window.innerHeight;
@@ -459,15 +472,16 @@ function reposicionarInterface() {
   const equipe = document.querySelector?.('#hud .hud-party');
   const limiteEquipe = equipe?.getClientRects?.().length ? equipe.getBoundingClientRect?.().bottom : 0;
   const inicio = Math.round(Math.max(altura * 0.4, Number.isFinite(limiteEquipe) ? limiteEquipe + 8 : 0));
-  const alturaMapa = Math.max(48, Math.round(altura - inicio - 268));
+  const alturaMapa = Math.max(48, Math.round(altura - inicio - 302));
   const assinatura = `${inicio}:${alturaMapa}`;
   if (assinatura === ultimaPosicaoInterface) return;
   ultimaPosicaoInterface = assinatura;
   painel.style.top = `${inicio}px`;
   configuracao.style.top = `${inicio + 34}px`;
   botaoPickup.style.top = `${inicio + 68}px`;
-  trocarAlvo.style.top = `${inicio + 102}px`;
-  painelMapa.style.top = `${inicio + 136}px`;
+  botaoFenda.style.top = `${inicio + 102}px`;
+  trocarAlvo.style.top = `${inicio + 136}px`;
+  painelMapa.style.top = `${inicio + 170}px`;
   painelMapa.style.maxHeight = `${alturaMapa}px`;
 }
 let mapaRecolhido = false, mapaInstancia = null, mapaHookInstalado = false, mapaCarregando = false, mapaUltimaBusca = 0;
@@ -743,7 +757,8 @@ function modalRecompensaCassino(modal) {
     botoes.some((el) => normalizar(el.textContent).startsWith('vender'));
 }
 function observarFenda() {
-  if (!pickupAtivo || modalAberto || pickupSessao || interacaoLivre || !pickupLiberado) return;
+  if (!fendaAtiva || modalAberto || pickupSessao || interacaoLivre || !pickupLiberado) return;
+  if ([...document.querySelectorAll('.modal')].some((el) => el.getClientRects().length)) return;
   if (document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')) return;
   const instancia = mapaInstancia;
   const run = instancia?.run;
@@ -768,6 +783,24 @@ function entradaDeFenda(texto) {
     const aviso = normalizar(fendas.entranceLabel()).replace(/^\[e\]\s*/, '');
     return !!aviso && aviso === texto;
   } catch (_) { return false; }
+}
+function observarEntradaFenda() {
+  if (!fendaAtiva || modalAberto || pickupSessao || !pickupLiberado) return;
+  if ([...document.querySelectorAll('.modal')].some((el) => el.getClientRects().length) ||
+      document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')) return;
+  if (interacaoLivre && (interacaoLivre.viuModal || Date.now() - interacaoLivre.inicio > 3000)) interacaoLivre = null;
+  if (interacaoLivre) return;
+  const prompts = [...document.querySelectorAll('#hud .prompt')].filter((el) => el.getClientRects().length);
+  if (prompts.length !== 1) { ultimoAvisoEntradaFenda = ''; return; }
+  const prompt = prompts[0], tecla = prompt.querySelector('kbd')?.textContent?.trim();
+  const texto = normalizar(prompt.textContent.slice(tecla?.length || 0));
+  if (tecla !== 'E' || !entradaDeFenda(texto)) { ultimoAvisoEntradaFenda = ''; return; }
+  if (ultimoAvisoEntradaFenda === texto) return;
+  ultimoAvisoEntradaFenda = texto;
+  interacaoLivre = { inicio: Date.now(), viuModal: false };
+  pickupLiberado = false;
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', code: 'KeyE', bubbles: true }));
+  setTimeout(() => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'e', code: 'KeyE', bubbles: true })); pickupLiberado = true; }, 100);
 }
 function observarPickup() {
   const carteira = carteiraPickup();
@@ -797,7 +830,6 @@ function observarPickup() {
     } else atualizarIndicadorPickup(texto);
     return;
   }
-  observarFenda();
   if (interacaoLivre && (interacaoLivre.viuModal || Date.now() - interacaoLivre.inicio > 3000)) interacaoLivre = null;
   if (pickupSessao) {
     if (pickupSessao.tipo === 'cassino' && pickupSessao.viuModal && pickupSessao.giroInicialAssinatura && !pickupSessao.saiuPorEstrategia && !pickupSessao.recompensa) {
@@ -857,7 +889,7 @@ function observarPickup() {
     else atualizarIndicadorPickup('Aguardando partida ficar ativa');
   }
   if (decisaoLivre.custoJaula !== undefined && (!carteira || !Number.isSafeInteger(decisaoLivre.custoJaula) || carteira.saldo < decisaoLivre.custoJaula)) return;
-  if (decisaoLivre.acao !== 'interagir' && !tipo && !interacaoBuild && !entradaDeFenda(texto) || tecla !== 'E') { ultimoPickup = ''; tentativaRhydon = null; return; }
+  if (decisaoLivre.acao !== 'interagir' && !tipo && !interacaoBuild || tecla !== 'E') { ultimoPickup = ''; tentativaRhydon = null; return; }
   const estagioRhydon = decisaoLivre.estagioRhydon;
   if (estagioRhydon === undefined) tentativaRhydon = null;
   else if (!tentativaRhydon || tentativaRhydon.estagio !== estagioRhydon) tentativaRhydon = { estagio: estagioRhydon, tentativas: 0, ultima: 0 };
@@ -1196,6 +1228,8 @@ function observar() {
   reposicionarInterface();
   verificarAvisoPendente();
   observarPickup();
+  observarFenda();
+  observarEntradaFenda();
   if (observarBuildEspecial()) return;
   if (pickupAtivo && !modalAberto && observarAlfa()) return;
   if (pickupAtivo && !modalAberto && observarFossil()) return;

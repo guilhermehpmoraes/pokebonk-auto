@@ -60,6 +60,6 @@ Dano de status também possui prioridade própria, separada de chance de status.
 
 Com Auto Pickup ligado, a tela que permite apenas um companheiro brilhante compara os bônus do atual e do novo usando o mesmo preset. Liberta o atual apenas se o bônus do novo tiver prioridade maior; em empate mantém o atual e, com dados desconhecidos, aguarda. A comparação considera o tipo de bônus, não seu valor numérico.
 
-Com o Auto Pickup ligado, o script tenta usar Incenso para abrir uma Fenda sempre que o jogo indicar que é permitido; também tenta entrar na Fenda reconhecida ao passar perto dela. A abertura consome Incenso. A movimentação até a entrada continua manual.
+O Auto Fenda possui botão independente e começa desligado. Quando ligado, o script tenta usar Incenso para abrir uma Fenda sempre que o jogo indicar que é permitido; também tenta entrar na Fenda reconhecida ao passar perto dela. A abertura consome Incenso. A movimentação até a entrada continua manual. As chamadas de onda continuam sob controle do Auto Pickup.
 
 O aviso **Chamar a onda 2/6 já**, e outros com números válidos no mesmo formato, é acionado ao passar com o Auto Pickup ligado. Isso antecipa a próxima onda; o funcionamento real ainda precisa ser confirmado na partida.

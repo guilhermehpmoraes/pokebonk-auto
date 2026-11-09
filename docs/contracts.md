@@ -66,7 +66,7 @@ O painel procura um único módulo `menus` da mesma origem já carregado e uma �
 
 A tela de troca de brilhante exige título e aviso reconhecidos, exatamente dois cartões com selos e ações de existente e novo, e bônus presentes no preset. O adaptador usa os mesmos seletores presumidos da tela de Alfa e encaminha os dados para `decidirAlfa`; o HTML da tela de brilhante ainda não foi confirmado.
 
-A abertura da Fenda depende da instância ativa obtida pela leitura de marcadores, de `#hud .inc.ready`, da tecla exibida C, do estado `play` e do método `useBlock()` do jogo retornar `null`. No cooperativo consulta o bloqueio da Fenda de equipe. Pressionamentos têm intervalo mínimo de dois segundos. Para entrar, compara o aviso visível com `entranceLabel()` e verifica `nearEntrance()` e `enterBlock()`; dados ausentes ou ambíguos não acionam teclas.
+A abertura e a entrada automáticas exigem o Auto Fenda ligado, independentemente do estado do Auto Pickup. A abertura depende da instância ativa obtida pela leitura de marcadores, de `#hud .inc.ready`, da tecla exibida C, do estado `play` e do método `useBlock()` do jogo retornar `null`. No cooperativo consulta o bloqueio da Fenda de equipe. Pressionamentos têm intervalo mínimo de dois segundos. Para entrar, compara o aviso visível com `entranceLabel()` e verifica `nearEntrance()` e `enterBlock()`; dados ausentes ou ambíguos não acionam teclas.
 
 O aviso de onda segue o formato exato `Chamar a onda N/T já`, com inteiros positivos seguros e N menor ou igual a T. É tratado como interação gratuita pelo pickup, sem comprovar que o aviso pertence à Fenda.
 
