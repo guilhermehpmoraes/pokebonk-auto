@@ -56,6 +56,8 @@ O lote do cassino compromete o preço inteiro antes dos resultados e não reaval
 
 O painel de mapa pode ser recolhido clicando nele; mostra dados mesmo com o Auto Pickup desligado. Ele depende de uma classe interna e pode deixar de funcionar após uma atualização do jogo. A seleção de Alfa libera automaticamente um dos cartões elegíveis se o pickup estiver ligado; ao não reconhecer o bônus ou a tela, aguarda.
 
+Na build `mw88813m`, o script pode descobrir o módulo por uma URL conhecida quando o navegador não mantém seu registro de recurso. A captura também observa o cálculo de preço; essa alternativa requer confirmação em partida.
+
 Confira a posição de Cura em cada preset: em perfis sem a entrada, ela é adicionada após os atributos já salvos. A tela de Alfa com cura tem simulação baseada na imagem fornecida, mas o DOM e o clique em partida ainda precisam ser confirmados.
 
 Confira também Dano de status nos presets: quando ausente, é acrescentado depois das prioridades salvas. A seleção da equipe mostrada com Arcanine foi simulada; ainda precisa ser confirmada em jogo.

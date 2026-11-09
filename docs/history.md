@@ -110,6 +110,8 @@ Após o usuário pedir controle para esperar a build ficar forte, a abertura e a
 
 Após relato de falha no Auto Fenda, a busca da instância deixou de depender da carteira e foi acrescentada uma alternativa pelo HUD e pelo aviso específico de entrada. Há teste simulado; a correção ainda precisa de confirmação em partida.
 
+Após relatos de mapa aguardando dados e falha no Hypno, foi ampliada a descoberta do módulo e da instância compartilhada. Os casos novos são simulados; a causa específica no navegador do usuário e a correção em partida não foram confirmadas.
+
 Após relato de sobreposição do minimapa e do inventário, os controles e a lista foram deslocados para o lado esquerdo e o aviso de itens para uma posição superior. A disposição ainda precisa de confirmação visual em jogo.
 
 Na versão 0.2.36, o aviso de chamada de onda fornecido pelo usuário passou a ser reconhecido pelo Auto Pickup. A numeração variável e o envio de E têm testes simulados; falta validação em partida.

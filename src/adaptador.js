@@ -172,17 +172,27 @@ async function instalarLeituraMapa() {
     const urls = [...new Set(performance.getEntriesByType('resource').map((r) => r.name).filter((endereco) => {
       try { const url = new URL(endereco, location.href); return url.origin === location.origin && /^\/assets\/menus-[A-Za-z0-9_-]+\.js$/.test(url.pathname); } catch (_) { return false; }
     }))];
+    // A entrada de performance pode ter sido descartada quando o navegador
+    // atingiu o limite do buffer. Esta URL foi conferida na build indicada.
+    if (!urls.length && document.querySelector('meta[name="pokebonk-build"]')?.content === 'mw88813m') {
+      urls.push(new URL('/assets/menus-DqU5mYee-mw88813m.js', location.href).href);
+    }
     if (urls.length !== 1) return;
     const modulo = await import(urls[0]);
     moduloDadosJogo = modulo;
     const classes = [...new Set(Object.values(modulo).filter((classe) => typeof classe === 'function' && typeof classe.prototype?.markers === 'function' && typeof classe.prototype?.chestCost === 'function' && typeof classe.prototype?.add === 'function'))];
     if (classes.length !== 1) return;
-    const prototipo = classes[0].prototype, original = prototipo.markers;
-    prototipo.markers = function (...args) {
-      const resultado = original.apply(this, args);
-      if (this.run?.interactables === this && Array.isArray(this.list) && Array.isArray(resultado)) mapaInstancia = this;
-      return resultado;
-    };
+    const prototipo = classes[0].prototype;
+    // O HUD consulta o preço mesmo quando o minimapa não pede marcadores.
+    for (const metodo of ['markers', 'chestCost']) {
+      const original = prototipo[metodo];
+      prototipo[metodo] = function (...args) {
+        const resultado = original.apply(this, args);
+        if (!this.disposed && this.run?.interactables === this && Array.isArray(this.list) &&
+            (metodo !== 'markers' || Array.isArray(resultado))) mapaInstancia = this;
+        return resultado;
+      };
+    }
     mapaHookInstalado = true;
   } catch (_) { /* Jogo incompatível: mantém a leitura indisponível. */ }
   finally { mapaCarregando = false; }

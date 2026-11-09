@@ -25,3 +25,23 @@ test('painel lê objetos ainda não descobertos e atualiza a reserva ao coletar'
   objetos.disposed = true; intervalo(); executar();
   assert.match(controles[4].textContent, /Aguardando dados/);
 });
+
+test('recupera módulo da build conhecida sem performance e captura pelo preço do HUD', async () => {
+  let intervalo, compilacao = 'mw88813m'; const controles = [], tarefas = [];
+  class Objetos {
+    constructor() { this.list = [{ kind: 'hypno', used: false }]; this.run = { interactables: this }; }
+    markers() { return this.list; } chestCost() { return 18; } add() {}
+  }
+  const chip = (n) => ({ getClientRects: () => [1], querySelector: () => ({ textContent: String(n) }) });
+  const carteira = { getClientRects: () => [1], dataset: { g: '1000', k: '1000|18|40|40' }, querySelector: (s) => chip(s === '.wl-ball' ? 18 : 40) };
+  const document = { body: { appendChild: (e) => controles.push(e) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }), querySelector(s) { return s === '#hud .wallet' ? carteira : s === '#hud .ht-zone' ? { textContent: 'Zona 1/3' } : s === 'meta[name="pokebonk-build"]' ? { content: compilacao } : null; }, querySelectorAll: () => [] };
+  class MutationObserver { observe() {} }
+  const codigo = readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8').replace('await import(urls[0])', 'await Promise.resolve(moduloTeste)');
+  vm.runInNewContext(codigo, { document, localStorage: { getItem: () => null }, MutationObserver, window: {}, URL, location: { href: 'https://pokebonk.com/', origin: 'https://pokebonk.com' }, performance: { getEntriesByType: () => [] }, moduloTeste: { Objetos }, setTimeout(fn) { tarefas.push(fn); }, setInterval(fn) { intervalo = fn; }, Date: { now: () => 10000 }, Math });
+  const tick = () => { intervalo(); for (let i = 0; i < 3; i++) tarefas.splice(0).forEach((fn) => fn()); };
+  tick(); await Promise.resolve(); await Promise.resolve();
+  const objetos = new Objetos(); objetos.chestCost(); tick();
+  assert.match(controles[4].textContent, /Hypno: 1/);
+  objetos.disposed = true; objetos.chestCost(); tick();
+  assert.match(controles[4].textContent, /Aguardando dados/);
+});

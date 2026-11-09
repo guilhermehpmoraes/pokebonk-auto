@@ -59,6 +59,8 @@ O cassino pode executar o lote exibido de 2 a 10 giros após conferir o total e 
 
 O painel de mapa é independente dos controles de ativação e pode ser recolhido com um clique. Captura a lista de marcadores do jogo e atualiza a contagem e a reserva quando os dados são reconhecidos. Com o pickup ativo, a tela de substituição de Alfa compara os bônus do novo e dos existentes com o preset ativo; se qualquer informação essencial for ambígua, não escolhe.
 
+A captura pode ocorrer na consulta de marcadores ou na de preço da Pokébola. Sem registro do módulo no navegador, tenta uma URL previamente identificada apenas na build correspondente; Hypno e outras funções que usam a mesma instância ainda aguardam se a captura falhar.
+
 A comparação reconhece também o bônus de cura mostrado nos cartões; sua posição é configurável no preset e não é confundida com regeneração.
 
 A comparação reconhece dano de status como prioridade própria, separada de chance de status. Sua posição pode ser ajustada no preset.

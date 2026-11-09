@@ -42,7 +42,7 @@ Para lotes do cassino, a decisão pura verifica custo total e um teto por giro; 
 
 Quando ativo, o botão do Auto Pickup mostra uma sugestão de destino mantida em memória até ser concluída ou trocada pelo usuário. A sugestão não limita as interações pagas no caminho. Nos modais próprios, indica que está avaliando itens ou giro.
 
-O painel de mapa captura a instância de marcadores envolvendo o método da classe interna carregada pelo jogo; a extração e a projeção são conservadoras quando a versão ou os dados não são reconhecidos. O adaptador identifica a tela Alfa, e a escolha entre bônus é uma regra pura em `decisao.mjs`.
+O painel de mapa captura a instância de marcadores envolvendo os métodos de marcadores e de custo da classe interna carregada pelo jogo. Quando o registro do recurso não está disponível, há uma URL alternativa para a build conferida. A extração e a projeção são conservadoras quando a versão ou os dados não são reconhecidos. O adaptador identifica a tela Alfa, e a escolha entre bônus é uma regra pura em `decisao.mjs`.
 
 O catálogo compartilhado de atributos no adaptador reconhece cura como entrada independente para leitura e ordenação dos bônus.
 

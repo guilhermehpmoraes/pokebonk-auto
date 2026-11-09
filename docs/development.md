@@ -56,6 +56,8 @@ Os testes simulam lotes renovados repetidamente, reserva para Pokébola e retorn
 
 `tests/mapa.test.mjs` simula captura da instância, contagem e atualização; `tests/alfa.test.mjs` cobre prioridade, empate, cura e dados desconhecidos. `pickup.test.mjs` cobre prêmio de item único após intervalo, jaula com saldo insuficiente e projeção de custo. A simulação não comprova compatibilidade com o módulo real do jogo.
 
+O teste de mapa também simula a ausência do registro do módulo para a build conhecida, captura pela consulta de preço e descarte de instância encerrada. A captura no navegador real continua sem confirmação.
+
 `tests/fenda.test.mjs` simula controle independente iniciado desligado, disponibilidade, bloqueios, intervalo entre pressionamentos e entrada na Fenda, inclusive com o pickup ligado e desligado. Não comprova a integração com a partida real.
 
 O teste também simula a ausência de carteira e instância interna, a tentativa pelo HUD pronto, o intervalo maior, modal aberto e a distinção entre entrada de Fenda e portal. Não comprova o resultado dos eventos no jogo.
