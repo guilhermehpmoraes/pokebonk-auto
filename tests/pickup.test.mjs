@@ -2,7 +2,37 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { decidirPickup, decidirGasto, decidirLoteLoja, gastoViavel, estimarReservaBolas } from '../src/decisao.mjs';
+import { decidirPickup, decidirGasto, decidirLoteLoja, gastoViavel, estimarReservaBolas, loteCassinoViavel } from '../src/decisao.mjs';
+
+test('lote do cassino respeita reserva e limite de custo de cada giro', () => {
+  const caso = { saldo: 20000, bola: 2000, reserva: 2000, custo: 919, primeiroMinimo: 63, quantidade: 10 };
+  assert.equal(loteCassinoViavel(caso), true);
+  assert.equal(loteCassinoViavel({ ...caso, saldo: 2500 }), false);
+  assert.equal(loteCassinoViavel({ ...caso, bola: 1000 }), false);
+  assert.equal(loteCassinoViavel({ ...caso, custo: 629 }), false);
+  assert.equal(loteCassinoViavel({ ...caso, quantidade: 11 }), false);
+});
+
+test('pickup usa lote viável e confirma o resumo do cassino', () => {
+  let tempo = 1000, tela = 'mapa', tarefa, intervalo, giros = 0;
+  const controles = [], acoes = [], visivel = () => [1];
+  const chip = (valor) => ({ getClientRects: visivel, querySelector: () => ({ textContent: String(valor) }) });
+  const wallet = { getClientRects: visivel, dataset: { g: '20000', k: '20000|2000|63|100' }, querySelector(s) { return s === '.wl-ball' ? chip(2000) : s === '.wl-slots' ? chip(63) : null; } };
+  const prompt = { getClientRects: visivel, textContent: 'ECaça-níqueis · 63 ₽ por giro', querySelector: () => ({ textContent: 'E' }) };
+  const cabine = { classList: { contains: () => false }, querySelector: () => ({ textContent: String(giros) }) };
+  const girar = { disabled: false, textContent: 'Girar · 63 ₽E', click() { acoes.push('individual'); } };
+  const lote = { disabled: false, classList: { contains: (c) => c === 'sl-x10' }, textContent: '×10 · 919 ₽X', click() { acoes.push('lote'); giros += 10; tela = 'resumo'; } };
+  const sair = { disabled: false, textContent: 'Sair', click() { acoes.push('sair'); } };
+  const botaoResumo = { disabled: false, textContent: 'Ver meus prêmiosE', querySelector: () => ({ textContent: 'E' }), click() { acoes.push('ver premios'); tela = 'recompensa'; } };
+  const resumo = { querySelector: () => ({ textContent: 'Resumo de 10 giros' }), querySelectorAll: () => [botaoResumo] };
+  const modal = { getClientRects: visivel, classList: { contains: () => false }, querySelector(s) { if (s === '.sl-cab') return cabine; if (s === '.sl-gold') return { textContent: '20000 ₽' }; if (s === '.sl-sum' && tela === 'resumo') return resumo; return null; }, querySelectorAll(s) { return s === '.actions button' ? [girar, lote, sair] : []; } };
+  const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }), querySelector(s) { return s === '#hud .wallet' ? wallet : s === '#hud .ht-zone' ? { textContent: 'Zona 1/3' } : null; }, querySelectorAll(s) { return s === '.modal' ? ['modal', 'resumo'].includes(tela) ? [modal] : [] : s === '#hud .prompt' && tela === 'mapa' ? [prompt] : []; } };
+  class MutationObserver { observe() {} } class KeyboardEvent { constructor(type) { this.type = type; } }
+  vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), { document, localStorage: { getItem: () => null }, MutationObserver, KeyboardEvent, window: { dispatchEvent(e) { if (e.type === 'keydown') { tela = 'modal'; acoes.push('abrir'); } } }, setTimeout(fn) { tarefa = fn; }, setInterval(fn) { intervalo = fn; }, Date: { now: () => tempo }, Math });
+  controles[2].click(); tarefa(); tarefa();
+  for (let i = 0; i < 2; i++) { tempo += 900; intervalo(); tarefa(); }
+  assert.deepEqual(acoes, ['abrir', 'lote', 'ver premios']);
+});
 
 test('estima custo e aguarda quando não pode bancar a alternativa preferida', () => {
   assert.equal(decidirGasto({ saldo: 100, bola: 32, giro: 40, lojaEstimada: 130 }), 'bola');

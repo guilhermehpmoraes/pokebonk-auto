@@ -41,6 +41,8 @@ Na loja, o script compra os itens disponíveis do primeiro lote quando o reconhe
 
 O cassino tenta novamente cliques ignorados até três vezes por estado e tenta pular animações até três vezes. Ao identificar uma tela de recompensa, tenta voltar ao cassino após a escolha. Isso depende do DOM e ainda precisa de confirmação em jogo.
 
+O lote do cassino compromete o preço inteiro antes dos resultados e não reavalia cada giro intermediário; portanto prêmios, alterações na partida e mudanças futuras da estratégia só são consideradas após o resumo. A aprovação usa um teto conservador por giro e pode preferir um giro individual mesmo quando o lote seria viável. Lotes e processamento de recompensas precisam de confirmação em jogo.
+
 O painel de mapa pode ser recolhido clicando nele; mostra dados mesmo com o Auto Pickup desligado. Ele depende de uma classe interna e pode deixar de funcionar após uma atualização do jogo. A seleção de Alfa libera automaticamente um dos cartões elegíveis se o pickup estiver ligado; ao não reconhecer o bônus ou a tela, aguarda.
 
 Confira a posição de Cura em cada preset: em perfis sem a entrada, ela é adicionada após os atributos já salvos. A tela de Alfa com cura tem simulação baseada na imagem fornecida, mas o DOM e o clique em partida ainda precisam ser confirmados.

@@ -36,6 +36,8 @@ Na loja aberta pelo pickup, compara o custo médio dos itens disponíveis com o 
 
 Para agilizar os giros, o pickup tenta acionar **Pular animação** quando o botão aparece no cassino aberto por ele. O resultado do giro continua sendo processado pelo jogo antes da próxima decisão.
 
+Quando o cassino oferecer um lote de 2 a 10 giros, o pickup pode usá-lo se o custo total preservar a reserva e o custo máximo conservador de um giro respeitar o mesmo limite da estratégia. Caso contrário, avalia o giro individual. O resumo reconhecido é confirmado para continuar ou ver os prêmios.
+
 ## Fora do escopo e limitações
 
 Movimentação automática não faz parte do script. O pickup cobre apenas os textos reconhecidos e usa as teclas padrão E e C. A estimativa da loja não sabe o estoque antes de abrir e, sem observação recente, não usa os modificadores reais do preço; só trabalha com zonas normais identificadas. A lista de atributos é parcial e nomes não reconhecidos são acrescentados ao fim. O usuário relatou uma partida sem erros, mas não identificou quais interações ocorreram nela.

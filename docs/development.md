@@ -24,6 +24,8 @@ Os cenários da loja incluem saldo abreviado, lote parcialmente vendido e itens 
 
 Os cenários do cassino incluem saldo abreviado, clique ignorado, botão de pular animação, contador de giros e mudança de preferência após uma loja cara observada.
 
+O teste de lote do cassino cobre reserva, limite conservador por giro e um resumo simulado que leva aos prêmios. Não confirma a integração em partida.
+
 Os cenários de pickup também incluem sugestão estável durante o trajeto, troca manual, interações pagas fora da sugestão e prevenção de reabertura da loja.
 
 Os testes de preços incluem o aviso de 14498 ₽ com HUD abreviado em 14.4k, além de dados ausentes, divergentes e saldo insuficiente.

@@ -104,6 +104,18 @@ export function gastoViavel({ saldo, bola, custo, itens = 1, reserva = bola }) {
   return saldo >= custo + reserva && custo / itens <= 2 * bola / 1.3;
 }
 
+// O custo do último giro não pode exceder o total menos os anteriores,
+// que custam ao menos o primeiro preço enquanto a tarifa for crescente.
+export function loteCassinoViavel({ saldo, bola, reserva, custo, primeiroMinimo, quantidade }) {
+  if (!Number.isSafeInteger(quantidade) || quantidade < 2 || quantidade > 10 ||
+      !Number.isSafeInteger(custo) || custo <= 0 || !Number.isSafeInteger(primeiroMinimo) || primeiroMinimo <= 0 ||
+      custo < quantidade * primeiroMinimo) return false;
+  const fator = 0.194 / (0.75 * 1.3);
+  const ultimoMaximo = custo - (quantidade - 1) * primeiroMinimo;
+  return gastoViavel({ saldo, bola, reserva, custo, itens: quantidade * fator }) &&
+    gastoViavel({ saldo, bola, reserva: 0, custo: ultimoMaximo, itens: fator });
+}
+
 export function decidirLoteLoja({ saldo, precos, vendidos, avaliar = false, bola, giro, renovacao = 0, reserva = bola }) {
   if (!Number.isFinite(saldo) || saldo < 0 ||
       !Array.isArray(precos) || !Array.isArray(vendidos) || precos.length !== 4 || vendidos.length !== 4 ||

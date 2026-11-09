@@ -288,6 +288,24 @@ function observarModalPickup(modal, carteira) {
   if (pickupSessao.tipo === 'cassino' && modal.querySelector('.sl-cab')) {
     const cabine = modal.querySelector('.sl-cab');
     const botoes = [...modal.querySelectorAll('.actions button')];
+    const resumo = modal.querySelector('.sl-sum');
+    if (resumo) {
+      const titulo = normalizar(resumo.querySelector?.('h3')?.textContent);
+      const botoesResumo = [...(resumo.querySelectorAll?.('button') || [])].filter((b) => {
+        const tecla = b.querySelector?.('kbd')?.textContent || '';
+        const texto = b.textContent || '';
+        return ['ver meus premios', 'continuar girando'].includes(normalizar(tecla && texto.endsWith(tecla) ? texto.slice(0, -tecla.length) : texto));
+      });
+      if (!/^resumo de (?:[2-9]|10) giros$/.test(titulo) || botoesResumo.length !== 1 || botoesResumo[0].disabled) return;
+      let tentativa = pickupSessao.resumo;
+      if (!tentativa || tentativa.elemento !== resumo) tentativa = pickupSessao.resumo = { elemento: resumo, quantidade: 0, ultima: 0 };
+      const agora = Date.now();
+      if (tentativa.quantidade < 3 && (!tentativa.quantidade || agora - tentativa.ultima >= 800)) {
+        tentativa.quantidade++; tentativa.ultima = agora; botoesResumo[0].click();
+      }
+      return;
+    }
+    pickupSessao.resumo = null;
     if (cabine.classList.contains('spinning')) {
       const pular = botoes.filter((b) => {
         const tecla = b.querySelector?.('kbd')?.textContent || '';
@@ -309,17 +327,26 @@ function observarModalPickup(modal, carteira) {
     const girar = botoes.find((b) => /^girar\s*·\s*[\d.,\s]+[kmb]?\s*₽/i.test(normalizar(b.textContent)));
     const sair = botoes.find((b) => normalizar(b.textContent) === 'sair');
     const valor = numeroPickup(/girar\s*·\s*([\d.,\s]+[kmb]?)\s*₽/i.exec(girar?.textContent || '')?.[1], 'superior');
+    const primeiroMinimo = numeroPickup(/girar\s*·\s*([\d.,\s]+[kmb]?)\s*₽/i.exec(girar?.textContent || '')?.[1], 'inferior');
     const saldo = numeroPickup(/^\s*([\d.,\s]+[kmb]?)\s*₽\s*$/i.exec(modal.querySelector('.sl-gold')?.textContent || '')?.[1], 'inferior');
     if (!girar || !sair || valor === null || saldo === null) return;
     const giros = numeroPickup(cabine.querySelector?.('.sl-led span:nth-child(2) b')?.textContent);
     const assinatura = `${valor}:${saldo}:${giros}`;
     if (!gastoViavel({ saldo, bola: carteira.bola, reserva: carteira.reserva, custo: valor, itens: 0.194 / (0.75 * 1.3) })) { pickupSessao.saiuPorEstrategia = true; acaoPickup(sair, `sair-cassino:${valor}`); return; }
     let tentativa = pickupSessao.giro;
-    if (!tentativa || tentativa.assinatura !== assinatura) tentativa = pickupSessao.giro = { assinatura, quantidade: 0, ultima: 0 };
+    const lotes = botoes.filter((b) => b.classList?.contains('sl-x10') && !b.disabled);
+    const lote = lotes.length === 1 ? lotes[0] : null;
+    const dadosLote = /^\s*×\s*(\d+)\s*·\s*([\d.,\s]+[kmb]?)\s*₽/i.exec(lote?.textContent || '');
+    const quantidade = dadosLote ? Number(dadosLote[1]) : null;
+    const custo = dadosLote ? numeroPickup(dadosLote[2], 'superior') : null;
+    const usarLote = lote && loteCassinoViavel({ saldo, bola: carteira.bola, reserva: carteira.reserva, custo, primeiroMinimo, quantidade });
+    const botao = usarLote ? lote : girar;
+    const assinaturaAcao = `${assinatura}:${usarLote ? `lote:${quantidade}:${custo}` : 'individual'}`;
+    if (!tentativa || tentativa.assinatura !== assinaturaAcao) tentativa = pickupSessao.giro = { assinatura: assinaturaAcao, quantidade: 0, ultima: 0 };
     const agora = Date.now();
-    if (!girar.disabled && tentativa.quantidade < 3 && (!tentativa.quantidade || agora - tentativa.ultima >= 800)) {
+    if (!botao.disabled && tentativa.quantidade < 3 && (!tentativa.quantidade || agora - tentativa.ultima >= 800)) {
       if (!pickupSessao.giroInicialAssinatura) pickupSessao.giroInicialAssinatura = assinatura;
-      tentativa.quantidade++; tentativa.ultima = agora; girar.click();
+      tentativa.quantidade++; tentativa.ultima = agora; botao.click();
     }
     return;
   }

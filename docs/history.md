@@ -4,6 +4,8 @@ Uma base de planejamento de fusões foi adicionada com teste de decisão. Bill, 
 
 Após relato de parada na escolha de Alfa com Arcanine, dano de status passou a ser reconhecido no catálogo. O cenário da imagem foi simulado; a causa e a correção ainda precisam de confirmação em jogo.
 
+Após o usuário mostrar a opção de até dez giros, o pickup passou a avaliar o preço do lote e a confirmar o resumo reconhecido. A implementação tem teste simulado e precisa de confirmação na partida real.
+
 ## 2026-11-06
 
 Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.25` em `scripts/gerar-userscript.mjs`.
