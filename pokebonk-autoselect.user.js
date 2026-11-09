@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.56
+// @version      0.2.57
 // @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -1652,9 +1652,7 @@ function observarItemUnico() {
   const vender = botoes.some((b) => normalizar(b.textContent).startsWith('vender'));
   if (!titulo || !pegar || !vender) { ultimoConjunto = ''; selecaoPendente = null; return; }
   const assinatura = `item-unico:${document.querySelector('.card h3')?.textContent || ''}:${pegar.outerHTML}`;
-  if (assinatura === ultimoConjunto) return;
-  ultimoConjunto = assinatura;
-  pegar.click();
+  selecionarComTentativa([pegar], 0, assinatura);
 }
 new MutationObserver(agendar).observe(document.body, { childList: true, subtree: true, characterData: true });
 // Algumas mudanças só alteram estilos ou atributos; faz uma conferência periódica.

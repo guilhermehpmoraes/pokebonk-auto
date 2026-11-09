@@ -58,6 +58,8 @@ Os metadados `@updateURL` e `@downloadURL` no script gerado apontam para o arqui
 
 Após selecionar um cartão de build, bênção ou item, o adaptador pode repetir o clique no mesmo elemento enquanto a tela permanecer igual, até o limite em `selecionarComTentativa`.
 
+Na tela reconhecida de item único, o botão Pegar usa até três tentativas espaçadas em 500 ms; um novo elemento de botão inicia uma nova sequência, inclusive para outro prêmio igual.
+
 Para interações de passagem, `decidirPickup` recebe o texto português normalizado, sem a tecla de interação, e autoriza os rótulos gratuitos conhecidos e o padrão `libertar [nome] · [preço] ₽`, com verificação de saldo. O preço da jaula varia por zona e não participa da comparação principal. O adaptador depende de um único `#hud .prompt` visível com `kbd` igual a E e da ausência de `.modal` visível. Eventos de teclado sintéticos dependem do comportamento do jogo e ainda não foram verificados em partida.
 
 O padrão `pegar o ovo pokemon · choca apos [n] derrotas` aceita uma contagem numérica de derrotas. Avisos de ninho vazio, ovo já carregado ou outros textos não são acionados por essa regra.

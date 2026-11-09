@@ -1,5 +1,7 @@
 # Histórico
 
+Após relato de parada no prêmio Lucky Egg do cassino, o botão Pegar passou a ter tentativas limitadas. A causa exata da parada não foi confirmada; o cenário foi simulado e precisa de validação no jogo.
+
 Uma base de planejamento de fusões foi adicionada com teste de decisão. Posteriormente, Bill, Hypno e priorização de golpes foram ligados ao planejador, com cenários simulados. A integração ainda não foi validada no jogo.
 
 Após relato de que Bill não foi acionada com a 0.2.40, a combinação do plano salvo do Hitmonlee foi reproduzida no planejador e indicou Chute Furacão. Não foi possível identificar a condição exata da partida; foram adicionados motivos visíveis de espera e removida a dependência de `instanceof Set` para banimentos. Ainda é necessária confirmação em jogo.

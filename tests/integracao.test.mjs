@@ -3,6 +3,31 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
+test('item único tenta novamente clique ignorado e aceita prêmio igual seguinte', () => {
+  let tarefa, observer, relogio = 1000, cliques = 0;
+  const controles = [];
+  const titulo = { textContent: 'Você encontrou um item!', getClientRects: () => [1] };
+  const vender = { textContent: 'Vender (+65 ₽) V', getClientRects: () => [1] };
+  const criarPegar = () => ({ textContent: 'Pegar E', outerHTML: '<button>Pegar E</button>', getClientRects: () => [1], click() { cliques++; } });
+  let pegar = criarPegar();
+  const document = { body: { appendChild: (el) => controles.push(el) },
+    createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; } }),
+    querySelector(s) { return s === '.card h3' ? { textContent: 'Lucky Egg' } : null; },
+    querySelectorAll(s) { return s === 'h1,h2,h3,div,span' ? [titulo] : s === 'button' ? [pegar, vender] : []; } };
+  class MutationObserver { constructor(fn) { observer = fn; } observe() {} }
+  vm.runInNewContext(readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8'), {
+    document, localStorage: { getItem: () => null }, MutationObserver,
+    setTimeout(fn) { tarefa = fn; return 1; }, setInterval() {}, Date: { now: () => relogio }, Math,
+  });
+  const executar = () => { observer(); const fn = tarefa; tarefa = null; fn(); };
+  controles[0].click(); executar();
+  assert.equal(cliques, 1);
+  relogio += 200; executar(); assert.equal(cliques, 1);
+  relogio += 400; executar(); assert.equal(cliques, 2);
+  relogio += 600; executar(); relogio += 600; executar(); assert.equal(cliques, 3);
+  pegar = criarPegar(); executar(); assert.equal(cliques, 4);
+});
+
 test('escolha de itens usa o preset para bônus diretos e prioriza lendários', () => {
   function simular(ofertas, ordem) {
     let tarefa, escolhido;

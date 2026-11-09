@@ -20,6 +20,8 @@ Não há serviço, banco, pipeline de deploy ou telemetria próprios identificad
 
 Uma seleção de cartão ignorada pode ser tentada novamente até três vezes. As ações de consumo de banimento, atualização e pulo não são repetidas automaticamente.
 
+O botão Pegar de item único também recebe até três tentativas. Se a tela continuar parada, a escolha pode ser feita manualmente; a correção ainda precisa de confirmação em jogo.
+
 Na escolha de power-ups, o reconhecimento cobre bônus diretos de atributos do catálogo, não todos os efeitos. Itens com efeitos especiais sem atributo reconhecido ficam atrás dos que têm prioridade reconhecida, salvo quando são lendários. A seleção tem teste simulado com cartões fornecidos pelo usuário; a integração precisa de validação em jogo.
 
 Banimento individual usa dois cliques no cartão quando o jogo pede confirmação. O banimento de kit depende da leitura de módulos internos do jogo e dos planos armazenados localmente; por precaução, um plano com fusão impede o banimento automático de kit. A verificação tem tempo limitado e recorre ao banimento individual quando falha. A integração real ainda não foi validada.

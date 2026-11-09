@@ -1313,9 +1313,7 @@ function observarItemUnico() {
   const vender = botoes.some((b) => normalizar(b.textContent).startsWith('vender'));
   if (!titulo || !pegar || !vender) { ultimoConjunto = ''; selecaoPendente = null; return; }
   const assinatura = `item-unico:${document.querySelector('.card h3')?.textContent || ''}:${pegar.outerHTML}`;
-  if (assinatura === ultimoConjunto) return;
-  ultimoConjunto = assinatura;
-  pegar.click();
+  selecionarComTentativa([pegar], 0, assinatura);
 }
 new MutationObserver(agendar).observe(document.body, { childList: true, subtree: true, characterData: true });
 // Algumas mudanças só alteram estilos ou atributos; faz uma conferência periódica.
