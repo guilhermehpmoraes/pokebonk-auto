@@ -4,6 +4,8 @@ Os testes de planejamento de fusões e de Bill/Hypno simulam reserva de ingredie
 
 Após a falha relatada diante de Bill, um teste do planejador reproduz uma estrutura equivalente com uma fusão concluída; outro testa uma implementação de `has` que não pertence à classe `Set` do mesmo contexto. Os motivos de espera também têm simulação parcial.
 
+Os cenários de Bill incluem ataques acima do nível 8 depois de outra fusão concluída e um par com ataque abaixo do nível necessário. A integração real ainda requer confirmação.
+
 O teste de Alfa inclui a equipe com Arcanine e dano de status mostrada pelo usuário, em ordens diferentes de prioridade; a interação real ainda requer confirmação.
 
 ## Ambiente

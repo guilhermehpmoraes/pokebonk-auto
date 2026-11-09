@@ -8,6 +8,8 @@ Para Bill e Hypno, o adaptador usa a instância da partida obtida pelo mapa, `pl
 
 Ao detectar o aviso de Bill ou Hypno sem dados suficientes, o botão do pickup apresenta um motivo resumido; exceções mostram apenas uma categoria conhecida, sem dados da exceção. Para banimentos, basta existir o método `has`, sem exigir identidade de classe entre contextos JavaScript.
 
+`fusoesProntas` aceita ataques de nível inteiro `>= 8`; níveis menores ou não reconhecidos não autorizam a abertura automática. A regra corresponde à comparação de nível observada na compilação do jogo examinada.
+
 `decidir(tela, configuracao, aleatorio)` em `src/decisao.mjs` aceita `tela.tipo` igual a `build`, `status` ou `powerup`, opções com `id` e campos usados por cada tipo, e ordem de status em `configuracao.status`. Retorna `selecionar` ou `banir` com `id`, `atualizar`, `pular` ou `aguardar` com motivo quando aplicável. Raridade é numérica e crescente.
 
 Para `powerup`, cada opção contém `raridade` e `status` como lista de atributos. Raridade 5 prevalece, com sorteio entre lendários; sem ela, compara a melhor posição de status no preset, seguida da raridade, com sorteio no empate. Status ausentes ficam depois dos reconhecidos. Se não houver lendário reconhecido e uma raridade for desconhecida, aguarda.

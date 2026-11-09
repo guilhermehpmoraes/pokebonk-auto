@@ -29,6 +29,8 @@ Bill e Hypno exigem Auto Select e Auto Pickup ligados, além da compilação `mw
 
 Na proximidade de Bill ou Hypno, confira o texto do botão de pickup se a interação não ocorrer. O motivo é resumido e pode indicar ausência de dados, incompatibilidade, plano bloqueado ou ausência de par seguro. Não prova se o clique seria aceito pelo jogo.
 
+A partir da 0.2.42, ataques acima do nível 8 também passam na conferência de prontidão de Bill. A mudança tem teste simulado e ainda precisa de confirmação na partida relatada.
+
 As escolhas e substituições de relíquias têm testes simulados. O HTML real pode mudar; não há confirmação de teste no jogo para essa integração. Substituições afetam a partida atual.
 
 O Auto Pickup inicia desligado independentemente do Auto Select. Ele interage com alguns objetos gratuitos, inclusive os que aumentam a dificuldade, e pode gastar dinheiro automaticamente em jaulas pelo preço exibido, Pokébolas, lojas e cassinos. Não automatiza portais. A estratégia usa estimativas e não garante a melhor decisão; eventos de teclado, cliques e reconhecimento precisam de teste manual no jogo.

@@ -16,7 +16,7 @@ Após uma escolha fora do plano e o cartão deixar a tela, um aviso persistente 
 
 Com Auto Select e Auto Pickup ligados, o script também tenta identificar ataques equipados fora do plano e avisa para procurar o Hypno. Perto dele, tenta esquecer o ataque errado, ou um ataque do plano cuja retirada comprovadamente destrave uma sequência. Na lição, escolhe uma oferta segura do plano ou guarda a lição para aprender depois. O aviso persistente continua exigindo limpeza manual.
 
-Com os dois controles ligados e dados reconhecidos, o pickup abre a Máquina do Bill quando existe um par planejado seguro no nível máximo. O script confirma somente a fusão correspondente, preservando os demais ingredientes. Se houver vários pares seguros, pode usar qualquer um. O modelo não garante que futuros ataques serão oferecidos pelo jogo.
+Com os dois controles ligados e dados reconhecidos, o pickup abre a Máquina do Bill quando existe um par planejado seguro com ambos os ataques no nível 8 ou acima. O script confirma somente a fusão correspondente, preservando os demais ingredientes. Se houver vários pares seguros, pode usar qualquer um. O modelo não garante que futuros ataques serão oferecidos pelo jogo.
 
 Se o script não puder avaliar Bill ou Hypno, o botão de pickup mostra o motivo reconhecido. Se nenhum par for seguro e estiver pronto, informa essa condição e aguarda.
 

@@ -527,7 +527,8 @@ function observarPickup() {
     if (estado && estado.run.state === 'play') {
       if (texto.startsWith('maquina do bill')) {
         interacaoBuild = fusoesProntas(estado).length > 0;
-        if (!interacaoBuild) atualizarIndicadorPickup('Bill: nenhuma fusão planejada segura e pronta');
+        if (!interacaoBuild) atualizarIndicadorPickup(estado.decisao.fundir.length
+          ? 'Bill: par seguro ainda não está no nível 8' : 'Bill: nenhuma fusão planejada segura');
       }
       else if ((estado.errados.length || estado.ceder.length) && estado.presentes.length > 1) { interacaoBuild = true; visitaHypnoAutomatica = true; }
     } else if (!estado) atualizarIndicadorPickup(`${texto.startsWith('maquina do bill') ? 'Bill' : 'Hypno'}: ${motivoPlano}`);
@@ -773,7 +774,7 @@ function estadoPlanoPartida() {
 }
 
 function fusoesProntas(estado) {
-  return estado.decisao.fundir.filter(({ par }) => par.every((id) => estado.presentes.some((m) => !m.def.fusion && m.def.id === id && m.level === 8)));
+  return estado.decisao.fundir.filter(({ par }) => par.every((id) => estado.presentes.some((m) => !m.def.fusion && m.def.id === id && Number.isInteger(m.level) && m.level >= 8)));
 }
 
 function pesoGolpeNaPartida(estado, id) {

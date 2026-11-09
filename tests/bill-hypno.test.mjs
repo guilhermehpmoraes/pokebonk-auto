@@ -47,6 +47,23 @@ test('uma fusão concluída preserva o reconhecimento das outras receitas', () =
   assert.ok(estado.decisao.fundir.some((f) => f.id === 'assinatura'));
 });
 
+test('pickup reconhece fusão após outra pronta com ataques acima do nível 8', () => {
+  const t = preparar();
+  t.run.fusions = ['terceira'];
+  t.player.moves = [{ def: { id: 90, key: 'terceira', fusion: {} }, level: 5, parents: [5, 6] },
+    ...[1, 2, 3].map((id) => ({ def: t.defs[id - 1], level: id === 1 ? 9 : 12, parents: [] }))];
+  t.setPrompt({ getClientRects: () => [1], textContent: 'EMáquina do Bill · uma fusão, a escolher entre 3 pares', querySelector: () => ({ textContent: 'E' }) });
+  t.api.observarPickup(); assert.deepEqual(t.eventos, ['keydown']);
+});
+
+test('pickup não considera pronto um par com ataque abaixo do nível 8', () => {
+  const t = preparar();
+  t.player.moves = [1, 2, 3, 4].map((id) => ({ def: t.defs[id - 1], level: id === 2 || id === 4 ? 7 : 8, parents: [] }));
+  t.setPrompt({ getClientRects: () => [1], textContent: 'EMáquina do Bill · uma fusão pronta', querySelector: () => ({ textContent: 'E' }) });
+  t.api.observarPickup(); assert.deepEqual(t.eventos, []);
+  assert.match(t.controles[2].textContent, /par seguro ainda não está no nível 8/);
+});
+
 test('reconhece o plano da partida e bloqueia compilação desconhecida', () => {
   const t = preparar();
   const estado = t.api.estadoPlanoPartida();

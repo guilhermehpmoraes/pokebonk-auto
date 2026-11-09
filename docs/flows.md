@@ -27,7 +27,9 @@ Com estado e receitas reconhecidos, novas ofertas de golpes são filtradas pelo 
 
 Com os dois autos ligados, o pickup identifica a proximidade de Bill ou Hypno e interage quando existe uma ação segura. Na máquina verifica par, resultado e modo de fusão. No Hypno confere o ataque e a seção, e na lição seleciona uma opção segura ou guarda a oferta. Fusões já equipadas e ataques unidos não são removidos automaticamente. O modelo verifica caminhos com os ataques e receitas conhecidos, sem garantir ofertas futuras ou a compatibilidade de atualizações do jogo.
 
-Ao encontrar Bill ou Hypno com os dois autos ligados, dados ausentes ou incompatíveis são indicados no botão de pickup. Na máquina, ele também informa quando não identifica uma fusão planejada segura e pronta; isso não prova por si só qual informação precisa ser corrigida.
+Na verificação de prontidão da máquina, cada ataque do par deve ter nível inteiro igual ou superior a 8, acompanhando a regra observada no código do jogo. O nível pode continuar aumentando depois do máximo indicado no HUD.
+
+Ao encontrar Bill ou Hypno com os dois autos ligados, dados ausentes ou incompatíveis são indicados no botão de pickup. Na máquina, ele distingue ausência de par seguro de um par seguro que ainda não atingiu o nível exigido; isso não prova por si só qual informação precisa ser corrigida.
 
 Na tela de relíquias, `observarReliquias` confere o número de espaços e interpreta os atributos das ofertas e das equipadas. A escolha considera a raridade e, em seguida, o atributo mais prioritário no preset ativo. Com espaços cheios, compara antes de escolher e volta a comparar na tela de substituição; se os dados forem incompletos, aguarda.
 
