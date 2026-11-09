@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.47
+// @version      0.2.48
 // @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -488,22 +488,17 @@ botaoFenda.addEventListener('click', () => {
 });
 let ultimaPosicaoInterface = '';
 function reposicionarInterface() {
-  const altura = typeof window === 'undefined' ? null : window.innerHeight;
-  if (!Number.isFinite(altura) || altura <= 0) return;
-  const equipe = document.querySelector?.('#hud .hud-party');
-  const limiteEquipe = equipe?.getClientRects?.().length ? equipe.getBoundingClientRect?.().bottom : 0;
-  const inicio = Math.round(Math.max(altura * 0.4, Number.isFinite(limiteEquipe) ? limiteEquipe + 8 : 0));
-  const alturaMapa = Math.max(48, Math.round(altura - inicio - 302));
-  const assinatura = `${inicio}:${alturaMapa}`;
+  const largura = typeof window === 'undefined' ? null : window.innerWidth;
+  const disponivel = Number.isFinite(largura) && largura > 0 ? Math.min(660, Math.max(260, largura - 16)) : 660;
+  const assinatura = String(disponivel);
   if (assinatura === ultimaPosicaoInterface) return;
   ultimaPosicaoInterface = assinatura;
-  painel.style.top = `${inicio}px`;
-  configuracao.style.top = `${inicio + 34}px`;
-  botaoPickup.style.top = `${inicio + 68}px`;
-  botaoFenda.style.top = `${inicio + 102}px`;
-  trocarAlvo.style.top = `${inicio + 136}px`;
-  painelMapa.style.top = `${inicio + 170}px`;
-  painelMapa.style.maxHeight = `${alturaMapa}px`;
+  const larguraColuna = disponivel / 4;
+  [painel, configuracao, botaoPickup, botaoFenda].forEach((elemento, indice) => {
+    Object.assign(elemento.style, { top: 'auto', bottom: '8px', left: `calc(50% - ${disponivel / 2}px + ${indice * larguraColuna}px)`, width: `${larguraColuna - 4}px`, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' });
+  });
+  Object.assign(trocarAlvo.style, { top: 'auto', bottom: '42px', left: `calc(50% - ${disponivel / 2}px)` });
+  Object.assign(painelMapa.style, { top: 'auto', bottom: '76px', left: `calc(50% - ${disponivel / 2}px)`, maxHeight: 'min(120px, 25vh)' });
 }
 let mapaRecolhido = false, mapaInstancia = null, mapaHookInstalado = false, mapaCarregando = false, mapaUltimaBusca = 0;
 let moduloDadosJogo = null;
@@ -933,7 +928,7 @@ function atualizarAvisos() {
   if (!painelAvisos) {
     painelAvisos = document.createElement('aside');
     painelAvisos.setAttribute('aria-label', 'Itens fora da build');
-    painelAvisos.style.cssText = 'position:fixed;right:max(16px,12vw);top:16vh;z-index:2147483647;width:min(300px,calc(100vw - max(16px,12vw) - 32px));max-height:38vh;overflow:auto;padding:12px;background:#38251c;color:#fff5e7;border:2px solid #f5a953;border-radius:12px;box-shadow:0 8px 28px #0008;font:13px system-ui,sans-serif';
+    painelAvisos.style.cssText = 'position:fixed;left:50%;bottom:42px;z-index:2147483647;width:min(280px,calc(50vw - 16px));max-height:120px;overflow:auto;padding:8px;background:#38251c;color:#fff5e7;border:2px solid #f5a953;border-radius:12px;box-shadow:0 8px 28px #0008;font:13px system-ui,sans-serif';
     painelAvisos.addEventListener('click', (event) => event.stopPropagation());
     painelAvisos.addEventListener('pointerdown', (event) => event.stopPropagation());
     document.body.appendChild(painelAvisos);

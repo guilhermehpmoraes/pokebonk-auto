@@ -76,4 +76,4 @@ A abertura e a entrada automáticas exigem o Auto Fenda ligado, independentement
 
 O aviso de onda segue o formato exato `Chamar a onda N/T já`, com inteiros positivos seguros e N menor ou igual a T. É tratado como interação gratuita pelo pickup, sem comprovar que o aviso pertence à Fenda.
 
-O posicionamento dos controles consulta `#hud .hud-party` quando visível e a altura da janela; se esses dados não estiverem disponíveis, usa a posição proporcional padrão. A lista do mapa possui altura limitada e rolagem.
+O posicionamento distribui os controles na faixa inferior central conforme a largura da janela. O mapa tem altura limitada e rolagem; a disposição não identifica dinamicamente os inventários do jogo.

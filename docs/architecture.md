@@ -52,4 +52,4 @@ A automação de Fenda tem controle próprio, inicializado desligado e independe
 
 O reconhecimento do aviso de chamada de onda é uma regra de texto em `decisao.mjs`; o adaptador usa o fluxo habitual de interação do pickup.
 
-Os controles e o painel de mapa ficam no lado esquerdo; o adaptador ajusta sua altura abaixo da equipe visível e limita a altura da lista. Os avisos de itens fora da build ficam afastados do canto inferior direito.
+Os controles ficam na faixa inferior central; o mapa recolhível e os avisos ficam acima, com altura limitada. A largura dos controles se adapta à janela; o posicionamento requer confirmação visual no jogo.

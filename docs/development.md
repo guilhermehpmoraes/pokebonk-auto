@@ -10,6 +10,8 @@ Os testes de level-up simulam duas fusões prontas, um último espaço reservado
 
 Os testes de avisos simulam remoção individual, inventário estável, ataques usados em fusões, vitaminas, dados incompletos e ausência do botão manual. Não confirmam o acesso ao inventário na partida real.
 
+O teste de Fenda verifica também as posições inferiores dos controles e do mapa; a disposição visual precisa de confirmação no jogo.
+
 O cenário também verifica banimento individual antes de atualizar, preservação de oferta planejada na mesma tela, mudança de selo, mudança do plano e ausência de alvo seguro. O teste é simulado.
 
 O teste de level-up inclui um ataque fora do plano e três espaços livres, com três fusões planejadas, e verifica que a escolha pode prosseguir quando a remoção futura do erro torna a sequência viável. Não comprova a integração em cooperativo ou na Fenda.

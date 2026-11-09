@@ -14,6 +14,8 @@ O usuário relatou parada de level-up em cooperativo com um ataque fora do plano
 
 O usuário pediu para retirar o botão de resolução manual dos avisos. O adaptador passou a reconciliar ataques e vitaminas com o inventário estável e a remover automaticamente avisos dos itens ausentes; dados indisponíveis preservam o aviso. Há teste simulado, ainda sem confirmação em jogo.
 
+Os controles, o mapa e os avisos foram movidos para a região inferior central a pedido do usuário. A disposição ainda precisa de validação visual no jogo.
+
 Após relato de parada na escolha de Alfa com Arcanine, dano de status passou a ser reconhecido no catálogo. O cenário da imagem foi simulado; a causa e a correção ainda precisam de confirmação em jogo.
 
 Após o usuário mostrar a opção de até dez giros, o pickup passou a avaliar o preço do lote e a confirmar o resumo reconhecido. A implementação tem teste simulado e precisa de confirmação na partida real.

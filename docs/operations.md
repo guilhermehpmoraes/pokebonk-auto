@@ -66,4 +66,4 @@ Com Auto Fenda ativo, a abertura consome Incenso automaticamente quando liberada
 
 O pickup também tenta antecipar ondas ao encontrar o aviso reconhecido, usando E. A interação foi simulada e ainda precisa de confirmação em partida.
 
-Os controles e a lista de mapa ficam à esquerda, abaixo da equipe quando ela é identificada. O aviso de itens fora da build aparece mais acima, afastado do inventário; a disposição precisa de confirmação nas resoluções e modos de jogo usados.
+Os controles ficam na faixa inferior central, com mapa e avisos logo acima. A disposição precisa de confirmação nas resoluções e modos de jogo usados.
