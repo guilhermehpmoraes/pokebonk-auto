@@ -16,7 +16,7 @@ function preparar() {
   const document = { body: { appendChild: (el) => controles.push(el) }, createElement: () => ({ style: {}, addEventListener(tipo, fn) { this[tipo] = fn; }, setAttribute() {}, append() {}, replaceChildren() {} }), querySelector(s) { return s === 'meta[name="pokebonk-build"]' ? { content: build } : null; }, querySelectorAll(s) { return s === '.modal' && modal ? [modal] : s === '#hud .prompt' && prompt ? [prompt] : s === 'button.card.offer' ? ofertas : s === 'button' ? comandos : []; } };
   class MutationObserver { observe() {} }
   class KeyboardEvent { constructor(type) { this.type = type; } }
-  const codigo = readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8').replace('new MutationObserver(agendar).observe', 'globalThis.testeBuild = { iniciar(i, m) { mapaInstancia = i; moduloDadosJogo = m; ativo = true; pickupAtivo = true; }, estadoPlanoPartida, observarBuildEspecial, observarPickup, observar };\nnew MutationObserver(agendar).observe');
+  const codigo = readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8').replace('new MutationObserver(agendar).observe', 'globalThis.testeBuild = { iniciar(i, m) { mapaInstancia = i; moduloDadosJogo = m; ativo = true; pickupAtivo = true; }, setPickup(valor) { pickupAtivo = valor; }, estadoPlanoPartida, observarBuildEspecial, observarPickup, observar };\nnew MutationObserver(agendar).observe');
   const ctx = { document, localStorage: { getItem: () => null }, sessionStorage: { getItem: () => null, setItem() {} }, MutationObserver, KeyboardEvent, window: { dispatchEvent(e) { eventos.push(e.type); } }, setTimeout(fn) { tarefas.push(fn); }, setInterval() {}, Date, Math, Set };
   vm.runInNewContext(codigo, ctx); ctx.testeBuild.iniciar(instancia, modulo);
   return { api: ctx.testeBuild, player, run, defs, pares, eventos, controles, comandos, setOfertas: (o) => { ofertas = o; }, setPrompt: (p) => { prompt = p; }, setModal: (m) => { modal = m; }, setBuild: (b) => { build = b; } };
@@ -102,7 +102,26 @@ test('ao subir de nível prioriza ingrediente específico e espera se a build do
   t.player.moves = [1, 3].map((id) => ({ def: t.defs[id - 1], level: 8, parents: [] }));
   t.setOfertas([2, 4].map((id) => ({ disabled: false, outerHTML: `golpe-${id}`, getClientRects: () => [1], querySelector(s) { return s === 'h3' ? { textContent: `Golpe ${id}` } : s === '.kind' ? { textContent: 'NOVO' } : s === '.top .typeicon' || s === '.bp-badge' ? {} : null; }, click() { acoes.push(id); } })));
   t.setBuild('versao-desconhecida'); t.api.observar(); assert.deepEqual(acoes, []);
+  assert.match(t.controles[2].textContent, /Plano: versão do jogo não reconhecida/);
   t.setBuild('mw88813m'); t.api.observar(); assert.deepEqual(acoes, [2]);
+});
+
+test('level-up escolhe golpe planejado com espaço livre e ataque errado removível', () => {
+  const t = preparar(), acoes = [];
+  t.pares.splice(0, t.pares.length, { id: 'assinatura', pares: [[1, 2]], nome: 'A' }, { id: 'tipo', pares: [[3, 4]], nome: 'B' }, { id: 'terceira', pares: [[5, 6]], nome: 'C' });
+  t.defs[0].name = 'Fire Pledge'; t.defs[2].name = 'Magma Storm';
+  t.player.moves = [{ def: { id: 8, key: 'fora', name: 'Swift', type: 'normal' }, level: 8, parents: [] }, null, null, null];
+  const card = (id, nome, plano) => ({ disabled: false, outerHTML: `golpe-${id}`, getClientRects: () => [1], querySelector(s) { return s === 'h3' ? { textContent: nome } : s === '.kind' ? { textContent: 'NOVO' } : s === '.top .typeicon' || (s === '.bp-badge' && plano) ? {} : null; }, click() { acoes.push(id); } });
+  t.setOfertas([card(1, 'Fire Pledge', true), card(9, 'Lava Plume', false), card(3, 'Magma Storm', true), card(10, 'Sacred Fire', false)]);
+  const estado = t.api.estadoPlanoPartida();
+  assert.equal(estado.decisao.aprender.length, 0);
+  assert.ok(estado.aprenderAposHypno.includes(1));
+  assert.ok(!estado.aprenderAposHypno.includes(7));
+  t.api.setPickup(false); t.api.observar(); assert.deepEqual(acoes, []);
+  t.api.setPickup(true);
+  t.api.observar();
+  assert.equal(acoes.length, 1);
+  assert.ok([1, 3].includes(acoes[0]));
 });
 
 test('pickup abre Bill só com fusão segura pronta e identifica versão incompatível', () => {

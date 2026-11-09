@@ -4,11 +4,15 @@
 
 `planejarFusoes` recebe identificadores de golpes, equipados e consumidos, fusões concluídas, limite de espaços e receitas com pares possíveis. Retorna aquisições e fusões que mantêm uma sequência possível no modelo, ou `null` quando os dados são inválidos. `golpesParaAbrirEspaco` encontra ataques cuja retirada destravaria uma sequência. O adaptador fornece dados da partida e confirma os níveis; a disponibilidade futura de ofertas não é garantida.
 
+`golpesAposRemoverErrados` calcula opções planejadas considerando a remoção futura dos ataques fora do plano. Só retorna candidatos quando existe um espaço físico livre agora e as contagens de espaços são consistentes. Ao escolher, o adaptador prioriza opções que já funcionam sem essa remoção e recorre às demais somente com o pickup ligado e quando não houver opção direta entre as ofertas.
+
 `decidirSemGolpeSeguro` recebe os contadores de banimento, atualização e pulo e os IDs de alvos de banimento e opções temporárias previamente verificados. Prioriza banimento de alvo elegível, atualização, pulo e, com os recursos indisponíveis, uma opção temporária; contadores necessários desconhecidos produzem espera. O adaptador só considera uma opção temporária com pickup ligado, sem golpes errados e quando `golpesParaAbrirEspaco` comprova que a própria opção pode ser removida para destravar o modelo.
 
 Para Bill e Hypno, o adaptador usa a instância da partida obtida pelo mapa, `planSnap`, `player.moves`, `moveSlots`, `fusions` e `banished`. Na compilação `mw88813m`, usa os exports `Qi` e `Dr` do módulo `menus` para obter definições e combinações dos golpes do plano, verificando as combinações equipadas. A consulta de pares usa objetos simulados, mas a função do jogo também sorteia um bônus de união. Outros identificadores de compilação, planos com uniões, fusões desconhecidas e dados incompatíveis não ativam a automação. A confirmação de Bill exige `.bm-win`, par, resultado, `.bm-card.fuse` e botão `.bm-go.fuse`. Hypno exige `.hy-modal`, identifica ataques em `.hy-list` e não confirma a remoção de fusões ou ataques unidos. A lição escolhe nomes seguros do plano ou guarda a oferta. Esses contratos dependem do código público e não foram validados na partida.
 
 Ao detectar o aviso de Bill ou Hypno sem dados suficientes, o botão do pickup apresenta um motivo resumido; exceções mostram apenas uma categoria conhecida, sem dados da exceção. Para banimentos, basta existir o método `has`, sem exigir identidade de classe entre contextos JavaScript.
+
+Na tela de level-up, se houver um plano com fusões identificado e a leitura de estado falhar, o botão do pickup ligado mostra o motivo resumido e a seleção aguarda. Quando não há opção segura nem ação disponível, informa a espera ou a necessidade de conferir o ataque no Hypno.
 
 `fusoesProntas` aceita ataques de nível inteiro `>= 8`; níveis menores ou não reconhecidos não autorizam a abertura automática. A regra corresponde à comparação de nível observada na compilação do jogo examinada.
 

@@ -798,7 +798,8 @@ function estadoPlanoPartida() {
     if (!decisao) return falhaPlano('dados insuficientes para planejar');
     const ceder = errados.length ? [] : golpesParaAbrirEspaco(entrada);
     motivoPlano = '';
-    return { run, plano, defs: cacheReceitasBill.defs, receitas: cacheReceitasBill.receitas, presentes, errados, ceder, decisao, entrada };
+    const aprenderAposHypno = golpesAposRemoverErrados({ entrada, errados: errados.length, espacosTotais: player.moveSlots });
+    return { run, plano, defs: cacheReceitasBill.defs, receitas: cacheReceitasBill.receitas, presentes, errados, ceder, decisao, entrada, aprenderAposHypno };
   } catch (erro) {
     const classe = ['TypeError', 'RangeError', 'ReferenceError'].includes(erro?.name) ? ` (${erro.name})` : '';
     return falhaPlano(`erro ao ler dados da partida${classe}`);
@@ -977,7 +978,10 @@ function observar() {
     return botao && contador ? (botao.disabled ? 0 : Number(contador[1])) : null;
   };
   const estadoBuild = estadoPlanoPartida();
-  if (!estadoBuild && mapaInstancia?.run?.planSnap?.fus?.length) return;
+  if (!estadoBuild && mapaInstancia?.run?.planSnap?.fus?.length) {
+    if (pickupAtivo) atualizarIndicadorPickup(`Plano: ${motivoPlano}`);
+    return;
+  }
   if (estadoBuild && estadoBuild.plano.fus.length) {
     const novas = opcoes.filter((o) => o.noPlano && o.tipo === 'golpe' && o.estado === 'novo');
     if (novas.length) {
@@ -985,13 +989,17 @@ function observar() {
         !estadoBuild.defs.some((def) => normalizar(def.name) === normalizar(nomes[o.id]))).map((o) => o.id);
       const candidatas = novas.flatMap((opcao) => {
         const encontrados = estadoBuild.defs.filter((def) => normalizar(def.name) === normalizar(nomes[opcao.id]));
-        if (encontrados.length !== 1 || !estadoBuild.decisao.aprender.includes(encontrados[0].id)) return [];
+        if (encontrados.length !== 1) return [];
+        const direto = estadoBuild.decisao.aprender.includes(encontrados[0].id);
+        if (!direto && (!pickupAtivo || !estadoBuild.aprenderAposHypno.includes(encontrados[0].id))) return [];
         const pontuacao = pesoGolpeNaPartida(estadoBuild, encontrados[0].id);
-        return [{ opcao, pontuacao }];
+        return [{ opcao, pontuacao, direto }];
       });
       if (candidatas.length) {
-        const maior = Math.max(...candidatas.map((c) => c.pontuacao));
-        const melhores = candidatas.filter((c) => c.pontuacao === maior);
+        const diretas = candidatas.filter((c) => c.direto);
+        const elegiveis = diretas.length ? diretas : candidatas;
+        const maior = Math.max(...elegiveis.map((c) => c.pontuacao));
+        const melhores = elegiveis.filter((c) => c.pontuacao === maior);
         selecionarComTentativa(botoes, melhores[Math.floor(Math.random() * melhores.length)].opcao.id, assinatura);
         return;
       }
@@ -1004,6 +1012,7 @@ function observar() {
           return golpesParaAbrirEspaco(depois).includes(defs[0].id) ? [opcao.id] : [];
         }) : [];
         const acao = decidirSemGolpeSeguro({ banimentos: usos(banir), baniveis, atualizacoes: usos(atualizar), pulos: usos(pular), temporarios });
+        if (acao.acao === 'aguardar' && pickupAtivo) atualizarIndicadorPickup(estadoBuild.errados.length ? 'Plano: confira ataque errado no Hypno' : 'Plano: aguardando escolha segura');
         if (acao.acao === 'selecionar') selecionarComTentativa(botoes, acao.id, assinatura);
         else if (acao.acao !== 'aguardar' && assinatura !== ultimoConjunto) {
           ultimoConjunto = assinatura;

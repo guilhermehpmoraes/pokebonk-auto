@@ -49,6 +49,17 @@ export function golpesParaAbrirEspaco(estado) {
   });
 }
 
+// Ataques fora do plano podem ser removidos depois, mas a oferta atual ainda
+// precisa caber nos espaços realmente livres agora.
+export function golpesAposRemoverErrados({ entrada, errados, espacosTotais }) {
+  if (!entrada || !Array.isArray(entrada.equipados) || !Array.isArray(entrada.concluidas) ||
+      !Number.isInteger(errados) || errados < 1 || !Number.isInteger(espacosTotais) ||
+      espacosTotais < 1 || espacosTotais > 4 || entrada.espacos !== espacosTotais - errados ||
+      entrada.equipados.length + entrada.concluidas.length + errados >= espacosTotais) return [];
+  const depois = planejarFusoes({ ...entrada, espacos: espacosTotais });
+  return depois?.aprender ?? [];
+}
+
 export function prioridadeGolpePlano({ receitas, concluidas, equipados, id }) {
   return receitas.filter((r) => !concluidas.includes(r.id)).reduce((total, r) => {
     const pares = r.pares.filter((par) => par.includes(id));

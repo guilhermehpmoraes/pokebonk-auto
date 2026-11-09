@@ -4,6 +4,8 @@ O planejador puro `planejarFusoes`, em `src/decisao.mjs`, recebe as receitas ide
 
 O fallback de level-up para uma oferta planejada que bloquearia o espaço usa uma decisão pura para banimento, atualização, pulo ou escolha temporária; o adaptador identifica alvos fora do plano e confere se a remoção da escolha destrava o modelo antes de oferecê-la à decisão.
 
+Outra decisão pura avalia aprendizado com a hipótese explícita de remoção futura de ataques fora do plano; o adaptador confere antes se há espaço físico disponível e prioriza escolhas que não dependem dessa hipótese.
+
 O adaptador mantém um motivo resumido da última falha de leitura e o exibe ao detectar o aviso de Bill ou Hypno; ele não grava informações da partida nesse indicador.
 
 O catálogo de atributos do adaptador inclui dano de status como atributo distinto de chance de status para a comparação de companheiros e outros cartões reconhecidos.

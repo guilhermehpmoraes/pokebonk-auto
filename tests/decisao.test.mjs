@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { decidir, planejarFusoes, golpesParaAbrirEspaco, prioridadeGolpePlano, decidirSemGolpeSeguro } from '../src/decisao.mjs';
+import { decidir, planejarFusoes, golpesParaAbrirEspaco, golpesAposRemoverErrados, prioridadeGolpePlano, decidirSemGolpeSeguro } from '../src/decisao.mjs';
 
 test('planejamento reserva ingredientes específicos e aceita alternativas flexíveis seguras', () => {
   const base = { golpes: [1, 2, 3, 4, 5, 6, 7], equipados: [1, 2, 3, 4], consumidos: [], concluidas: [], espacos: 4,
@@ -19,6 +19,15 @@ test('só libera espaço ao provar que a retirada destrava o plano', () => {
   assert.deepEqual(golpesParaAbrirEspaco(estado), [7]);
   assert.deepEqual(golpesParaAbrirEspaco({ ...estado, equipados: [1, 2, 3, 5] }), []);
   assert.deepEqual(golpesParaAbrirEspaco({ ...estado, receitas: [], equipados: [1, 3, 5, 7] }), []);
+});
+
+test('considera remover ataque errado depois sem ocupar espaço que não existe agora', () => {
+  const entrada = { golpes: [1, 2, 3, 4, 5, 6, 7], equipados: [], consumidos: [], concluidas: [], espacos: 3,
+    receitas: [{ id: 'a', pares: [[1, 2]] }, { id: 'b', pares: [[3, 4]] }, { id: 'c', pares: [[5, 6]] }] };
+  assert.deepEqual(planejarFusoes(entrada).aprender, []);
+  assert.deepEqual(golpesAposRemoverErrados({ entrada, errados: 1, espacosTotais: 4 }), [1, 2, 3, 4, 5, 6]);
+  assert.deepEqual(golpesAposRemoverErrados({ entrada: { ...entrada, equipados: [1, 3, 5] }, errados: 1, espacosTotais: 4 }), []);
+  assert.deepEqual(golpesAposRemoverErrados({ entrada, errados: 0, espacosTotais: 4 }), []);
 });
 
 test('fusão pronta permanece possível após outra fusão do plano', () => {

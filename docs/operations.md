@@ -30,6 +30,8 @@ Bill e Hypno exigem Auto Select e Auto Pickup ligados, além da compilação `mw
 
 Quando não houver banimento elegível e atualização e pulo estiverem esgotados, um golpe do plano pode ser escolhido temporariamente e precisar ser esquecido no Hypno para liberar espaço. O jogador precisa ir até o Hypno; a simulação de sequência não garante que o jogo oferecerá novamente o golpe ou seus parceiros.
 
+Uma escolha planejada também pode depender de remover posteriormente um ataque fora do plano. O jogador precisa levar o personagem ao Hypno; sem essa remoção, a sequência calculada pode não caber nos espaços disponíveis.
+
 Na proximidade de Bill ou Hypno, confira o texto do botão de pickup se a interação não ocorrer. O motivo é resumido e pode indicar ausência de dados, incompatibilidade, plano bloqueado ou ausência de par seguro. Não prova se o clique seria aceito pelo jogo.
 
 A partir da 0.2.42, ataques acima do nível 8 também passam na conferência de prontidão de Bill. A mudança tem teste simulado e ainda precisa de confirmação na partida relatada.

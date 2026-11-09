@@ -10,6 +10,8 @@ O usuário confirmou que a máquina funcionou após a alteração e relatou uma 
 
 O usuário corrigiu a ordem desejada para banir, atualizar e pular. O fallback passou a banir ofertas novas reconhecidas como fora do plano antes dos demais recursos, mantendo o alvo protegido contra mudanças de selo ou do plano durante a confirmação. A integração foi simulada e ainda precisa de confirmação em jogo.
 
+O usuário relatou parada de level-up em cooperativo com um ataque fora do plano, espaços livres e ofertas planejadas; escolheu manualmente e prosseguiu. Foi reproduzida uma causa possível: o modelo tratava o ataque errado como ocupação permanente. O aprendizado passou a considerar sua remoção futura no Hypno, com teste simulado; a causa exata dessa partida e a correção em jogo ainda não foram confirmadas.
+
 Após relato de parada na escolha de Alfa com Arcanine, dano de status passou a ser reconhecido no catálogo. O cenário da imagem foi simulado; a causa e a correção ainda precisam de confirmação em jogo.
 
 Após o usuário mostrar a opção de até dez giros, o pickup passou a avaliar o preço do lote e a confirmar o resumo reconhecido. A implementação tem teste simulado e precisa de confirmação na partida real.
