@@ -1,6 +1,6 @@
 # Arquitetura
 
-O planejador puro `planejarFusoes`, em `src/decisao.mjs`, é uma base para a futura integração com Bill e Hypno. Não lê dados do jogo nem controla escolhas; depende de receitas completas fornecidas pelo chamador.
+O planejador puro `planejarFusoes`, em `src/decisao.mjs`, recebe as receitas identificadas pelo adaptador e verifica sequências de fusão. O adaptador acessa o estado da partida e o catálogo interno do jogo para Bill, Hypno e prioridade de golpes; quando os dados não são reconhecidos, esses fluxos aguardam.
 
 O catálogo de atributos do adaptador inclui dano de status como atributo distinto de chance de status para a comparação de companheiros e outros cartões reconhecidos.
 

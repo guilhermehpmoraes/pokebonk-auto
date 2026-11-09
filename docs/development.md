@@ -1,6 +1,6 @@
 # Desenvolvimento
 
-O teste de planejamento de fusões cobre reserva de ingredientes e ocupação de espaços com dados sintéticos. O planejador ainda não está integrado ao jogo.
+Os testes de planejamento de fusões e de Bill/Hypno simulam reserva de ingredientes, ocupação de espaços, abertura da máquina, escolha de fusão, remoção de ataque e recusa de dados desconhecidos. Não comprovam as APIs internas nem as interações em partida real.
 
 O teste de Alfa inclui a equipe com Arcanine e dano de status mostrada pelo usuário, em ordens diferentes de prioridade; a interação real ainda requer confirmação.
 

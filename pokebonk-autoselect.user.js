@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.39
+// @version      0.2.40
 // @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -49,6 +49,25 @@ function planejarFusoes({ golpes, equipados, consumidos, concluidas, receitas, e
   const aprender = equipados.length + concluidas.length < espacos ? golpes.filter((id) => !equipados.includes(id) && !consumidos.includes(id) && caminhos([...equipados, id], consumidos, concluidas)) : [];
   const fundir = receitas.filter((r) => !concluidas.includes(r.id)).flatMap((r) => r.pares.filter(([a, b]) => equipados.includes(a) && equipados.includes(b) && caminhos(equipados.filter((id) => id !== a && id !== b), [...consumidos, a, b], [...concluidas, r.id])).map((par) => ({ id: r.id, par })));
   return { aprender, fundir };
+}
+
+// Só sugere ceder um golpe do plano se a remoção destravar uma sequência completa.
+function golpesParaAbrirEspaco(estado) {
+  const atual = planejarFusoes(estado);
+  if (!atual || estado.concluidas.length >= estado.receitas.length || atual.aprender.length || atual.fundir.length ||
+      estado.equipados.length + estado.concluidas.length !== estado.espacos) return [];
+  return estado.equipados.filter((id) => {
+    const depois = planejarFusoes({ ...estado, equipados: estado.equipados.filter((outro) => outro !== id) });
+    return !!depois && (depois.aprender.length > 0 || depois.fundir.length > 0);
+  });
+}
+
+function prioridadeGolpePlano({ receitas, concluidas, equipados, id }) {
+  return receitas.filter((r) => !concluidas.includes(r.id)).reduce((total, r) => {
+    const pares = r.pares.filter((par) => par.includes(id));
+    const comParceiro = pares.some((par) => par.some((outro) => outro !== id && equipados.includes(outro)));
+    return total + (pares.length ? 1 / r.pares.length : 0) + (comParceiro ? 10 : 0);
+  }, 0);
 }
 
 // Decide a partir de dados já identificados na tela; não interage com o jogo.
@@ -404,6 +423,7 @@ let repetirEncontro = false;
 let interacaoLivre = null;
 let tentativaRhydon = null;
 let ultimaTentativaFenda = 0;
+let visitaHypnoAutomatica = false;
 const botaoPickup = document.createElement('button');
 botaoPickup.type = 'button';
 botaoPickup.textContent = 'Auto Pickup: desligado';
@@ -437,6 +457,7 @@ function reposicionarInterface() {
   painelMapa.style.maxHeight = `${alturaMapa}px`;
 }
 let mapaRecolhido = false, mapaInstancia = null, mapaHookInstalado = false, mapaCarregando = false, mapaUltimaBusca = 0;
+let moduloDadosJogo = null;
 painelMapa.addEventListener('click', () => { mapaRecolhido = !mapaRecolhido; agendar(); });
 const nomesMapa = { chest: 'Pokébolas pagas', freechest: 'Pokébolas grátis', cursedchest: 'Pokébolas amaldiçoadas', altar: 'Altares Unown', cursed: 'Altares amaldiçoados', challenge: 'Desafios', cage: 'Jaulas', rock: 'Rock Smash', shroom: 'Cogumelos', slots: 'Cassinos', magnet: 'Magnemite', berry: 'Oran Berries', meowth: 'Lojas Meowth', greed: 'Altares Gengar', ditto: 'Ditto', hypno: 'Hypno', snorlax: 'Snorlax', fossil: 'Fósseis', rhydon: 'Rhydon', porygon: 'Porygon', dojo: 'Dojo', nest: 'Ovos', bill: 'Máquinas de Bill', boss: 'Guardião', portal: 'Portais', shrine: 'Santuário', bonk: 'Bonkoins', comet: 'Fragmentos de cometa' };
 async function instalarLeituraMapa() {
@@ -448,6 +469,7 @@ async function instalarLeituraMapa() {
     }))];
     if (urls.length !== 1) return;
     const modulo = await import(urls[0]);
+    moduloDadosJogo = modulo;
     const classes = [...new Set(Object.values(modulo).filter((classe) => typeof classe === 'function' && typeof classe.prototype?.markers === 'function' && typeof classe.prototype?.chestCost === 'function' && typeof classe.prototype?.add === 'function'))];
     if (classes.length !== 1) return;
     const prototipo = classes[0].prototype, original = prototipo.markers;
@@ -507,6 +529,7 @@ trocarAlvo.addEventListener('click', () => {
 });
 botaoPickup.addEventListener('click', () => {
   pickupAtivo = !pickupAtivo;
+  visitaHypnoAutomatica = false;
   ultimoPickup = '';
   pickupSessao = null; pickupAcao = null; limparAlvo(); bloqueiosGasto = {}; ultimoEncontroPago = null; tentativasEncontro = 0; repetirEncontro = false; interacaoLivre = null; tentativaRhydon = null;
   trocarAlvo.style.display = 'none';
@@ -786,6 +809,11 @@ function observarPickup() {
     if (escolhido !== 'aguardar') alvoGasto = escolhido;
   }
   atualizarIndicadorPickup(indicadores());
+  if (ativo) {
+    const estado = estadoPlanoPartida();
+    if (estado?.errados.length) atualizarIndicadorPickup('Procure Hypno: ataque fora do plano');
+    else if (estado?.ceder.length) atualizarIndicadorPickup('Procure Hypno: liberar espaço para a build');
+  }
   const prompts = visiveis('#hud .prompt');
   if (prompts.length !== 1) { ultimoPickup = ''; ultimoEncontroPago = null; tentativasEncontro = 0; repetirEncontro = false; tentativaRhydon = null; return; }
   const prompt = prompts[0];
@@ -800,8 +828,16 @@ function observarPickup() {
   if (precoGiro && carteira?.giroBruto !== null && carteira?.giroBruto !== undefined && numeroPickup(precoGiro[1]) === carteira.giroBruto && carteira.saldo >= carteira.giroBruto) tipo = 'cassino';
   if (encontro === 'loja' && carteira && Number.isFinite(carteira.saldo) && carteira.saldo > 0) tipo = 'loja';
   const decisaoLivre = decidirPickup(texto);
+  let interacaoBuild = false;
+  if (ativo && pickupAtivo && tecla === 'E' && /^(?:maquina do bill · (?:uma fusao pronta|uma fusao, a escolher entre \d+ pares)|hypno: (?:esqueca e aprenda · licao pronta|esqueca um ataque ou vitamina))$/.test(texto)) {
+    const estado = estadoPlanoPartida();
+    if (estado && estado.run.state === 'play') {
+      if (texto.startsWith('maquina do bill')) interacaoBuild = fusoesProntas(estado).length > 0;
+      else if ((estado.errados.length || estado.ceder.length) && estado.presentes.length > 1) { interacaoBuild = true; visitaHypnoAutomatica = true; }
+    }
+  }
   if (decisaoLivre.custoJaula !== undefined && (!carteira || !Number.isSafeInteger(decisaoLivre.custoJaula) || carteira.saldo < decisaoLivre.custoJaula)) return;
-  if (decisaoLivre.acao !== 'interagir' && !tipo && !entradaDeFenda(texto) || tecla !== 'E') { ultimoPickup = ''; tentativaRhydon = null; return; }
+  if (decisaoLivre.acao !== 'interagir' && !tipo && !interacaoBuild && !entradaDeFenda(texto) || tecla !== 'E') { ultimoPickup = ''; tentativaRhydon = null; return; }
   const estagioRhydon = decisaoLivre.estagioRhydon;
   if (estagioRhydon === undefined) tentativaRhydon = null;
   else if (!tentativaRhydon || tentativaRhydon.estagio !== estagioRhydon) tentativaRhydon = { estagio: estagioRhydon, tentativas: 0, ultima: 0 };
@@ -972,6 +1008,146 @@ function lerPlanosDeBuild() {
     return planos.length ? { planos, assinatura: JSON.stringify(bruto) } : null;
   } catch (_) { return null; }
 }
+
+// Usa apenas a build interna conferida; em qualquer incompatibilidade, não age.
+let cacheReceitasBill = null;
+function estadoPlanoPartida() {
+  try {
+    const instancia = mapaInstancia, run = instancia?.run, player = run?.player, plano = run?.planSnap;
+    const compilacao = document.querySelector?.('meta[name="pokebonk-build"]')?.content;
+    if (compilacao !== 'mw88813m' || !moduloDadosJogo || typeof moduloDadosJogo.Qi !== 'function' || typeof moduloDadosJogo.Dr !== 'function' ||
+        !instancia || instancia.disposed || run.interactables !== instancia || !plano || !Array.isArray(plano.moves) ||
+        !Array.isArray(plano.fus) || !Array.isArray(plano.links) || plano.links.length || !Array.isArray(player?.moves) ||
+        !Array.isArray(run.fusions) || !(run.banished instanceof Set) || !Number.isInteger(player.moveSlots) ||
+        player.moveSlots < 1 || player.moveSlots > 4 || !plano.moves.length || plano.moves.length > 8 || plano.fus.length > 3 ||
+        plano.moves.some((id) => !Number.isInteger(id) || run.banished.has(`m${id}`))) return null;
+    const assinatura = JSON.stringify([plano.moves, plano.fus, player.roster?.id]);
+    if (!cacheReceitasBill || cacheReceitasBill.run !== run || cacheReceitasBill.assinatura !== assinatura) {
+      const defs = plano.moves.map((id) => moduloDadosJogo.Qi(id, player.roster?.id ?? 0));
+      if (defs.some((def, i) => !def || def.id !== plano.moves[i] || !def.key || !def.name || !def.type)) return null;
+      const falso = Object.create(player);
+      Object.defineProperty(falso, 'moves', { value: defs.map((def) => ({ def, level: 8, parents: [], link: null })) });
+      const pares = moduloDadosJogo.Dr({ player: falso, banished: new Set() });
+      if (!Array.isArray(pares)) return null;
+      const receitas = plano.fus.map((id) => { const encontrados = pares.filter((p) => p?.r?.key === id && p.a >= 0 && p.b >= 0 && p.a < defs.length && p.b < defs.length); return { id, nome: encontrados[0]?.r?.name, pares: encontrados.map((p) => [defs[p.a].id, defs[p.b].id]) }; });
+      if (receitas.some((r) => !r.pares.length)) return null;
+      cacheReceitasBill = { run, assinatura, defs, receitas };
+    }
+    const presentes = player.moves.filter(Boolean);
+    if (presentes.some((m) => !m?.def || m.link || !Array.isArray(m.parents))) return null;
+    const concluidas = presentes.filter((m) => m.def.fusion).map((m) => m.def.key);
+    if (concluidas.some((id) => !plano.fus.includes(id)) || new Set(concluidas).size !== concluidas.length ||
+        run.fusions.some((id) => plano.fus.includes(id) && !concluidas.includes(id))) return null;
+    const consumidos = presentes.filter((m) => m.def.fusion).flatMap((m) => m.parents);
+    if (consumidos.length !== 2 * concluidas.length || consumidos.some((id) => !plano.moves.includes(id))) return null;
+    const normais = presentes.filter((m) => !m.def.fusion);
+    if (normais.some((m) => { const def = cacheReceitasBill.defs.find((d) => d.id === m.def.id); return def && (def.key !== m.def.key || def.type !== m.def.type); })) return null;
+    const assinaturaAtuais = JSON.stringify(player.moves.map((m) => m ? [m.def?.id, m.level, !!m.link, !!m.def?.fusion] : null));
+    if (cacheReceitasBill.atual !== assinaturaAtuais) {
+      const atuais = moduloDadosJogo.Dr(run);
+      if (!Array.isArray(atuais)) return null;
+      for (const par of atuais) {
+        if (par.a < 0 || par.b < 0) continue;
+        const a = player.moves[par.a]?.def?.id, b = player.moves[par.b]?.def?.id;
+        if (!plano.moves.includes(a) || !plano.moves.includes(b)) continue;
+        const receita = cacheReceitasBill.receitas.find((r) => r.pares.some((p) => p.includes(a) && p.includes(b)));
+        if (receita && receita.id !== par.r?.key) return null;
+      }
+      cacheReceitasBill.atual = assinaturaAtuais;
+    }
+    const errados = normais.filter((m) => !plano.moves.includes(m.def.id));
+    const equipados = normais.filter((m) => plano.moves.includes(m.def.id)).map((m) => m.def.id);
+    const espacos = player.moveSlots - errados.length;
+    const entrada = { golpes: plano.moves, equipados, consumidos, concluidas, receitas: cacheReceitasBill.receitas, espacos };
+    const decisao = planejarFusoes(entrada);
+    if (!decisao) return null;
+    const ceder = errados.length ? [] : golpesParaAbrirEspaco(entrada);
+    return { run, plano, defs: cacheReceitasBill.defs, receitas: cacheReceitasBill.receitas, presentes, errados, ceder, decisao };
+  } catch (_) { return null; }
+}
+
+function fusoesProntas(estado) {
+  return estado.decisao.fundir.filter(({ par }) => par.every((id) => estado.presentes.some((m) => !m.def.fusion && m.def.id === id && m.level === 8)));
+}
+
+function pesoGolpeNaPartida(estado, id) {
+  return prioridadeGolpePlano({ receitas: estado.receitas, concluidas: estado.run.fusions,
+    equipados: estado.presentes.filter((m) => !m.def.fusion).map((m) => m.def.id), id });
+}
+
+function observarBuildEspecial() {
+  if (!ativo || !pickupAtivo || modalAberto) return false;
+  const modais = [...document.querySelectorAll('.modal')].filter((el) => el.getClientRects().length);
+  const estado = estadoPlanoPartida();
+  if (!estado) return false;
+  for (const erro of estado.errados) registrarForaPlano(erro.def.name, 'golpe');
+  if (modais.length !== 1) { if (!modais.length && !interacaoLivre) visitaHypnoAutomatica = false; return false; }
+  const modal = modais[0], bill = modal.querySelector?.('.bm-win');
+  if (bill) {
+    const prontas = fusoesProntas(estado);
+    const linhas = [...(bill.querySelectorAll?.('button.bm-row') || [])];
+    const nomes = new Map(estado.defs.map((def) => [def.id, normalizar(def.name)]));
+    const candidatos = linhas.flatMap((linha) => {
+      if (linha.disabled || linha.classList.contains('off')) return [];
+      const par = normalizar(linha.querySelector('.bm-pair')?.textContent).split('+').map((n) => n.trim());
+      const resultado = normalizar(linha.querySelector('.bm-rtx b')?.textContent);
+      if (par.length !== 2 || !resultado) return [];
+      return prontas.filter((f) => {
+        const receita = estado.receitas.find((r) => r.id === f.id);
+        const esperado = f.par.map((id) => nomes.get(id)).sort();
+        return resultado === normalizar(receita?.nome) && JSON.stringify(par.slice().sort()) === JSON.stringify(esperado);
+      }).map((f) => ({ linha, f }));
+    });
+    if (!candidatos.length) return true;
+    const alvo = candidatos.find((c) => c.linha.classList.contains('sel')) || candidatos[0];
+    if (!alvo.linha.classList.contains('sel')) { alvo.linha.click(); agendar(); return true; }
+    const cartao = bill.querySelector('.bm-card.fuse'), go = bill.querySelector('button.bm-go.fuse');
+    const nome = estado.receitas.find((r) => r.id === alvo.f.id)?.nome;
+    if (!cartao || normalizar(cartao.querySelector('h3')?.textContent) !== normalizar(nome) || !go || go.disabled ||
+        !normalizar(go.textContent).startsWith(`fundir em ${normalizar(nome)}`)) return true;
+    selecionarComTentativa([go], 0, `bill:${alvo.f.id}:${alvo.f.par.join(':')}`);
+    return true;
+  }
+  if (!modal.classList?.contains('hy-modal')) return false;
+  const titulo = normalizar(modal.querySelector('h1')?.textContent);
+  if (titulo === 'hypno te ensina') {
+    const cartoes = [...(modal.querySelectorAll?.('.cards > button.card.offer') || [])];
+    if (!cartoes.length || cartoes.some((c) => !c.querySelector('h3')?.textContent || normalizar(c.querySelector('.kind')?.textContent) !== 'novo')) return true;
+    const opcoes = cartoes.flatMap((c) => {
+      const defs = estado.defs.filter((d) => estado.decisao.aprender.includes(d.id) && normalizar(d.name) === normalizar(c.querySelector('h3').textContent));
+      return defs.length === 1 ? [{ cartao: c, peso: pesoGolpeNaPartida(estado, defs[0].id) }] : [];
+    });
+    if (opcoes.length) {
+      const maior = Math.max(...opcoes.map((o) => o.peso)), melhores = opcoes.filter((o) => o.peso === maior).map((o) => o.cartao);
+      selecionarComTentativa(melhores, Math.floor(Math.random() * melhores.length), `hypno-licao:${cartoes.map((c) => c.outerHTML).join('|')}`);
+    }
+    else {
+      const botoes = [...(modal.querySelectorAll?.('.actions button') || [])].filter((b) => normalizar(b.textContent) === 'agora nao (guardar a licao)');
+      if (botoes.length === 1 && !botoes[0].disabled) selecionarComTentativa(botoes, 0, `hypno-guardar:${cartoes.map((c) => c.outerHTML).join('|')}`);
+    }
+    return true;
+  }
+  if (titulo !== 'hypno') return true;
+  const listas = [...(modal.querySelectorAll?.('.hy-list') || [])];
+  if (!listas.length) return true;
+  const linhas = [...(listas[0].querySelectorAll?.('.hy-row') || [])];
+  const cediveis = estado.presentes.filter((m) => estado.ceder.includes(m.def.id)).sort((a, b) => a.level - b.level);
+  for (const errado of (estado.errados.length ? estado.errados : cediveis)) {
+    const alvo = linhas.filter((linha) => {
+      const nome = normalizar(linha.querySelector('h4')?.textContent);
+      return nome === `${normalizar(errado.def.name)} · nv. ${errado.level}` && !!linha.querySelector('.hy-share') && !linha.querySelector('.hy-mem');
+    });
+    if (alvo.length !== 1) return true;
+    const botao = alvo[0].querySelector('button');
+    if (botao && !botao.disabled && /^esquecer \(\+[\d.,\s]+ ₽\)$/.test(normalizar(botao.textContent))) selecionarComTentativa([botao], 0, `hypno-remover:${errado.def.id}:${errado.level}`);
+    return true;
+  }
+  if (visitaHypnoAutomatica) {
+    const sair = modal.querySelector('button.shop-exit');
+    if (sair && normalizar(sair.textContent) === 'pronto' && !sair.disabled) { visitaHypnoAutomatica = false; sair.click(); }
+  }
+  return true;
+}
 async function verificarKitSeguro(nome) {
   try {
     const entradas = performance.getEntriesByType('resource').map((item) => item.name);
@@ -991,6 +1167,7 @@ function observar() {
   reposicionarInterface();
   verificarAvisoPendente();
   observarPickup();
+  if (observarBuildEspecial()) return;
   if (pickupAtivo && !modalAberto && observarAlfa()) return;
   if (pickupAtivo && !modalAberto && observarFossil()) return;
   if (!ativo || modalAberto) return;
@@ -1049,6 +1226,27 @@ function observar() {
   // Não gastar recursos se a tela estiver incompleta ou tiver um formato desconhecido.
   if (opcoes.some((item, i) => !nomes[i] || !item.tipo || !item.estado)) return;
   const assinatura = botoes.map((b) => b.outerHTML).join('|');
+  const estadoBuild = estadoPlanoPartida();
+  if (!estadoBuild && mapaInstancia?.run?.planSnap?.fus?.length) return;
+  if (estadoBuild && estadoBuild.plano.fus.length) {
+    const novas = opcoes.filter((o) => o.noPlano && o.tipo === 'golpe' && o.estado === 'novo');
+    if (novas.length) {
+      const candidatas = novas.flatMap((opcao) => {
+        const encontrados = estadoBuild.defs.filter((def) => normalizar(def.name) === normalizar(nomes[opcao.id]));
+        if (encontrados.length !== 1 || !estadoBuild.decisao.aprender.includes(encontrados[0].id)) return [];
+        const pontuacao = pesoGolpeNaPartida(estadoBuild, encontrados[0].id);
+        return [{ opcao, pontuacao }];
+      });
+      if (candidatas.length) {
+        const maior = Math.max(...candidatas.map((c) => c.pontuacao));
+        const melhores = candidatas.filter((c) => c.pontuacao === maior);
+        selecionarComTentativa(botoes, melhores[Math.floor(Math.random() * melhores.length)].opcao.id, assinatura);
+        return;
+      }
+      for (const opcao of novas) opcao.noPlano = false;
+      if (!opcoes.some((opcao) => opcao.noPlano)) return;
+    }
+  }
   const controle = (nome) => controles.find((b) => normalizar(b.textContent).startsWith(nome));
   const banir = controle('banir');
   const atualizar = controle('atualizar');

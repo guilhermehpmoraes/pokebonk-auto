@@ -38,6 +38,25 @@ export function planejarFusoes({ golpes, equipados, consumidos, concluidas, rece
   return { aprender, fundir };
 }
 
+// Só sugere ceder um golpe do plano se a remoção destravar uma sequência completa.
+export function golpesParaAbrirEspaco(estado) {
+  const atual = planejarFusoes(estado);
+  if (!atual || estado.concluidas.length >= estado.receitas.length || atual.aprender.length || atual.fundir.length ||
+      estado.equipados.length + estado.concluidas.length !== estado.espacos) return [];
+  return estado.equipados.filter((id) => {
+    const depois = planejarFusoes({ ...estado, equipados: estado.equipados.filter((outro) => outro !== id) });
+    return !!depois && (depois.aprender.length > 0 || depois.fundir.length > 0);
+  });
+}
+
+export function prioridadeGolpePlano({ receitas, concluidas, equipados, id }) {
+  return receitas.filter((r) => !concluidas.includes(r.id)).reduce((total, r) => {
+    const pares = r.pares.filter((par) => par.includes(id));
+    const comParceiro = pares.some((par) => par.some((outro) => outro !== id && equipados.includes(outro)));
+    return total + (pares.length ? 1 / r.pares.length : 0) + (comParceiro ? 10 : 0);
+  }, 0);
+}
+
 // Decide a partir de dados já identificados na tela; não interage com o jogo.
 export function decidirPickup(texto) {
   const primeiroRugido = 'rugido de rhydon · guardiao mais forte e com escolta, +1 great ball por rugido';

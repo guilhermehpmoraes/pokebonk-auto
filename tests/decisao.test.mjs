@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { decidir, planejarFusoes } from '../src/decisao.mjs';
+import { decidir, planejarFusoes, golpesParaAbrirEspaco, prioridadeGolpePlano } from '../src/decisao.mjs';
 
 test('planejamento reserva ingredientes específicos e aceita alternativas flexíveis seguras', () => {
   const base = { golpes: [1, 2, 3, 4, 5, 6, 7], equipados: [1, 2, 3, 4], consumidos: [], concluidas: [], espacos: 4,
@@ -11,6 +11,20 @@ test('planejamento reserva ingredientes específicos e aceita alternativas flex�
   assert.ok(planejarFusoes(depois).fundir.some((r) => r.id === 'flexivel' && r.par[1] === 4));
   assert.equal(planejarFusoes({ ...base, equipados: [1, 1] }), null);
   assert.deepEqual(planejarFusoes({ ...base, receitas: [{ id: 'impossivel', pares: [[1, 2]] }, { id: 'outra', pares: [[1, 3]] }] }).fundir, []);
+});
+
+test('só libera espaço ao provar que a retirada destrava o plano', () => {
+  const estado = { golpes: [1, 2, 3, 4, 5, 6, 7], equipados: [1, 3, 5, 7], consumidos: [], concluidas: [], espacos: 4,
+    receitas: [{ id: 'a', pares: [[1, 2]] }, { id: 'b', pares: [[3, 4]] }, { id: 'c', pares: [[5, 6]] }] };
+  assert.deepEqual(golpesParaAbrirEspaco(estado), [7]);
+  assert.deepEqual(golpesParaAbrirEspaco({ ...estado, equipados: [1, 2, 3, 5] }), []);
+  assert.deepEqual(golpesParaAbrirEspaco({ ...estado, receitas: [], equipados: [1, 3, 5, 7] }), []);
+});
+
+test('prioriza parceiro equipado e ingrediente com menos alternativas', () => {
+  const base = { receitas: [{ id: 'a', pares: [[1, 2]] }, { id: 'b', pares: [[3, 4], [3, 5]] }], concluidas: [], equipados: [1, 3] };
+  assert.ok(prioridadeGolpePlano({ ...base, id: 2 }) > prioridadeGolpePlano({ ...base, id: 4 }));
+  assert.ok(prioridadeGolpePlano({ ...base, id: 4 }) > prioridadeGolpePlano({ ...base, id: 5, equipados: [1] }));
 });
 
 const primeiro = () => 0;

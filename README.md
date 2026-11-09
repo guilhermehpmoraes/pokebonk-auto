@@ -16,6 +16,8 @@ O botão Auto Pickup também começa desligado. Quando ligado, mantém uma suges
 
 O Auto Pickup também aciona as Ruínas do Fóssil e escolhe o Fóssil de Domo quando reconhecido: ele oferece uma bênção ancestral em troca de 20% do HP máximo pelo resto da partida.
 
+Com Auto Select e Auto Pickup ligados, o script tenta usar a Máquina do Bill e o Hypno conforme o plano, preservando os ingredientes das outras fusões. A integração depende da compilação reconhecida do jogo e ainda precisa de teste em partida; consulte [regras e limitações](docs/product.md).
+
 O script informa ao gerenciador o endereço de atualização no GitHub. Com atualizações automáticas habilitadas, novas versões podem ser verificadas periodicamente; o intervalo e eventuais confirmações dependem do gerenciador e de suas configurações.
 
 ## Desenvolver e verificar

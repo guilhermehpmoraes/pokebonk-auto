@@ -2,7 +2,9 @@
 
 ## Decisão interna
 
-`planejarFusoes` recebe identificadores de golpes, equipados e consumidos, fusões concluídas, limite de espaços e receitas com pares possíveis. Retorna apenas aquisições e fusões que mantêm uma sequência possível para todas as receitas, ou `null` quando os dados são inválidos. O chamador precisa fornecer receitas completas e confirmar níveis, disponibilidade e estado real. A função ainda não está ligada à interface e não realiza ações.
+`planejarFusoes` recebe identificadores de golpes, equipados e consumidos, fusões concluídas, limite de espaços e receitas com pares possíveis. Retorna aquisições e fusões que mantêm uma sequência possível no modelo, ou `null` quando os dados são inválidos. `golpesParaAbrirEspaco` encontra ataques cuja retirada destravaria uma sequência. O adaptador fornece dados da partida e confirma os níveis; a disponibilidade futura de ofertas não é garantida.
+
+Para Bill e Hypno, o adaptador usa a instância da partida obtida pelo mapa, `planSnap`, `player.moves`, `moveSlots`, `fusions` e `banished`. Na compilação `mw88813m`, usa os exports `Qi` e `Dr` do módulo `menus` para obter definições e combinações dos golpes do plano, verificando as combinações equipadas. A consulta de pares usa objetos simulados, mas a função do jogo também sorteia um bônus de união. Outros identificadores de compilação, planos com uniões, fusões desconhecidas e dados incompatíveis não ativam a automação. A confirmação de Bill exige `.bm-win`, par, resultado, `.bm-card.fuse` e botão `.bm-go.fuse`. Hypno exige `.hy-modal`, identifica ataques em `.hy-list` e não confirma a remoção de fusões ou ataques unidos. A lição escolhe nomes seguros do plano ou guarda a oferta. Esses contratos dependem do código público e não foram validados na partida.
 
 `decidir(tela, configuracao, aleatorio)` em `src/decisao.mjs` aceita `tela.tipo` igual a `build`, `status` ou `powerup`, opções com `id` e campos usados por cada tipo, e ordem de status em `configuracao.status`. Retorna `selecionar` ou `banir` com `id`, `atualizar`, `pular` ou `aguardar` com motivo quando aplicável. Raridade é numérica e crescente.
 

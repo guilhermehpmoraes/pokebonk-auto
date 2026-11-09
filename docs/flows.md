@@ -23,6 +23,10 @@ Ao interpretar a tela de nível, melhorias identificadas como fusões equipadas 
 
 Na ausência de opção do plano, a decisão prioriza melhorias já adquiridas; sem elas, tenta banir, atualizar e pular. Se os três contadores forem reconhecidos como esgotados, escolhe uma opção aleatória. Quando um cartão escolhido fora do plano deixa a tela, o adaptador mostra um aviso até o usuário marcá-lo como resolvido. O desaparecimento do cartão não garante que o jogo aceitou a escolha; o aviso pede conferência.
 
+Com estado e receitas reconhecidos, novas ofertas de golpes são filtradas pelo planejador antes de escolher; são favorecidos parceiros já equipados e receitas específicas. Se nenhuma oferta nova planejada for segura e não houver outra opção planejada, aguarda. Sem dados compatíveis de um plano com fusões identificado na instância da partida, a escolha de nível aguarda.
+
+Com os dois autos ligados, o pickup identifica a proximidade de Bill ou Hypno e interage quando existe uma ação segura. Na máquina verifica par, resultado e modo de fusão. No Hypno confere o ataque e a seção, e na lição seleciona uma opção segura ou guarda a oferta. Fusões já equipadas e ataques unidos não são removidos automaticamente. O modelo verifica caminhos com os ataques e receitas conhecidos, sem garantir ofertas futuras ou a compatibilidade de atualizações do jogo.
+
 Na tela de relíquias, `observarReliquias` confere o número de espaços e interpreta os atributos das ofertas e das equipadas. A escolha considera a raridade e, em seguida, o atributo mais prioritário no preset ativo. Com espaços cheios, compara antes de escolher e volta a comparar na tela de substituição; se os dados forem incompletos, aguarda.
 
 Na tela de escolha de power-ups, o adaptador lê os bônus diretos no início da descrição e a raridade. A decisão escolhe um lendário quando há algum; caso contrário ordena pelo melhor atributo reconhecido do preset e pela raridade. Itens sem atributo reconhecido ficam após os reconhecidos e, se nenhum tiver atributo reconhecido, prevalece a raridade. Sem lendário reconhecido, uma raridade desconhecida faz aguardar.

@@ -25,6 +25,8 @@ Banimento individual usa dois cliques no cartão quando o jogo pede confirmaçã
 
 O aviso de item fora da build permanece na aba e pode sobreviver ao recarregamento por `sessionStorage`. O botão **Resolvido** remove apenas o aviso, não o item. A remoção por Hypno, o início de outra partida e a aquisição efetiva ainda não são detectados automaticamente; o jogador deve conferir e limpar os avisos quando apropriado.
 
+Bill e Hypno exigem Auto Select e Auto Pickup ligados, além da compilação `mw88813m` e dos dados internos reconhecidos. O script pode esquecer um golpe do plano para destravar os espaços quando o modelo identifica uma sequência possível; o golpe esquecido volta ao nível inicial se for aprendido de novo. As ações têm testes simulados, não confirmação em jogo. A atualização do jogo pode desativá-las até que a compatibilidade seja revista.
+
 As escolhas e substituições de relíquias têm testes simulados. O HTML real pode mudar; não há confirmação de teste no jogo para essa integração. Substituições afetam a partida atual.
 
 O Auto Pickup inicia desligado independentemente do Auto Select. Ele interage com alguns objetos gratuitos, inclusive os que aumentam a dificuldade, e pode gastar dinheiro automaticamente em jaulas pelo preço exibido, Pokébolas, lojas e cassinos. Não automatiza portais. A estratégia usa estimativas e não garante a melhor decisão; eventos de teclado, cliques e reconhecimento precisam de teste manual no jogo.

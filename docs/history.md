@@ -1,6 +1,6 @@
 # Histórico
 
-Uma base de planejamento de fusões foi adicionada com teste de decisão. Bill, Hypno e priorização de escolhas ainda não estão integrados a ela e não foram validados no jogo.
+Uma base de planejamento de fusões foi adicionada com teste de decisão. Posteriormente, Bill, Hypno e priorização de golpes foram ligados ao planejador, com cenários simulados. A integração ainda não foi validada no jogo.
 
 Após relato de parada na escolha de Alfa com Arcanine, dano de status passou a ser reconhecido no catálogo. O cenário da imagem foi simulado; a causa e a correção ainda precisam de confirmação em jogo.
 

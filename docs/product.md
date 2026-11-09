@@ -6,13 +6,17 @@ Reduzir escolhas repetitivas no PokéBonk. **Plano** é a build marcada no jogo;
 
 ## Regras implementadas
 
-Em `src/decisao.mjs`, as opções do plano têm prioridade. O adaptador também considera elegível uma melhoria de fusão já equipada identificada pelo cartão, mesmo sem o selo do plano. Opções novas do plano precedem melhorias; golpes novos precedem vitaminas novas. Entre melhorias, prioriza-se raridade e, no empate, golpe. Entre golpes novos há sorteio.
+Em `src/decisao.mjs`, as opções do plano têm prioridade. O adaptador também considera elegível uma melhoria de fusão já equipada identificada pelo cartão, mesmo sem o selo do plano. Opções novas do plano precedem melhorias; golpes novos precedem vitaminas novas. Com dados de fusão reconhecidos, a seleção de golpes novos usa o planejador para descartar escolhas que bloqueiam a sequência e prioriza as que têm parceiro equipado e receitas mais específicas. Entre melhorias, prioriza-se raridade e, no empate, golpe. Empates de golpes novos são sorteados.
 
 Sem opção do plano, prioriza melhorias de golpes ou vitaminas já adquiridos, mesmo fora do plano, por raridade e, no empate, por golpe. Sem essas melhorias, tenta banir aleatoriamente, atualizar e pular, nessa ordem. Quando todos os recursos acabam, seleciona aleatoriamente uma opção fora do plano. Quando o jogo oferece banir o kit, o adaptador o faz apenas se comprovar que nenhum golpe do kit aparece nos planos disponíveis; caso contrário, confirma o banimento individual.
 
 Essa regra também vale para o ataque inicial: se aparecer como melhoria fora do plano, pode ser escolhido enquanto houver níveis disponíveis. Ele não recebe identificação ou prioridade especial, e continua gerando o aviso de fora da build.
 
 Após uma escolha fora do plano e o cartão deixar a tela, um aviso persistente informa o nome e recomenda conferir a remoção com Hypno. O usuário marca o aviso como resolvido; o script não verifica automaticamente se o item foi removido ou se uma nova partida começou.
+
+Com Auto Select e Auto Pickup ligados, o script também tenta identificar ataques equipados fora do plano e avisa para procurar o Hypno. Perto dele, tenta esquecer o ataque errado, ou um ataque do plano cuja retirada comprovadamente destrave uma sequência. Na lição, escolhe uma oferta segura do plano ou guarda a lição para aprender depois. O aviso persistente continua exigindo limpeza manual.
+
+Com os dois controles ligados e dados reconhecidos, o pickup abre a Máquina do Bill quando existe um par planejado seguro no nível máximo. O script confirma somente a fusão correspondente, preservando os demais ingredientes. Se houver vários pares seguros, pode usar qualquer um. O modelo não garante que futuros ataques serão oferecidos pelo jogo.
 
 Para bênçãos, prioridade configurada vem antes de raridade; a raridade desempata opções do mesmo status. Na escolha de power-ups, qualquer lendário reconhecido vem primeiro, com sorteio entre lendários. Sem lendário, usa o atributo direto mais prioritário do preset ativo e, no empate, a maior raridade; se nenhuma opção tiver atributo reconhecido, usa a maior raridade. Empates restantes são sorteados. Efeitos condicionais e atributos não reconhecidos não entram na comparação. `src/adaptador.js` tenta identificar a tela de item único e clicar em Pegar.
 
