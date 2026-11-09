@@ -24,8 +24,11 @@ test('Auto Fenda começa desligado, independe do pickup e respeita os bloqueios'
   tick(); await Promise.resolve(); await Promise.resolve(); const objetos = new Objetos(); objetos.markers(); tick();
   assert.equal(controles[5].textContent, 'Auto Fenda: desligado');
   assert.equal(controles[5].style.bottom, '8px');
-  assert.equal(controles[3].style.bottom, '42px');
-  assert.equal(controles[4].style.bottom, '76px');
+  assert.equal(controles[3].style.bottom, '74px');
+  assert.equal(controles[4].style.bottom, '8px');
+  assert.equal(controles[2].style.whiteSpace, 'normal');
+  assert.equal(controles[2].style.overflow, 'visible');
+  assert.ok(parseFloat(controles[2].style.width) > parseFloat(controles[0].style.width));
   assert.deepEqual(eventos, []);
   // O pickup ligado não abre nem entra na Fenda enquanto o controle dela estiver desligado.
   controles[2].click(); executar(); executar();

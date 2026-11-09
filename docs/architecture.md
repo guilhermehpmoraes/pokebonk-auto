@@ -56,4 +56,4 @@ A automação de Fenda tem controle próprio, inicializado desligado e independe
 
 O reconhecimento do aviso de chamada de onda é uma regra de texto em `decisao.mjs`; o adaptador usa o fluxo habitual de interação do pickup.
 
-Os controles ficam na faixa inferior central; o mapa recolhível e os avisos ficam acima, com altura limitada. A largura dos controles se adapta à janela; o posicionamento requer confirmação visual no jogo.
+Os controles ficam na faixa inferior central; o mapa recolhível fica à esquerda do Auto Select e os avisos ficam acima. O Auto Pickup recebe mais espaço e pode quebrar o texto em linhas. A largura se adapta à janela; o posicionamento requer confirmação visual no jogo.

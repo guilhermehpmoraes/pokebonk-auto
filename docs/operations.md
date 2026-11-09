@@ -74,4 +74,4 @@ Na falta da instância interna, o script tenta usar o HUD pronto e reconhece ape
 
 O pickup também tenta antecipar ondas ao encontrar o aviso reconhecido, usando E. A interação foi simulada e ainda precisa de confirmação em partida.
 
-Os controles ficam na faixa inferior central, com mapa e avisos logo acima. A disposição precisa de confirmação nas resoluções e modos de jogo usados.
+Os controles ficam na faixa inferior central, com o mapa ao lado esquerdo do Auto Select e avisos acima. O texto do Auto Pickup pode ocupar mais de uma linha. A disposição precisa de confirmação nas resoluções e modos de jogo usados.

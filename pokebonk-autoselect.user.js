@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.52
+// @version      0.2.53
 // @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -489,16 +489,22 @@ botaoFenda.addEventListener('click', () => {
 let ultimaPosicaoInterface = '';
 function reposicionarInterface() {
   const largura = typeof window === 'undefined' ? null : window.innerWidth;
-  const disponivel = Number.isFinite(largura) && largura > 0 ? Math.min(660, Math.max(260, largura - 16)) : 660;
-  const assinatura = String(disponivel);
+  const janela = Number.isFinite(largura) && largura > 0 ? largura : 1200;
+  const larguraMapa = Math.min(180, Math.max(90, Math.floor(janela * 0.2)));
+  const disponivel = Math.min(820, Math.max(160, janela - larguraMapa - 24));
+  const assinatura = `${disponivel}:${larguraMapa}`;
   if (assinatura === ultimaPosicaoInterface) return;
   ultimaPosicaoInterface = assinatura;
-  const larguraColuna = disponivel / 4;
+  const proporcoes = [0.17, 0.18, 0.48, 0.17];
+  const inicio = (disponivel + larguraMapa + 4) / 2;
+  let deslocamento = larguraMapa + 4;
   [painel, configuracao, botaoPickup, botaoFenda].forEach((elemento, indice) => {
-    Object.assign(elemento.style, { top: 'auto', bottom: '8px', left: `calc(50% - ${disponivel / 2}px + ${indice * larguraColuna}px)`, width: `${larguraColuna - 4}px`, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' });
+    const coluna = disponivel * proporcoes[indice];
+    Object.assign(elemento.style, { top: 'auto', bottom: '8px', left: `calc(50% - ${inicio}px + ${deslocamento}px)`, width: `${coluna - 4}px`, height: 'auto', minHeight: '30px', whiteSpace: 'normal', overflowWrap: 'anywhere', overflow: 'visible', textOverflow: 'clip' });
+    deslocamento += coluna;
   });
-  Object.assign(trocarAlvo.style, { top: 'auto', bottom: '42px', left: `calc(50% - ${disponivel / 2}px)` });
-  Object.assign(painelMapa.style, { top: 'auto', bottom: '76px', left: `calc(50% - ${disponivel / 2}px)`, maxHeight: 'min(120px, 25vh)' });
+  Object.assign(trocarAlvo.style, { top: 'auto', bottom: '74px', left: `calc(50% - ${inicio}px + ${larguraMapa + 4 + disponivel * 0.35}px)` });
+  Object.assign(painelMapa.style, { top: 'auto', bottom: '8px', left: `calc(50% - ${inicio}px)`, width: `${larguraMapa}px`, boxSizing: 'border-box', maxHeight: 'min(160px, 25vh)' });
 }
 let mapaRecolhido = false, mapaInstancia = null, mapaHookInstalado = false, mapaCarregando = false, mapaUltimaBusca = 0;
 let moduloDadosJogo = null;

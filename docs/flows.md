@@ -77,4 +77,4 @@ Se a instância interna não estiver disponível, o script pode tentar pelo indi
 
 Ao encontrar o aviso reconhecido para chamar uma onda, o pickup tenta antecipá-la com E. Cada texto de onda é acionado uma vez enquanto permanece visível.
 
-Os controles aparecem na parte inferior central, com mapa e avisos acima. A lista continua recolhível e pode rolar quando não couber no espaço disponível.
+Os controles aparecem na parte inferior central, com o mapa à esquerda do Auto Select e os avisos acima. O texto do Auto Pickup pode ocupar mais de uma linha. A lista continua recolhível e pode rolar quando não couber no espaço disponível.
