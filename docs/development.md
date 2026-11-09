@@ -22,6 +22,8 @@ O teste de level-up inclui um ataque fora do plano e três espaços livres, com 
 
 O teste de Alfa inclui a equipe com Arcanine e dano de status mostrada pelo usuário, em ordens diferentes de prioridade; a interação real ainda requer confirmação.
 
+Também simula a equipe de cinco cartões com Hitmontop e a troca de brilhantes com Tyrogue, usando `dano em elites` e verificando a escolha conforme o preset.
+
 ## Ambiente
 
 Node.js com suporte a módulos ES e `node:test`. Versão mínima e matriz de navegadores: não verificadas. O projeto não possui manifesto de dependências ou processo de instalação próprio.

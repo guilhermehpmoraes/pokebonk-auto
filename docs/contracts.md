@@ -52,6 +52,8 @@ O catálogo reconhece `cura` como atributo próprio, distinto de `regeneracao`. 
 
 O catálogo também reconhece `dano status` para textos como `dano de status`, distinto de `sorteio` (chance de status). Uma entrada anterior `novo: dano de status` é normalizada mantendo sua posição; presets sem o atributo o recebem depois das prioridades salvas.
 
+O texto `dano em elites` é reconhecido como `dano elites`, inclusive nos bônus dos companheiros Alfa.
+
 Os metadados `@updateURL` e `@downloadURL` no script gerado apontam para o arquivo público na `main`; `@version` determina a versão anunciada ao gerenciador de userscripts. O gerador é a fonte desses campos.
 
 Após selecionar um cartão de build, bênção ou item, o adaptador pode repetir o clique no mesmo elemento enquanto a tela permanecer igual, até o limite em `selecionarComTentativa`.

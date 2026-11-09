@@ -58,3 +58,14 @@ test('reconhece dano de status na equipe mostrada sem confundir com chance de st
   assert.deepEqual(simularTela(null, { dados, ordem: ['novo: dano de status', 'dinheiro'] }), ['Miltank novo']);
   assert.deepEqual(simularTela(null, { dados, ordem: ['sorteio', 'dinheiro', 'dano status'] }), ['Arcanine']);
 });
+
+test('compara dano em elites na equipe de cinco cartões mostrada', () => {
+  const dados = [ ['Rhydon', 'Vínculo 2', '+4 de armadura', 'Libertar'], ['Heracross', 'Vínculo 2', '+1 de coleta', 'Libertar'], ['Arbok', 'Vínculo 0', '+12% de chance de status', 'Libertar'], ['Larvitar', 'Vínculo 0', '+15 de HP máx.', 'Libertar'], ['Hitmontop', 'NOVO', '+10% de dano em elites', 'Libertar o novo'] ];
+  assert.deepEqual(simularTela(null, { dados, ordem: ['dano elites', 'coleta', 'sorteio', 'armadura', 'vida'] }), ['Larvitar']);
+  assert.deepEqual(simularTela(null, { dados, ordem: ['coleta', 'sorteio', 'armadura', 'vida', 'dano elites'] }), ['Hitmontop']);
+});
+
+test('na troca de brilhantes com dano em elites igual mantém o existente', () => {
+  const dados = [['Machop', 'Vínculo 2', '+20% de dano em elites', 'Libertar'], ['Tyrogue', 'NOVO', '+20% de dano em elites', 'Libertar o novo']];
+  assert.deepEqual(simularTela(null, { dados, ordem: ['dano elites'], titulo: 'Tyrogue brilhante quer te acompanhar!', ajuda: 'Só um brilhante pode te acompanhar: escolha qual libertar. O registro na Pokédex e os 120 de Stardust você ganha de qualquer jeito' }), ['Tyrogue']);
+});
