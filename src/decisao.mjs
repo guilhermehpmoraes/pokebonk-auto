@@ -58,8 +58,13 @@ export function prioridadeGolpePlano({ receitas, concluidas, equipados, id }) {
 }
 
 // Nunca bane um golpe que pertence ao plano apenas por ainda ser cedo para ele.
-export function decidirSemGolpeSeguro({ atualizacoes, pulos, temporarios }) {
-  if (!Number.isInteger(atualizacoes) || atualizacoes < 0 || !Array.isArray(temporarios)) return { acao: 'aguardar' };
+export function decidirSemGolpeSeguro({ banimentos, baniveis, atualizacoes, pulos, temporarios }) {
+  if (!Array.isArray(baniveis) || !Array.isArray(temporarios)) return { acao: 'aguardar' };
+  if (baniveis.length) {
+    if (!Number.isInteger(banimentos) || banimentos < 0) return { acao: 'aguardar' };
+    if (banimentos > 0) return { acao: 'banir', id: baniveis[0] };
+  }
+  if (!Number.isInteger(atualizacoes) || atualizacoes < 0) return { acao: 'aguardar' };
   if (atualizacoes > 0) return { acao: 'atualizar' };
   if (!Number.isInteger(pulos) || pulos < 0) return { acao: 'aguardar' };
   if (pulos > 0) return { acao: 'pular' };

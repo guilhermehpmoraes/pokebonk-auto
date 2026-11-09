@@ -22,22 +22,47 @@ function preparar() {
   return { api: ctx.testeBuild, player, run, defs, pares, eventos, controles, comandos, setOfertas: (o) => { ofertas = o; }, setPrompt: (p) => { prompt = p; }, setModal: (m) => { modal = m; }, setBuild: (b) => { build = b; } };
 }
 
-function telaComUltimoEspaco({ atualizacoes = 0, pulos = 0 } = {}) {
-  const t = preparar(), acoes = [];
+function telaComUltimoEspaco({ banimentos = 0, atualizacoes = 0, pulos = 0 } = {}) {
+  const t = preparar(), acoes = []; let fase = 'normal'; const selos = new Set([7]);
   t.pares.splice(0, t.pares.length, { id: 'assinatura', pares: [[1, 2]], nome: 'A' }, { id: 'terceira', pares: [[3, 4]], nome: 'B' }, { id: 'tipo', pares: [[5, 6]], nome: 'C' });
   t.run.fusions = ['assinatura', 'terceira'];
   t.player.moves = [{ def: { id: 90, key: 'assinatura', fusion: {} }, level: 6, parents: [1, 2] }, { def: { id: 91, key: 'terceira', fusion: {} }, level: 6, parents: [3, 4] }, { def: t.defs[4], level: 10, parents: [] }, null];
-  for (const [indice, nome, quantidade] of [[0, 'Banir', 6], [1, 'Atualizar', atualizacoes], [2, 'Pular', pulos]]) {
+  for (const [indice, nome, quantidade] of [[0, 'Banir', banimentos], [1, 'Atualizar', atualizacoes], [2, 'Pular', pulos]]) {
     t.comandos[indice].textContent = `${nome} (${quantidade})`;
     t.comandos[indice].disabled = quantidade === 0;
-    t.comandos[indice].click = () => acoes.push(nome);
+    t.comandos[indice].click = () => { acoes.push(nome); if (nome === 'Banir') { fase = 'escolher'; t.comandos[0].textContent = 'Escolha o que banir'; } };
   }
-  const card = (id, planejado) => ({ disabled: false, outerHTML: `golpe-${id}`, getClientRects: () => [1], querySelector(s) { return s === 'h3' ? { textContent: `Golpe ${id}` } : s === '.kind' ? { textContent: 'NOVO' } : s === '.top .typeicon' || (s === '.bp-badge' && planejado) ? {} : null; }, click() { acoes.push(`Golpe ${id}`); } });
-  t.setOfertas([card(10, false), card(11, false), card(7, true), card(12, false)]);
-  return { t, acoes };
+  const card = (id) => ({ disabled: false, outerHTML: `golpe-${id}`, getClientRects: () => [1], querySelector(s) { return s === 'h3' ? { textContent: `Golpe ${id}` } : s === '.kind' ? { textContent: 'NOVO' } : s === '.top .typeicon' || (s === '.bp-badge' && selos.has(id)) ? {} : null; }, click() { acoes.push(`Golpe ${id}`); if (fase === 'escolher') { fase = 'confirmar'; t.comandos[0].textContent = `Banir Golpe ${id}? Toque outra vez`; } else if (fase === 'confirmar') fase = 'finalizado'; } });
+  t.setOfertas([card(10), card(11), card(7), card(12)]);
+  return { t, acoes, marcarPlanejado: (id) => selos.add(id) };
 }
 
-test('com o último espaço reservado atualiza uma vez, sem banir o golpe planejado', () => {
+test('com o último espaço reservado bane uma oferta fora do plano antes de atualizar', () => {
+  const { t, acoes } = telaComUltimoEspaco({ banimentos: 6, atualizacoes: 8, pulos: 8 });
+  t.api.observar(); t.api.observar(); t.api.observar();
+  assert.deepEqual(acoes, ['Banir', 'Golpe 10', 'Golpe 10']);
+  assert.ok(!acoes.includes('Golpe 7'));
+});
+
+test('interrompe o banimento se um selo de plano mudar', () => {
+  const { t, acoes, marcarPlanejado } = telaComUltimoEspaco({ banimentos: 6, atualizacoes: 8, pulos: 8 });
+  t.api.observar(); marcarPlanejado(10); t.api.observar();
+  assert.deepEqual(acoes, ['Banir']);
+});
+
+test('interrompe o banimento se o plano da partida mudar', () => {
+  const { t, acoes } = telaComUltimoEspaco({ banimentos: 6, atualizacoes: 8, pulos: 8 });
+  t.api.observar(); t.run.planSnap.moves = [...t.run.planSnap.moves, 8]; t.api.observar();
+  assert.deepEqual(acoes, ['Banir']);
+});
+
+test('atualiza se todas as ofertas tiverem selo e não houver alvo seguro para banir', () => {
+  const { t, acoes, marcarPlanejado } = telaComUltimoEspaco({ banimentos: 6, atualizacoes: 8, pulos: 8 });
+  [10, 11, 12].forEach(marcarPlanejado);
+  t.api.observar(); assert.deepEqual(acoes, ['Atualizar']);
+});
+
+test('sem banimentos atualiza uma vez, preservando o golpe planejado', () => {
   const { t, acoes } = telaComUltimoEspaco({ atualizacoes: 8, pulos: 8 });
   t.api.observar(); t.api.observar();
   assert.deepEqual(acoes, ['Atualizar']);

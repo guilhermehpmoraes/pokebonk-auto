@@ -889,7 +889,8 @@ function observar() {
   if (banimentoPendente) {
     const pendente = banimentoPendente;
     if (Date.now() - pendente.inicio > 5000 || JSON.stringify(nomes) !== pendente.nomes ||
-        botoes.some((b) => b.querySelector('.bp-badge'))) { banimentoPendente = null; return; }
+        JSON.stringify(botoes.map((b) => !!b.querySelector('.bp-badge'))) !== pendente.selos ||
+        (pendente.plano && JSON.stringify(mapaInstancia?.run?.planSnap) !== pendente.plano)) { banimentoPendente = null; return; }
     const alvo = botoes[pendente.indice];
     if (!alvo || alvo.querySelector('.bp-badge')) { banimentoPendente = null; return; }
     if (emBanimento && (pendente.fase === 'escolher' || (pendente.fase === 'confirmar' && pendente.tentativas < 3 && Date.now() - pendente.ultima >= 500))) {
@@ -946,6 +947,8 @@ function observar() {
   if (estadoBuild && estadoBuild.plano.fus.length) {
     const novas = opcoes.filter((o) => o.noPlano && o.tipo === 'golpe' && o.estado === 'novo');
     if (novas.length) {
+      const baniveis = opcoes.filter((o) => !o.noPlano && o.estado === 'novo' &&
+        !estadoBuild.defs.some((def) => normalizar(def.name) === normalizar(nomes[o.id]))).map((o) => o.id);
       const candidatas = novas.flatMap((opcao) => {
         const encontrados = estadoBuild.defs.filter((def) => normalizar(def.name) === normalizar(nomes[opcao.id]));
         if (encontrados.length !== 1 || !estadoBuild.decisao.aprender.includes(encontrados[0].id)) return [];
@@ -966,11 +969,14 @@ function observar() {
           const depois = { ...estadoBuild.entrada, equipados: [...estadoBuild.entrada.equipados, defs[0].id] };
           return golpesParaAbrirEspaco(depois).includes(defs[0].id) ? [opcao.id] : [];
         }) : [];
-        const acao = decidirSemGolpeSeguro({ atualizacoes: usos(atualizar), pulos: usos(pular), temporarios });
+        const acao = decidirSemGolpeSeguro({ banimentos: usos(banir), baniveis, atualizacoes: usos(atualizar), pulos: usos(pular), temporarios });
         if (acao.acao === 'selecionar') selecionarComTentativa(botoes, acao.id, assinatura);
         else if (acao.acao !== 'aguardar' && assinatura !== ultimoConjunto) {
           ultimoConjunto = assinatura;
-          (acao.acao === 'atualizar' ? atualizar : pular).click();
+          if (acao.acao === 'banir') {
+            banimentoPendente = { indice: acao.id, nomes: JSON.stringify(nomes), selos: JSON.stringify(botoes.map((b) => !!b.querySelector('.bp-badge'))), plano: JSON.stringify(estadoBuild.plano), inicio: Date.now(), fase: 'escolher', tentativas: 0 };
+            banir.click(); agendar();
+          } else (acao.acao === 'atualizar' ? atualizar : pular).click();
         }
         return;
       }
@@ -990,7 +996,7 @@ function observar() {
   if (assinatura === ultimoConjunto) return;
   ultimoConjunto = assinatura;
   if (decisao.acao === 'banir') {
-    banimentoPendente = { indice: decisao.id, nomes: JSON.stringify(nomes), inicio: Date.now(), fase: 'escolher', tentativas: 0 };
+    banimentoPendente = { indice: decisao.id, nomes: JSON.stringify(nomes), selos: JSON.stringify(botoes.map((b) => !!b.querySelector('.bp-badge'))), inicio: Date.now(), fase: 'escolher', tentativas: 0 };
     banir.click();
     agendar();
   }

@@ -33,13 +33,15 @@ test('prioriza parceiro equipado e ingrediente com menos alternativas', () => {
   assert.ok(prioridadeGolpePlano({ ...base, id: 4 }) > prioridadeGolpePlano({ ...base, id: 5, equipados: [1] }));
 });
 
-test('sem golpe seguro atualiza, pula e só então permite oferta temporária comprovada', () => {
-  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: 8, pulos: 8, temporarios: [2] }), { acao: 'atualizar' });
-  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: 0, pulos: 8, temporarios: [2] }), { acao: 'pular' });
-  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: 0, pulos: 0, temporarios: [2] }), { acao: 'selecionar', id: 2 });
-  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: 0, pulos: 0, temporarios: [] }), { acao: 'aguardar' });
-  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: null, pulos: 0, temporarios: [2] }), { acao: 'aguardar' });
-  assert.deepEqual(decidirSemGolpeSeguro({ atualizacoes: 1, pulos: null, temporarios: [2] }), { acao: 'atualizar' });
+test('sem golpe seguro usa banimento, atualização e pulo antes de opção temporária', () => {
+  const base = { banimentos: 6, baniveis: [3], atualizacoes: 8, pulos: 8, temporarios: [2] };
+  assert.deepEqual(decidirSemGolpeSeguro(base), { acao: 'banir', id: 3 });
+  assert.deepEqual(decidirSemGolpeSeguro({ ...base, banimentos: 0 }), { acao: 'atualizar' });
+  assert.deepEqual(decidirSemGolpeSeguro({ ...base, banimentos: 0, atualizacoes: 0 }), { acao: 'pular' });
+  assert.deepEqual(decidirSemGolpeSeguro({ ...base, banimentos: 0, atualizacoes: 0, pulos: 0 }), { acao: 'selecionar', id: 2 });
+  assert.deepEqual(decidirSemGolpeSeguro({ ...base, banimentos: 0, atualizacoes: 0, pulos: 0, temporarios: [] }), { acao: 'aguardar' });
+  assert.deepEqual(decidirSemGolpeSeguro({ ...base, banimentos: null }), { acao: 'aguardar' });
+  assert.deepEqual(decidirSemGolpeSeguro({ ...base, baniveis: [], banimentos: null, pulos: null }), { acao: 'atualizar' });
 });
 
 const primeiro = () => 0;

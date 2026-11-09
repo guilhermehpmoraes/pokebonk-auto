@@ -2,7 +2,7 @@
 
 O planejador puro `planejarFusoes`, em `src/decisao.mjs`, recebe as receitas identificadas pelo adaptador e verifica sequências de fusão. O adaptador acessa o estado da partida e o catálogo interno do jogo para Bill, Hypno e prioridade de golpes; quando os dados não são reconhecidos, esses fluxos aguardam.
 
-O fallback de level-up para uma oferta planejada que bloquearia o espaço usa uma decisão pura para atualização, pulo ou escolha temporária; o adaptador confere se a remoção da escolha destrava o modelo antes de oferecê-la à decisão.
+O fallback de level-up para uma oferta planejada que bloquearia o espaço usa uma decisão pura para banimento, atualização, pulo ou escolha temporária; o adaptador identifica alvos fora do plano e confere se a remoção da escolha destrava o modelo antes de oferecê-la à decisão.
 
 O adaptador mantém um motivo resumido da última falha de leitura e o exibe ao detectar o aviso de Bill ou Hypno; ele não grava informações da partida nesse indicador.
 

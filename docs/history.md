@@ -8,6 +8,8 @@ Depois de novo relato com uma fusão pronta, a verificação foi corrigida de n�
 
 O usuário confirmou que a máquina funcionou após a alteração e relatou uma parada posterior no level-up com um golpe do plano ainda inadequado para o último espaço. O fluxo passou a atualizar ou pular e, sem recursos, admitir uma escolha temporária reversível no modelo. A nova regra tem testes simulados e ainda requer confirmação em jogo.
 
+O usuário corrigiu a ordem desejada para banir, atualizar e pular. O fallback passou a banir ofertas novas reconhecidas como fora do plano antes dos demais recursos, mantendo o alvo protegido contra mudanças de selo ou do plano durante a confirmação. A integração foi simulada e ainda precisa de confirmação em jogo.
+
 Após relato de parada na escolha de Alfa com Arcanine, dano de status passou a ser reconhecido no catálogo. O cenário da imagem foi simulado; a causa e a correção ainda precisam de confirmação em jogo.
 
 Após o usuário mostrar a opção de até dez giros, o pickup passou a avaliar o preço do lote e a confirmar o resumo reconhecido. A implementação tem teste simulado e precisa de confirmação na partida real.

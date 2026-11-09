@@ -27,7 +27,7 @@ O aviso de item fora da build permanece na aba e pode sobreviver ao recarregamen
 
 Bill e Hypno exigem Auto Select e Auto Pickup ligados, além da compilação `mw88813m` e dos dados internos reconhecidos. O script pode esquecer um golpe do plano para destravar os espaços quando o modelo identifica uma sequência possível; o golpe esquecido volta ao nível inicial se for aprendido de novo. As ações têm testes simulados, não confirmação em jogo. A atualização do jogo pode desativá-las até que a compatibilidade seja revista.
 
-Quando atualização e pulo estão esgotados, um golpe do plano pode ser escolhido temporariamente e precisar ser esquecido no Hypno para liberar espaço. O jogador precisa ir até o Hypno; a simulação de sequência não garante que o jogo oferecerá novamente o golpe ou seus parceiros.
+Quando não houver banimento elegível e atualização e pulo estiverem esgotados, um golpe do plano pode ser escolhido temporariamente e precisar ser esquecido no Hypno para liberar espaço. O jogador precisa ir até o Hypno; a simulação de sequência não garante que o jogo oferecerá novamente o golpe ou seus parceiros.
 
 Na proximidade de Bill ou Hypno, confira o texto do botão de pickup se a interação não ocorrer. O motivo é resumido e pode indicar ausência de dados, incompatibilidade, plano bloqueado ou ausência de par seguro. Não prova se o clique seria aceito pelo jogo.
 

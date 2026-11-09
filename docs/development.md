@@ -8,6 +8,8 @@ Os cenários de Bill incluem ataques acima do nível 8 depois de outra fusão co
 
 Os testes de level-up simulam duas fusões prontas, um último espaço reservado, atualização, pulo e escolha temporária quando ambos se esgotam; não confirmam a interação real nem a disponibilidade futura das ofertas.
 
+O cenário também verifica banimento individual antes de atualizar, preservação de oferta planejada na mesma tela, mudança de selo, mudança do plano e ausência de alvo seguro. O teste é simulado.
+
 O teste de Alfa inclui a equipe com Arcanine e dano de status mostrada pelo usuário, em ordens diferentes de prioridade; a interação real ainda requer confirmação.
 
 ## Ambiente
