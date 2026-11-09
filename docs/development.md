@@ -2,6 +2,8 @@
 
 Os testes de planejamento de fusões e de Bill/Hypno simulam reserva de ingredientes, ocupação de espaços, abertura da máquina, escolha de fusão, remoção de ataque e recusa de dados desconhecidos. Não comprovam as APIs internas nem as interações em partida real.
 
+Os cenários de Bill também cobrem união explícita ou inferida, troca de modo, preservação de ingredientes, prioridade da fusão e rejeição quando o cartão mostra outro par. Os testes não comprovam planos copiados nem cliques na máquina real.
+
 Após a falha relatada diante de Bill, um teste do planejador reproduz uma estrutura equivalente com uma fusão concluída; outro testa uma implementação de `has` que não pertence à classe `Set` do mesmo contexto. Os motivos de espera também têm simulação parcial.
 
 Os cenários de Bill incluem ataques acima do nível 8 depois de outra fusão concluída e um par com ataque abaixo do nível necessário. A integração real ainda requer confirmação.

@@ -29,7 +29,7 @@ Com estado e receitas reconhecidos, novas ofertas de golpes são filtradas pelo 
 
 Com o pickup ligado, um ataque fora do plano e espaço livre, a escolha pode considerar uma sequência que dependa de removê-lo depois no Hypno. Uma oferta que não dependa dessa remoção tem preferência quando ambas estiverem disponíveis. O aviso ao jogador continua necessário, pois o script não se desloca até o Hypno.
 
-Com os dois autos ligados, o pickup identifica a proximidade de Bill ou Hypno e interage quando existe uma ação segura. Na máquina verifica par, resultado e modo de fusão. No Hypno confere o ataque e a seção, e na lição seleciona uma opção segura ou guarda a oferta. Fusões já equipadas e ataques unidos não são removidos automaticamente. O modelo verifica caminhos com os ataques e receitas conhecidos, sem garantir ofertas futuras ou a compatibilidade de atualizações do jogo.
+Com os dois autos ligados, o pickup identifica a proximidade de Bill ou Hypno e interage quando existe uma ação segura. Na máquina prioriza fusões prontas e, se não houver uma, pode unir um par seguro; pares de união explícitos têm preferência sobre os inferidos. Confere o par e o modo selecionado antes de confirmar. No Hypno confere o ataque e a seção, e na lição seleciona uma opção segura ou guarda a oferta. Fusões já equipadas e ataques unidos não são removidos automaticamente. O modelo verifica caminhos com os ataques e receitas conhecidos, sem garantir ofertas futuras ou a compatibilidade de atualizações do jogo.
 
 Na verificação de prontidão da máquina, cada ataque do par deve ter nível inteiro igual ou superior a 8, acompanhando a regra observada no código do jogo. O nível pode continuar aumentando depois do máximo indicado no HUD.
 

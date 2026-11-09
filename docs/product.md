@@ -20,7 +20,7 @@ Com Auto Select e Auto Pickup ligados, o script também tenta identificar ataque
 
 Com o Auto Pickup ligado, se um ataque errado bloquear o planejamento completo, o Auto Select pode escolher um ataque planejado que caiba no espaço atual e mantenha uma sequência possível após a remoção do erro no Hypno. Ofertas que mantêm uma sequência sem essa remoção têm preferência quando aparecem na mesma tela.
 
-Com os dois controles ligados e dados reconhecidos, o pickup abre a Máquina do Bill quando existe um par planejado seguro com ambos os ataques no nível 8 ou acima. O script confirma somente a fusão correspondente, preservando os demais ingredientes. Se houver vários pares seguros, pode usar qualquer um. O modelo não garante que futuros ataques serão oferecidos pelo jogo.
+Com os dois controles ligados e dados reconhecidos, o pickup abre a Máquina do Bill quando existe um par seguro com ambos os ataques no nível 8 ou acima. Ele prioriza fusões prontas e também realiza uniões, respeitando pares do plano e preservando uma sequência possível para as demais operações. Quando há menos de três fusões ou uniões explicitamente planejadas, pode completar os espaços com uniões entre golpes do plano, até o limite de pares disponíveis. O modelo não garante que futuros ataques serão oferecidos pelo jogo.
 
 Se o script não puder avaliar Bill ou Hypno, o botão de pickup mostra o motivo reconhecido. Se nenhum par for seguro e estiver pronto, informa essa condição e aguarda.
 

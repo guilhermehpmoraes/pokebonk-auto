@@ -44,6 +44,8 @@ Quando ativo, o botão do Auto Pickup mostra uma sugestão de destino mantida em
 
 O painel de mapa captura a instância de marcadores envolvendo os métodos de marcadores e de custo da classe interna carregada pelo jogo. Quando o registro do recurso não está disponível, há uma URL alternativa para a build conferida. A extração e a projeção são conservadoras quando a versão ou os dados não são reconhecidos. O adaptador identifica a tela Alfa, e a escolha entre bônus é uma regra pura em `decisao.mjs`.
 
+O planejador trata fusões e uniões como operações que ocupam um espaço e reservam dois ingredientes; o adaptador verifica e aciona o modo correspondente da Máquina do Bill.
+
 A captura também observa adições durante a construção da instância, verificando-a após o construtor. O catálogo de vitaminas tem alternativa para a build conferida quando não há registro do módulo.
 
 A visibilidade do aviso de itens fora da build acompanha a carteira do HUD, sem depender da captura da instância; a remoção dos avisos continua dependente da reconciliação do inventário.

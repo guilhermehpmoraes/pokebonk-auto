@@ -593,9 +593,9 @@ function observarPickup() {
     const estado = estadoPlanoPartida();
     if (estado && estado.run.state === 'play') {
       if (texto.startsWith('maquina do bill')) {
-        interacaoBuild = fusoesProntas(estado).length > 0;
+        interacaoBuild = operacoesProntas(estado).length > 0;
         if (!interacaoBuild) atualizarIndicadorPickup(estado.decisao.fundir.length
-          ? 'Bill: par seguro ainda não está no nível 8' : 'Bill: nenhuma fusão planejada segura');
+          ? 'Bill: par seguro ainda não está no nível 8' : 'Bill: nenhuma operação planejada segura');
       }
       else if ((estado.errados.length || estado.ceder.length) && estado.presentes.length > 1) { interacaoBuild = true; visitaHypnoAutomatica = true; }
     } else if (!estado) atualizarIndicadorPickup(`${texto.startsWith('maquina do bill') ? 'Bill' : 'Hypno'}: ${motivoPlano}`);
@@ -851,12 +851,13 @@ function estadoPlanoPartida() {
     if (!instancia || instancia.disposed || run?.interactables !== instancia) return falhaPlano('aguardando dados da partida');
     if (!moduloDadosJogo || typeof moduloDadosJogo.Qi !== 'function' || typeof moduloDadosJogo.Dr !== 'function') return falhaPlano('catálogo do jogo indisponível');
     if (!plano || !Array.isArray(plano.moves) || !Array.isArray(plano.fus) || !Array.isArray(plano.links)) return falhaPlano('plano da partida indisponível');
-    if (plano.links.length) return falhaPlano('plano com uniões não suportado');
     if (!Array.isArray(player?.moves) || !Array.isArray(run.fusions) || typeof run.banished?.has !== 'function' ||
         !Number.isInteger(player.moveSlots) || player.moveSlots < 1 || player.moveSlots > 4) return falhaPlano('ataques equipados não reconhecidos');
-    if (!plano.moves.length || plano.moves.length > 8 || plano.fus.length > 3 || plano.moves.some((id) => !Number.isInteger(id))) return falhaPlano('plano de ataques inválido');
+    if (!plano.moves.length || plano.moves.length > 8 || plano.fus.length + plano.links.length > 3 || plano.moves.some((id) => !Number.isInteger(id)) ||
+        plano.links.some((par) => !Array.isArray(par) || par.length !== 2 || par[0] === par[1] || par.some((id) => !plano.moves.includes(id))) ||
+        new Set(plano.links.flat()).size !== plano.links.length * 2) return falhaPlano('plano de ataques inválido');
     if (plano.moves.some((id) => run.banished.has(`m${id}`))) return falhaPlano('plano contém ataque banido');
-    const assinatura = JSON.stringify([plano.moves, plano.fus, player.roster?.id]);
+    const assinatura = JSON.stringify([plano.moves, plano.fus, plano.links, player.roster?.id]);
     if (!cacheReceitasBill || cacheReceitasBill.run !== run || cacheReceitasBill.assinatura !== assinatura) {
       const defs = plano.moves.map((id) => moduloDadosJogo.Qi(id, player.roster?.id ?? 0));
       if (defs.some((def, i) => !def || def.id !== plano.moves[i] || !def.key || !def.name || !def.type)) return falhaPlano('catálogo de ataques incompleto');
@@ -866,16 +867,32 @@ function estadoPlanoPartida() {
       if (!Array.isArray(pares)) return falhaPlano('combinações de ataque indisponíveis');
       const receitas = plano.fus.map((id) => { const encontrados = pares.filter((p) => p?.r?.key === id && p.a >= 0 && p.b >= 0 && p.a < defs.length && p.b < defs.length); return { id, nome: encontrados[0]?.r?.name, pares: encontrados.map((p) => [defs[p.a].id, defs[p.b].id]) }; });
       if (receitas.some((r) => !r.pares.length)) return falhaPlano('receita do plano sem par reconhecido');
+      const paresUniao = pares.filter((p) => p && p.boon && Number.isInteger(p.a) && Number.isInteger(p.b) && p.a >= 0 && p.b >= 0 && p.a < defs.length && p.b < defs.length && p.a !== p.b)
+        .map((p) => [defs[p.a].id, defs[p.b].id]);
+      if (plano.links.some((par) => !paresUniao.some((p) => p.includes(par[0]) && p.includes(par[1])))) return falhaPlano('união do plano incompatível');
+      const livres = Math.min(3 - plano.fus.length, Math.floor((plano.moves.length - 2 * plano.fus.length) / 2));
+      const receitasUniao = plano.links.map((par, i) => ({ id: `uniao:plano:${i}`, pares: [par], uniao: true, planejada: true }));
+      for (let i = receitasUniao.length; i < livres && paresUniao.length; i++) receitasUniao.push({ id: `uniao:livre:${i}`, pares: paresUniao, uniao: true });
+      receitas.push(...receitasUniao);
       cacheReceitasBill = { run, assinatura, defs, receitas };
     }
     const presentes = player.moves.filter(Boolean);
-    if (presentes.some((m) => !m?.def || m.link || !Array.isArray(m.parents))) return falhaPlano('ataques unidos ou dados incompletos');
-    const concluidas = presentes.filter((m) => m.def.fusion).map((m) => m.def.key);
-    if (concluidas.some((id) => !plano.fus.includes(id)) || new Set(concluidas).size !== concluidas.length ||
-        run.fusions.some((id) => plano.fus.includes(id) && !concluidas.includes(id))) return falhaPlano('fusões equipadas não correspondem ao plano');
+    if (presentes.some((m) => !m?.def || !Array.isArray(m.parents) || (m.link && (!m.link.def || m.def.fusion || m.link.def.fusion || m.link.link)))) return falhaPlano('ataques unidos ou dados incompletos');
+    const fusoesConcluidas = presentes.filter((m) => m.def.fusion).map((m) => m.def.key);
+    if (fusoesConcluidas.some((id) => !plano.fus.includes(id)) || new Set(fusoesConcluidas).size !== fusoesConcluidas.length ||
+        run.fusions.some((id) => plano.fus.includes(id) && !fusoesConcluidas.includes(id))) return falhaPlano('fusões equipadas não correspondem ao plano');
     const consumidos = presentes.filter((m) => m.def.fusion).flatMap((m) => m.parents);
-    if (consumidos.length !== 2 * concluidas.length || consumidos.some((id) => !plano.moves.includes(id))) return falhaPlano('ingredientes da fusão não reconhecidos');
-    const normais = presentes.filter((m) => !m.def.fusion);
+    if (consumidos.length !== 2 * fusoesConcluidas.length || consumidos.some((id) => !plano.moves.includes(id))) return falhaPlano('ingredientes da fusão não reconhecidos');
+    const concluidas = [...fusoesConcluidas];
+    for (const movimento of presentes.filter((m) => m.link)) {
+      const par = [movimento.def.id, movimento.link.def.id];
+      if (par[0] === par[1] || par.some((id) => !plano.moves.includes(id) || consumidos.includes(id))) return falhaPlano('união equipada não corresponde ao plano');
+      const receita = cacheReceitasBill.receitas.filter((r) => r.uniao && !concluidas.includes(r.id) && r.pares.some((p) => p.includes(par[0]) && p.includes(par[1])))
+        .sort((a, b) => Number(!!b.planejada) - Number(!!a.planejada))[0];
+      if (!receita) return falhaPlano('união equipada não corresponde ao plano');
+      consumidos.push(...par); concluidas.push(receita.id);
+    }
+    const normais = presentes.filter((m) => !m.def.fusion && !m.link);
     if (normais.some((m) => { const def = cacheReceitasBill.defs.find((d) => d.id === m.def.id); return def && (def.key !== m.def.key || def.type !== m.def.type); })) return falhaPlano('ataques divergem do catálogo');
     const assinaturaAtuais = JSON.stringify(player.moves.map((m) => m ? [m.def?.id, m.level, !!m.link, !!m.def?.fusion] : null));
     if (cacheReceitasBill.atual !== assinaturaAtuais) {
@@ -885,7 +902,7 @@ function estadoPlanoPartida() {
         if (par.a < 0 || par.b < 0) continue;
         const a = player.moves[par.a]?.def?.id, b = player.moves[par.b]?.def?.id;
         if (!plano.moves.includes(a) || !plano.moves.includes(b)) continue;
-        const receita = cacheReceitasBill.receitas.find((r) => r.pares.some((p) => p.includes(a) && p.includes(b)));
+        const receita = cacheReceitasBill.receitas.find((r) => !r.uniao && r.pares.some((p) => p.includes(a) && p.includes(b)));
         if (receita && receita.id !== par.r?.key) return falhaPlano('combinação diverge da receita');
       }
       cacheReceitasBill.atual = assinaturaAtuais;
@@ -906,13 +923,14 @@ function estadoPlanoPartida() {
   }
 }
 
-function fusoesProntas(estado) {
-  return estado.decisao.fundir.filter(({ par }) => par.every((id) => estado.presentes.some((m) => !m.def.fusion && m.def.id === id && Number.isInteger(m.level) && m.level >= 8)));
+function operacoesProntas(estado) {
+  return estado.decisao.fundir.filter(({ par }) => par.every((id) => estado.presentes.some((m) => !m.def.fusion && !m.link && m.def.id === id && Number.isInteger(m.level) && m.level >= 8)));
 }
 
 function pesoGolpeNaPartida(estado, id) {
-  return prioridadeGolpePlano({ receitas: estado.receitas, concluidas: estado.run.fusions,
-    equipados: estado.presentes.filter((m) => !m.def.fusion).map((m) => m.def.id), id });
+  const calcular = (receitas) => prioridadeGolpePlano({ receitas, concluidas: estado.entrada.concluidas,
+    equipados: estado.entrada.equipados, id });
+  return 100 * calcular(estado.receitas.filter((r) => !r.uniao)) + calcular(estado.receitas.filter((r) => r.uniao && r.planejada));
 }
 
 function observarBuildEspecial() {
@@ -924,7 +942,7 @@ function observarBuildEspecial() {
   if (modais.length !== 1) { if (!modais.length && !interacaoLivre) visitaHypnoAutomatica = false; return false; }
   const modal = modais[0], bill = modal.querySelector?.('.bm-win');
   if (bill) {
-    const prontas = fusoesProntas(estado);
+    const prontas = operacoesProntas(estado);
     const linhas = [...(bill.querySelectorAll?.('button.bm-row') || [])];
     const nomes = new Map(estado.defs.map((def) => [def.id, normalizar(def.name)]));
     const candidatos = linhas.flatMap((linha) => {
@@ -935,12 +953,30 @@ function observarBuildEspecial() {
       return prontas.filter((f) => {
         const receita = estado.receitas.find((r) => r.id === f.id);
         const esperado = f.par.map((id) => nomes.get(id)).sort();
-        return resultado === normalizar(receita?.nome) && JSON.stringify(par.slice().sort()) === JSON.stringify(esperado);
+        return (receita?.uniao || resultado === normalizar(receita?.nome)) && JSON.stringify(par.slice().sort()) === JSON.stringify(esperado);
       }).map((f) => ({ linha, f }));
     });
     if (!candidatos.length) return true;
-    const alvo = candidatos.find((c) => c.linha.classList.contains('sel')) || candidatos[0];
+    candidatos.sort((a, b) => {
+      const ra = estado.receitas.find((r) => r.id === a.f.id), rb = estado.receitas.find((r) => r.id === b.f.id);
+      return Number(!!ra.uniao) - Number(!!rb.uniao) || Number(!!rb.planejada) - Number(!!ra.planejada);
+    });
+    const alvo = candidatos[0];
     if (!alvo.linha.classList.contains('sel')) { alvo.linha.click(); agendar(); return true; }
+    const receitaAlvo = estado.receitas.find((r) => r.id === alvo.f.id);
+    const tipo = receitaAlvo.uniao ? 'link' : 'fuse';
+    const abas = [...(bill.querySelectorAll?.('.bm-tabs button.bm-tab') || [])];
+    const aba = abas.find((b) => normalizar(b.querySelector?.('b')?.textContent) === (tipo === 'link' ? 'unir' : 'fundir'));
+    if (aba && !aba.classList.contains('on')) { if (!aba.disabled) { aba.click(); agendar(); } return true; }
+    if (tipo === 'link') {
+      const cartao = bill.querySelector('.bm-card.link'), go = bill.querySelector('button.bm-go.link');
+      const movimentos = [...(cartao?.querySelectorAll?.('.bm-lmove b') || [])].map((el) => normalizar(el.textContent)).sort();
+      const esperados = alvo.f.par.map((id) => nomes.get(id)).sort();
+      if (!cartao || JSON.stringify(movimentos) !== JSON.stringify(esperados) || !go || go.disabled ||
+          !normalizar(go.textContent).startsWith('unir os dois ataques')) return true;
+      selecionarComTentativa([go], 0, `bill:${alvo.f.id}:${alvo.f.par.join(':')}`);
+      return true;
+    }
     const cartao = bill.querySelector('.bm-card.fuse'), go = bill.querySelector('button.bm-go.fuse');
     const nome = estado.receitas.find((r) => r.id === alvo.f.id)?.nome;
     if (!cartao || normalizar(cartao.querySelector('h3')?.textContent) !== normalizar(nome) || !go || go.disabled ||
@@ -1080,11 +1116,11 @@ function observar() {
     return botao && contador ? (botao.disabled ? 0 : Number(contador[1])) : null;
   };
   const estadoBuild = estadoPlanoPartida();
-  if (!estadoBuild && mapaInstancia?.run?.planSnap?.fus?.length) {
+  if (!estadoBuild && (mapaInstancia?.run?.planSnap?.fus?.length || mapaInstancia?.run?.planSnap?.links?.length)) {
     if (pickupAtivo) atualizarIndicadorPickup(`Plano: ${motivoPlano}`);
     return;
   }
-  if (estadoBuild && estadoBuild.plano.fus.length) {
+  if (estadoBuild && estadoBuild.receitas.length) {
     const novas = opcoes.filter((o) => o.noPlano && o.tipo === 'golpe' && o.estado === 'novo');
     if (novas.length) {
       const baniveis = opcoes.filter((o) => !o.noPlano && o.estado === 'novo' &&

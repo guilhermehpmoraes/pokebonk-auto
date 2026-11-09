@@ -118,6 +118,8 @@ O usuário relatou que mapa e remoção dos avisos funcionam no solo, mas não c
 
 Após relato de sugestão cortada no HUD, o Auto Pickup ganhou mais largura e quebra de linha, e o mapa foi deslocado para o lado esquerdo do Auto Select. A disposição precisa de validação visual no jogo.
 
+Foi acrescentada a escolha de uniões na Máquina do Bill, com prioridade às fusões prontas, pares explícitos do plano e complementação por pares seguros. Os cenários são simulados; a integração real com planos copiados e com a máquina ainda requer confirmação.
+
 Após relato de sobreposição do minimapa e do inventário, os controles e a lista foram deslocados para o lado esquerdo e o aviso de itens para uma posição superior. A disposição ainda precisa de confirmação visual em jogo.
 
 Na versão 0.2.36, o aviso de chamada de onda fornecido pelo usuário passou a ser reconhecido pelo Auto Pickup. A numeração variável e o envio de E têm testes simulados; falta validação em partida.
