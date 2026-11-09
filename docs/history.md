@@ -114,6 +114,8 @@ Após relatos de mapa aguardando dados e falha no Hypno, foi ampliada a descober
 
 Após relato de aviso fora da build na sala cooperativa, sua visibilidade passou a depender do HUD da partida. O teste simula saída e retorno, preservação dos avisos e reconciliação; ainda requer confirmação no jogo.
 
+O usuário relatou que mapa e remoção dos avisos funcionam no solo, mas não como convidado no cooperativo com a versão 0.2.51. Foram acrescentadas tentativas de captura após construção e de carregar o catálogo de vitaminas sem registro de recurso; a causa específica e o resultado na partida ainda não foram confirmados.
+
 Após relato de sobreposição do minimapa e do inventário, os controles e a lista foram deslocados para o lado esquerdo e o aviso de itens para uma posição superior. A disposição ainda precisa de confirmação visual em jogo.
 
 Na versão 0.2.36, o aviso de chamada de onda fornecido pelo usuário passou a ser reconhecido pelo Auto Pickup. A numeração variável e o envio de E têm testes simulados; falta validação em partida.

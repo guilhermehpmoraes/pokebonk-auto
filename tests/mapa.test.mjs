@@ -30,7 +30,7 @@ test('recupera módulo da build conhecida sem performance e captura pelo preço 
   let intervalo, compilacao = 'mw88813m'; const controles = [], tarefas = [];
   class Objetos {
     constructor() { this.list = [{ kind: 'hypno', used: false }]; this.run = { interactables: this }; }
-    markers() { return this.list; } chestCost() { return 18; } add() {}
+    markers() { return this.list; } chestCost() { return 18; } add() { this.list.push({ kind: 'chest', used: false }); return 42; }
   }
   const chip = (n) => ({ getClientRects: () => [1], querySelector: () => ({ textContent: String(n) }) });
   const carteira = { getClientRects: () => [1], dataset: { g: '1000', k: '1000|18|40|40' }, querySelector: (s) => chip(s === '.wl-ball' ? 18 : 40) };
@@ -44,4 +44,10 @@ test('recupera módulo da build conhecida sem performance e captura pelo preço 
   assert.match(controles[4].textContent, /Hypno: 1/);
   objetos.disposed = true; objetos.chestCost(); tick();
   assert.match(controles[4].textContent, /Aguardando dados/);
+  // O convidado pode criar objetos antes de a partida atribuir interactables.
+  const novo = new Objetos(); novo.run.interactables = null;
+  assert.equal(novo.add(), 42);
+  novo.run.interactables = novo; tick(); tick();
+  assert.match(controles[4].textContent, /Hypno: 1/);
+  assert.match(controles[4].textContent, /Pokébolas pagas: 1/);
 });

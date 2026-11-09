@@ -63,6 +63,8 @@ O painel de mapa é independente dos controles de ativação e pode ser recolhid
 
 A captura pode ocorrer na consulta de marcadores ou na de preço da Pokébola. Sem registro do módulo no navegador, tenta uma URL previamente identificada apenas na build correspondente; Hypno e outras funções que usam a mesma instância ainda aguardam se a captura falhar.
 
+A criação de objetos também agenda a captura após a partida atribuir sua instância. O catálogo de vitaminas usa uma URL conferida da mesma build se faltar seu registro de recurso.
+
 A comparação reconhece também o bônus de cura mostrado nos cartões; sua posição é configurável no preset e não é confundida com regeneração.
 
 A comparação reconhece dano de status como prioridade própria, separada de chance de status. Sua posição pode ser ajustada no preset.

@@ -60,6 +60,8 @@ Os testes simulam lotes renovados repetidamente, reserva para Pokébola e retorn
 
 O teste de mapa também simula a ausência do registro do módulo para a build conhecida, captura pela consulta de preço e descarte de instância encerrada. A captura no navegador real continua sem confirmação.
 
+Os testes simulam captura após adição antes da atribuição da instância e carregamento do catálogo de vitaminas sem registro de recurso. Não reproduzem uma sessão cooperativa real.
+
 `tests/fenda.test.mjs` simula controle independente iniciado desligado, disponibilidade, bloqueios, intervalo entre pressionamentos e entrada na Fenda, inclusive com o pickup ligado e desligado. Não comprova a integração com a partida real.
 
 O teste também simula a ausência de carteira e instância interna, a tentativa pelo HUD pronto, o intervalo maior, modal aberto e a distinção entre entrada de Fenda e portal. Não comprova o resultado dos eventos no jogo.

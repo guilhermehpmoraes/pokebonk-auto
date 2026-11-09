@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
-function preparar(avisos) {
+function preparar(avisos, { semRecursos = false } = {}) {
   let tempo = 1000, compilacao = 'mw88813m', hudVisivel = true;
   const memoria = new Map([['pokebonk-auto-select-fora-da-build', JSON.stringify(avisos)]]);
   class Elemento {
@@ -17,7 +17,7 @@ function preparar(avisos) {
   const sessionStorage = { getItem: (k) => memoria.get(k) ?? null, setItem: (k, v) => memoria.set(k, v) };
   const catalogo = new Map([['vit-a', { name: 'Vitamina A' }], ['vit-b', { name: 'Vitamina B' }]]);
   const codigo = readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8').replaceAll('await import(urls[0])', 'await Promise.resolve(moduloTeste)').replace('new MutationObserver(agendar).observe', 'globalThis.testeAvisos = { definir(i, m, v) { mapaInstancia = i; moduloDadosJogo = m; catalogoVitaminas = v; }, sincronizarAvisosComInventario, carregarCatalogoVitaminas, atualizarVisibilidadeAvisos };\nnew MutationObserver(agendar).observe');
-  const ctx = { document, sessionStorage, localStorage: { getItem: () => null }, MutationObserver, window: {}, URL, location: { href: 'https://pokebonk.com/', origin: 'https://pokebonk.com' }, performance: { getEntriesByType: () => [{ name: 'https://pokebonk.com/assets/defineProperty-teste.js' }] }, moduloTeste: { ao: catalogo }, setTimeout() {}, setInterval() {}, Date: { now: () => tempo }, Math };
+  const ctx = { document, sessionStorage, localStorage: { getItem: () => null }, MutationObserver, window: {}, URL, location: { href: 'https://pokebonk.com/', origin: 'https://pokebonk.com' }, performance: { getEntriesByType: () => semRecursos ? [] : [{ name: 'https://pokebonk.com/assets/defineProperty-teste.js' }] }, moduloTeste: { ao: catalogo }, setTimeout() {}, setInterval() {}, Date: { now: () => tempo }, Math };
   vm.runInNewContext(codigo, ctx);
   const player = { moveSlots: 4, roster: { id: 1 }, moves: [], vitamins: new Map() };
   const run = { state: 'play', player }, instancia = { run }; run.interactables = instancia;
@@ -101,6 +101,15 @@ test('aguarda catálogo de vitaminas sem impedir a atualização dos avisos de a
   t.api.definir(t.instancia, null, null);
   t.api.sincronizarAvisosComInventario(); t.passar(); t.api.sincronizarAvisosComInventario();
   assert.deepEqual(t.avisos(), [aviso('Vitamina A', 'vitamina')]);
+  t.passar(3000); await t.api.carregarCatalogoVitaminas();
+  t.api.sincronizarAvisosComInventario(); t.passar(); t.api.sincronizarAvisosComInventario();
+  assert.deepEqual(t.avisos(), []);
+});
+
+test('carrega catálogo conhecido sem registro de recurso e remove vitamina ausente', async () => {
+  const t = preparar([aviso('Vitamina A', 'vitamina')], { semRecursos: true });
+  t.player.moves = [null, null, null, null];
+  t.api.definir(t.instancia, null, null);
   t.passar(3000); await t.api.carregarCatalogoVitaminas();
   t.api.sincronizarAvisosComInventario(); t.passar(); t.api.sincronizarAvisosComInventario();
   assert.deepEqual(t.avisos(), []);

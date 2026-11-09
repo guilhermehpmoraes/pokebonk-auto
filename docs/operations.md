@@ -60,6 +60,8 @@ O painel de mapa pode ser recolhido clicando nele; mostra dados mesmo com o Auto
 
 Na build `mw88813m`, o script pode descobrir o módulo por uma URL conhecida quando o navegador não mantém seu registro de recurso. A captura também observa o cálculo de preço; essa alternativa requer confirmação em partida.
 
+Após relato de falha como convidado no cooperativo, a captura também observa a construção dos objetos. A reconciliação de vitaminas tenta a URL conhecida do catálogo na mesma build. Ainda é necessário confirmar o resultado nessa modalidade.
+
 Confira a posição de Cura em cada preset: em perfis sem a entrada, ela é adicionada após os atributos já salvos. A tela de Alfa com cura tem simulação baseada na imagem fornecida, mas o DOM e o clique em partida ainda precisam ser confirmados.
 
 Confira também Dano de status nos presets: quando ausente, é acrescentado depois das prioridades salvas. A seleção da equipe mostrada com Arcanine foi simulada; ainda precisa ser confirmada em jogo.

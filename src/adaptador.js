@@ -193,6 +193,20 @@ async function instalarLeituraMapa() {
         return resultado;
       };
     }
+    // Durante a construção o jogo preenche a lista antes de atribuir
+    // run.interactables; confira novamente após terminar a construção.
+    const adicionar = prototipo.add, pendentes = new WeakSet();
+    prototipo.add = function (...args) {
+      const resultado = adicionar.apply(this, args);
+      if (!pendentes.has(this)) {
+        pendentes.add(this);
+        setTimeout(() => {
+          pendentes.delete(this);
+          if (!this.disposed && this.run?.interactables === this && Array.isArray(this.list)) mapaInstancia = this;
+        }, 0);
+      }
+      return resultado;
+    };
     mapaHookInstalado = true;
   } catch (_) { /* Jogo incompatível: mantém a leitura indisponível. */ }
   finally { mapaCarregando = false; }
@@ -648,6 +662,7 @@ async function carregarCatalogoVitaminas() {
     const urls = [...new Set(performance.getEntriesByType('resource').map((item) => item.name).filter((endereco) => {
       try { const url = new URL(endereco, location.href); return url.origin === location.origin && /^\/assets\/defineProperty-[A-Za-z0-9_-]+\.js$/.test(url.pathname); } catch (_) { return false; }
     }))];
+    if (!urls.length) urls.push(new URL('/assets/defineProperty-Cvp-y8z_-mw88813m.js', location.href).href);
     if (urls.length !== 1) return;
     const modulo = await import(urls[0]);
     if (typeof modulo.ao?.get === 'function') { catalogoVitaminas = modulo.ao; inventarioAvisosAnterior = null; agendar(); }

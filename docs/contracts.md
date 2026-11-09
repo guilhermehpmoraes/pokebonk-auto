@@ -44,6 +44,8 @@ O painel só é exibido enquanto a carteira `#hud .wallet` estiver visível. Ao 
 
 Para remover avisos, o adaptador exige instância ativa, compilação `mw88813m`, estado de partida reconhecido e inventário estável por pelo menos 500 ms. Confere nomes de `player.moves`, ataques unidos e ingredientes de fusões pelo catálogo `Qi`; vitaminas são comparadas a `player.vitamins` e ao catálogo `ao` do módulo `defineProperty`. Se uma categoria ou seu catálogo não for reconhecido, conserva os avisos dessa categoria. Não altera o inventário nem depende de botão manual. A reconciliação tem testes simulados e ainda precisa de confirmação em jogo.
 
+Na build `mw88813m`, a ausência de registro do recurso `defineProperty` permite tentar a URL conferida desse módulo; outras compilações não ativam a reconciliação.
+
 Ao ler as ordens, variações reconhecidas de nomes são unificadas pelo identificador do catálogo; quando aparecem duplicadas, permanece a primeira posição de cada preset.
 
 O catálogo reconhece `cura` como atributo próprio, distinto de `regeneracao`. Uma entrada salva como `novo: cura` é normalizada para `cura` preservando sua posição; presets sem essa entrada recebem o atributo depois dos itens já salvos.
@@ -71,6 +73,8 @@ A estimativa de loja observada é mantida em memória por até 60 segundos na me
 O lote depende de um único botão habilitado `.sl-x10` com quantidade de 2 a 10 e preço legível. `loteCassinoViavel` aplica o limite ao custo total e a um teto do último giro, calculado subtraindo do total os preços mínimos dos anteriores; pressupõe preços não decrescentes. O adaptador identifica `.sl-sum`, seu título e uma única ação de continuar ou ver prêmios, tentando até três vezes. A interface é baseada no código público e precisa de validação em jogo.
 
 O painel procura um único módulo `menus` da mesma origem já carregado e uma única classe com `markers`, `chestCost` e `add`; envolve `markers` e `chestCost`, preservando seus retornos para obter a instância ativa. Se não houver registro de recurso, usa a URL conferida da build `mw88813m`; outras builds sem registro aguardam. Rejeita listas ou instâncias inconsistentes. Conta os marcadores retornados, inclusive ainda não descobertos. A projeção só é usada na build `mw6akj2h`, quando o preço bruto da carteira coincide com `chestCost()` e há contagem válida; caso contrário reserva somente a próxima bola. Usa `run.chestsBought` e a curva observada nessa build, considerando bônus atuais fixos. As APIs internas não são estáveis. A tela Alfa exige título, texto de equipe completa, selos, ações e bônus reconhecidos; compara apenas os cartões elegíveis exibidos.
+
+Também observa `add` e, após a construção, captura a instância apenas quando ela é a instância ativa da partida. A observação preserva o retorno original e agrupa verificações pendentes por instância.
 
 A tela de troca de brilhante exige título e aviso reconhecidos, exatamente dois cartões com selos e ações de existente e novo, e bônus presentes no preset. O adaptador usa os mesmos seletores presumidos da tela de Alfa e encaminha os dados para `decidirAlfa`; o HTML da tela de brilhante ainda não foi confirmado.
 
