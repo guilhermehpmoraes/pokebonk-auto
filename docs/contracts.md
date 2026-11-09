@@ -2,6 +2,8 @@
 
 ## Decisão interna
 
+`planejarFusoes` recebe identificadores de golpes, equipados e consumidos, fusões concluídas, limite de espaços e receitas com pares possíveis. Retorna apenas aquisições e fusões que mantêm uma sequência possível para todas as receitas, ou `null` quando os dados são inválidos. O chamador precisa fornecer receitas completas e confirmar níveis, disponibilidade e estado real. A função ainda não está ligada à interface e não realiza ações.
+
 `decidir(tela, configuracao, aleatorio)` em `src/decisao.mjs` aceita `tela.tipo` igual a `build`, `status` ou `powerup`, opções com `id` e campos usados por cada tipo, e ordem de status em `configuracao.status`. Retorna `selecionar` ou `banir` com `id`, `atualizar`, `pular` ou `aguardar` com motivo quando aplicável. Raridade é numérica e crescente.
 
 Para `powerup`, cada opção contém `raridade` e `status` como lista de atributos. Raridade 5 prevalece, com sorteio entre lendários; sem ela, compara a melhor posição de status no preset, seguida da raridade, com sorteio no empate. Status ausentes ficam depois dos reconhecidos. Se não houver lendário reconhecido e uma raridade for desconhecida, aguarda.

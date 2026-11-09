@@ -1,6 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { decidir } from '../src/decisao.mjs';
+import { decidir, planejarFusoes } from '../src/decisao.mjs';
+
+test('planejamento reserva ingredientes específicos e aceita alternativas flexíveis seguras', () => {
+  const base = { golpes: [1, 2, 3, 4, 5, 6, 7], equipados: [1, 2, 3, 4], consumidos: [], concluidas: [], espacos: 4,
+    receitas: [{ id: 'assinatura', pares: [[1, 2]] }, { id: 'flexivel', pares: [[1, 3], [3, 4], [3, 5]] }, { id: 'terceira', pares: [[5, 6]] }] };
+  assert.deepEqual(planejarFusoes(base).fundir, [{ id: 'assinatura', par: [1, 2] }, { id: 'flexivel', par: [3, 4] }]);
+  const depois = { ...base, equipados: [3, 4], consumidos: [1, 2], concluidas: ['assinatura'] };
+  assert.ok(planejarFusoes(depois).aprender.includes(5));
+  assert.ok(planejarFusoes(depois).fundir.some((r) => r.id === 'flexivel' && r.par[1] === 4));
+  assert.equal(planejarFusoes({ ...base, equipados: [1, 1] }), null);
+  assert.deepEqual(planejarFusoes({ ...base, receitas: [{ id: 'impossivel', pares: [[1, 2]] }, { id: 'outra', pares: [[1, 3]] }] }).fundir, []);
+});
 
 const primeiro = () => 0;
 const item = (id, tipo, raridade, noPlano = true, estado = 'melhoria') => ({ id, tipo, raridade, noPlano, estado });

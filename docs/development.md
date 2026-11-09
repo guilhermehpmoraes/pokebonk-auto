@@ -1,5 +1,7 @@
 # Desenvolvimento
 
+O teste de planejamento de fusões cobre reserva de ingredientes e ocupação de espaços com dados sintéticos. O planejador ainda não está integrado ao jogo.
+
 ## Ambiente
 
 Node.js com suporte a módulos ES e `node:test`. Versão mínima e matriz de navegadores: não verificadas. O projeto não possui manifesto de dependências ou processo de instalação próprio.

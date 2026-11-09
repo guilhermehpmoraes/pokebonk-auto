@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.36
+// @version      0.2.37
 // @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -11,6 +11,46 @@
 
 (() => {
 'use strict';
+// Verifica a sequência inteira, incluindo espaços ocupados por fusões anteriores.
+// `receitas` contém todos os pares que comprovadamente produzem cada fusão.
+function planejarFusoes({ golpes, equipados, consumidos, concluidas, receitas, espacos }) {
+  if (!Array.isArray(golpes) || !golpes.length || golpes.length > 8 || new Set(golpes).size !== golpes.length ||
+      !Array.isArray(equipados) || !Array.isArray(consumidos) || !Array.isArray(concluidas) ||
+      !Array.isArray(receitas) || receitas.length > 3 || !Number.isInteger(espacos) || espacos < 1 || espacos > 4 ||
+      golpes.some((id) => !Number.isInteger(id)) || new Set(equipados).size !== equipados.length ||
+      equipados.some((id) => !golpes.includes(id) || consumidos.includes(id)) ||
+      consumidos.some((id) => !golpes.includes(id)) || new Set(consumidos).size !== consumidos.length ||
+      receitas.some((r) => !r || typeof r.id !== 'string' || !Array.isArray(r.pares) || !r.pares.length ||
+        r.pares.some((p) => !Array.isArray(p) || p.length !== 2 || p[0] === p[1] || p.some((id) => !golpes.includes(id)))) ||
+      new Set(receitas.map((r) => r.id)).size !== receitas.length ||
+      concluidas.some((id) => !receitas.some((r) => r.id === id)) || new Set(concluidas).size !== concluidas.length ||
+      equipados.length + concluidas.length > espacos) return null;
+
+  const memo = new Map();
+  function caminhos(atuais, usados, feitas) {
+    if (feitas.length === receitas.length) return true;
+    const chave = JSON.stringify([atuais.slice().sort((a, b) => a - b), usados.slice().sort((a, b) => a - b), feitas.slice().sort()]);
+    if (memo.has(chave)) return memo.get(chave);
+    memo.set(chave, false);
+    for (const receita of receitas) {
+      if (feitas.includes(receita.id)) continue;
+      for (const [a, b] of receita.pares) {
+        if (atuais.includes(a) && atuais.includes(b) && caminhos(atuais.filter((id) => id !== a && id !== b), [...usados, a, b], [...feitas, receita.id])) {
+          memo.set(chave, true); return true;
+        }
+      }
+    }
+    if (atuais.length + feitas.length < espacos) for (const id of golpes) {
+      if (!atuais.includes(id) && !usados.includes(id) && caminhos([...atuais, id], usados, feitas)) { memo.set(chave, true); return true; }
+    }
+    return false;
+  }
+  if (!caminhos(equipados, consumidos, concluidas)) return { aprender: [], fundir: [] };
+  const aprender = equipados.length + concluidas.length < espacos ? golpes.filter((id) => !equipados.includes(id) && !consumidos.includes(id) && caminhos([...equipados, id], consumidos, concluidas)) : [];
+  const fundir = receitas.filter((r) => !concluidas.includes(r.id)).flatMap((r) => r.pares.filter(([a, b]) => equipados.includes(a) && equipados.includes(b) && caminhos(equipados.filter((id) => id !== a && id !== b), [...consumidos, a, b], [...concluidas, r.id])).map((par) => ({ id: r.id, par })));
+  return { aprender, fundir };
+}
+
 // Decide a partir de dados já identificados na tela; não interage com o jogo.
 function decidirPickup(texto) {
   const primeiroRugido = 'rugido de rhydon · guardiao mais forte e com escolta, +1 great ball por rugido';

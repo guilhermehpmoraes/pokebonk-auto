@@ -1,5 +1,7 @@
 # Arquitetura
 
+O planejador puro `planejarFusoes`, em `src/decisao.mjs`, é uma base para a futura integração com Bill e Hypno. Não lê dados do jogo nem controla escolhas; depende de receitas completas fornecidas pelo chamador.
+
 ```mermaid
 flowchart LR
   S[src/decisao.mjs] --> G[scripts/gerar-userscript.mjs]

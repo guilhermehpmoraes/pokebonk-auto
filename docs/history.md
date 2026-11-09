@@ -1,5 +1,7 @@
 # Histórico
 
+Uma base de planejamento de fusões foi adicionada com teste de decisão. Bill, Hypno e priorização de escolhas ainda não estão integrados a ela e não foram validados no jogo.
+
 ## 2026-11-06
 
 Protótipo desenvolvido para automatizar escolhas de build, bênçãos e itens. Inclui painel de prioridades, banimento seguido de atualização ou pulo, geração do userscript e testes locais. O arquivo gerado declara versão `0.2.25` em `scripts/gerar-userscript.mjs`.
