@@ -50,3 +50,11 @@ test('reconhece cura na equipe mostrada e respeita sua posição no preset', () 
   assert.deepEqual(simularTela(null, { dados, ordem: ['cura', 'sorte', 'coleta'] }), ['Weedle']);
   assert.deepEqual(simularTela(null, { dados, ordem: ['sorte', 'coleta', 'novo: cura'] }), ['Golduck']);
 });
+
+test('reconhece dano de status na equipe mostrada sem confundir com chance de status', () => {
+  const dados = [ ['Wigglytuff', 'Vínculo 4', '+10% de Pokédólares', 'Libertar'], ['Miltank', 'Vínculo 5', '+10% de Pokédólares', 'Libertar'], ['Arcanine', 'Vínculo 3', '+15% de dano de status', 'Libertar'], ['Miltank novo', 'NOVO', '+10% de Pokédólares', 'Libertar o novo'] ];
+  assert.deepEqual(simularTela(null, { dados, ordem: ['dinheiro', 'dano status'] }), ['Arcanine']);
+  assert.deepEqual(simularTela(null, { dados, ordem: ['dano status', 'dinheiro'] }), ['Miltank novo']);
+  assert.deepEqual(simularTela(null, { dados, ordem: ['novo: dano de status', 'dinheiro'] }), ['Miltank novo']);
+  assert.deepEqual(simularTela(null, { dados, ordem: ['sorteio', 'dinheiro', 'dano status'] }), ['Arcanine']);
+});

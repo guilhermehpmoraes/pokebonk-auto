@@ -2,6 +2,8 @@
 
 O planejador puro `planejarFusoes`, em `src/decisao.mjs`, é uma base para a futura integração com Bill e Hypno. Não lê dados do jogo nem controla escolhas; depende de receitas completas fornecidas pelo chamador.
 
+O catálogo de atributos do adaptador inclui dano de status como atributo distinto de chance de status para a comparação de companheiros e outros cartões reconhecidos.
+
 ```mermaid
 flowchart LR
   S[src/decisao.mjs] --> G[scripts/gerar-userscript.mjs]

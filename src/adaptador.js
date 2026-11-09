@@ -31,6 +31,7 @@ const catalogoStatus = [
   ['projeteis', 'Projéteis', ['projeteis', 'projetil']], ['roubo de vida', 'Roubo de vida', ['roubo de vida', 'lifesteal']],
   ['dano elites', 'Dano a elites e chefes', ['dano a elites', 'dano contra elites', 'dano a chefes', 'dano a elites e chefes', 'dano em elites e chefes']],
   ['recarga', 'Recarga', ['recarga', 'cooldown']], ['sorteio', 'Chance de status', ['chance de status']],
+  ['dano status', 'Dano de status', ['dano de status', 'dano status']],
 ];
 const aliasesStatus = { exp: 'experiencia', xp: 'experiencia', money: 'dinheiro', pokedolares: 'dinheiro', luck: 'sorte' };
 const canonico = (nome) => {

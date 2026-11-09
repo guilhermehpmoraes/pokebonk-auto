@@ -49,6 +49,8 @@ O painel de mapa é independente dos controles de ativação e pode ser recolhid
 
 A comparação reconhece também o bônus de cura mostrado nos cartões; sua posição é configurável no preset e não é confundida com regeneração.
 
+A comparação reconhece dano de status como prioridade própria, separada de chance de status. Sua posição pode ser ajustada no preset.
+
 Na tela reconhecida de um único brilhante, o adaptador exige exatamente dois cartões, um existente e um novo, e aplica a mesma comparação de prioridades usada para Alfa. Se faltar informação ou houver ambiguidade, aguarda.
 
 Quando o pickup está ligado, a Fenda é aberta com C se o HUD e o estado do jogo confirmarem a disponibilidade. O script aguarda situações bloqueadas e tenta novamente; ao passar pela entrada confirmada da Fenda, interage com E.
