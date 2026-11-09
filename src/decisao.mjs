@@ -82,6 +82,12 @@ export function decidirSemGolpeSeguro({ banimentos, baniveis, atualizacoes, pulo
   return temporarios.length ? { acao: 'selecionar', id: temporarios[0] } : { acao: 'aguardar' };
 }
 
+// Com inventário indisponível, conserva os avisos daquela categoria.
+export function reconciliarAvisos(avisos, inventario) {
+  const normalizarNome = (valor) => String(valor ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  return avisos.filter((aviso) => !Array.isArray(inventario[aviso.tipo]) || inventario[aviso.tipo].includes(normalizarNome(aviso.nome)));
+}
+
 // Decide a partir de dados já identificados na tela; não interage com o jogo.
 export function decidirPickup(texto) {
   const primeiroRugido = 'rugido de rhydon · guardiao mais forte e com escolta, +1 great ball por rugido';

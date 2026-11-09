@@ -14,9 +14,9 @@ Sem opção do plano, prioriza melhorias de golpes ou vitaminas já adquiridos, 
 
 Essa regra também vale para o ataque inicial: se aparecer como melhoria fora do plano, pode ser escolhido enquanto houver níveis disponíveis. Ele não recebe identificação ou prioridade especial, e continua gerando o aviso de fora da build.
 
-Após uma escolha fora do plano e o cartão deixar a tela, um aviso persistente informa o nome e recomenda conferir a remoção com Hypno. O usuário marca o aviso como resolvido; o script não verifica automaticamente se o item foi removido ou se uma nova partida começou.
+Após uma escolha fora do plano e o cartão deixar a tela, um aviso informa o nome e recomenda a remoção com Hypno. Quando o inventário da partida é reconhecido e permanece estável, o script remove automaticamente o aviso do item que não estiver mais equipado. Dados insuficientes mantêm o aviso.
 
-Com Auto Select e Auto Pickup ligados, o script também tenta identificar ataques equipados fora do plano e avisa para procurar o Hypno. Perto dele, tenta esquecer o ataque errado, ou um ataque do plano cuja retirada comprovadamente destrave uma sequência. Na lição, escolhe uma oferta segura do plano ou guarda a lição para aprender depois. O aviso persistente continua exigindo limpeza manual.
+Com Auto Select e Auto Pickup ligados, o script também tenta identificar ataques equipados fora do plano e avisa para procurar o Hypno. Perto dele, tenta esquecer o ataque errado, ou um ataque do plano cuja retirada comprovadamente destrave uma sequência. Na lição, escolhe uma oferta segura do plano ou guarda a lição para aprender depois. Os avisos desaparecem conforme o inventário reconhecido confirma a ausência dos itens.
 
 Com o Auto Pickup ligado, se um ataque errado bloquear o planejamento completo, o Auto Select pode escolher um ataque planejado que caiba no espaço atual e mantenha uma sequência possível após a remoção do erro no Hypno. Ofertas que mantêm uma sequência sem essa remoção têm preferência quando aparecem na mesma tela.
 

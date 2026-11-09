@@ -12,6 +12,8 @@ O usuário corrigiu a ordem desejada para banir, atualizar e pular. O fallback p
 
 O usuário relatou parada de level-up em cooperativo com um ataque fora do plano, espaços livres e ofertas planejadas; escolheu manualmente e prosseguiu. Foi reproduzida uma causa possível: o modelo tratava o ataque errado como ocupação permanente. O aprendizado passou a considerar sua remoção futura no Hypno, com teste simulado; a causa exata dessa partida e a correção em jogo ainda não foram confirmadas.
 
+O usuário pediu para retirar o botão de resolução manual dos avisos. O adaptador passou a reconciliar ataques e vitaminas com o inventário estável e a remover automaticamente avisos dos itens ausentes; dados indisponíveis preservam o aviso. Há teste simulado, ainda sem confirmação em jogo.
+
 Após relato de parada na escolha de Alfa com Arcanine, dano de status passou a ser reconhecido no catálogo. O cenário da imagem foi simulado; a causa e a correção ainda precisam de confirmação em jogo.
 
 Após o usuário mostrar a opção de até dez giros, o pickup passou a avaliar o preço do lote e a confirmar o resumo reconhecido. A implementação tem teste simulado e precisa de confirmação na partida real.
@@ -54,7 +56,7 @@ A comparação de relíquias passou a usar a prioridade de status do preset ativ
 
 Uma captura mostrou que o banimento individual exige confirmação no mesmo cartão. O adaptador passou a confirmar seleções que ele próprio iniciou e a tentar banir kits quando a verificação conservadora dos planos permite. Ambos os fluxos precisam de confirmação em jogo.
 
-O fallback passou a melhorar itens já possuídos fora da build antes de gastar recursos e a escolher aleatoriamente quando eles se esgotarem. Avisos persistentes pedem conferência e podem ser marcados como resolvidos. Os fluxos têm testes simulados e precisam de validação no jogo.
+O fallback passou a melhorar itens já possuídos fora da build antes de gastar recursos e a escolher aleatoriamente quando eles se esgotarem. Naquele estágio, avisos persistentes podiam ser marcados manualmente como resolvidos. Os fluxos têm testes simulados e precisam de validação no jogo.
 
 Foram adicionados testes para o ataque inicial fora da build, confirmando que a lógica existente escolhe sua melhoria depois das opções do plano. O jogo real ainda precisa ser testado.
 

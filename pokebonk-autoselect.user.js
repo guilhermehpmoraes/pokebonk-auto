@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokéBonk Auto Select
 // @namespace    local.pokebonk.autoselect
-// @version      0.2.46
+// @version      0.2.47
 // @description  Automatiza escolhas de upgrades e interações no PokéBonk.
 // @match        https://pokebonk.com/*
 // @updateURL    https://raw.githubusercontent.com/guilhermehpmoraes/pokebonk-auto/main/pokebonk-autoselect.user.js
@@ -93,6 +93,12 @@ function decidirSemGolpeSeguro({ banimentos, baniveis, atualizacoes, pulos, temp
   if (!Number.isInteger(pulos) || pulos < 0) return { acao: 'aguardar' };
   if (pulos > 0) return { acao: 'pular' };
   return temporarios.length ? { acao: 'selecionar', id: temporarios[0] } : { acao: 'aguardar' };
+}
+
+// Com inventário indisponível, conserva os avisos daquela categoria.
+function reconciliarAvisos(avisos, inventario) {
+  const normalizarNome = (valor) => String(valor ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  return avisos.filter((aviso) => !Array.isArray(inventario[aviso.tipo]) || inventario[aviso.tipo].includes(normalizarNome(aviso.nome)));
 }
 
 // Decide a partir de dados já identificados na tela; não interage com o jogo.
@@ -347,6 +353,10 @@ try {
   if (Array.isArray(dados)) avisosForaPlano = dados.filter((item) => item && typeof item.nome === 'string' && ['golpe', 'vitamina'].includes(item.tipo));
 } catch (_) { /* mantém os avisos em memória */ }
 let painelAvisos = null;
+let inventarioAvisosAnterior = null;
+let catalogoVitaminas = null;
+let catalogoVitaminasCarregando = false;
+let ultimaBuscaVitaminas = 0;
 const chaveStatus = 'pokebonk-auto-select-status';
 const chavePerfis = 'pokebonk-auto-select-perfis';
 const catalogoStatus = [
@@ -932,21 +942,18 @@ function atualizarAvisos() {
   painelAvisos.style.display = avisosForaPlano.length ? 'block' : 'none';
   if (!avisosForaPlano.length) return;
   const titulo = document.createElement('strong'); titulo.textContent = '⚠️ Fora da build — confira no Hypno';
-  const descricao = document.createElement('div'); descricao.textContent = 'Confira se o item foi adquirido e remova-o se necessário.'; descricao.style.cssText = 'margin:4px 0 8px;color:#ffe3be';
+  const descricao = document.createElement('div'); descricao.textContent = 'Remova os itens fora do plano no Hypno.'; descricao.style.cssText = 'margin:4px 0 8px;color:#ffe3be';
   painelAvisos.append(titulo, descricao);
   avisosForaPlano.forEach((aviso) => {
     const linha = document.createElement('div'); linha.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:5px';
     const nome = document.createElement('span'); nome.style.cssText = 'flex:1;overflow-wrap:anywhere'; nome.textContent = `${aviso.nome} (${aviso.tipo})`;
-    const resolver = document.createElement('button'); resolver.type = 'button'; resolver.textContent = 'Resolvido'; resolver.title = `Dispensar aviso de ${aviso.nome}`;
-    resolver.style.cssText = 'border:0;border-radius:7px;padding:5px 8px;background:#f5a953;color:#291609;cursor:pointer;font-weight:700';
-    resolver.addEventListener('click', () => { avisosForaPlano = avisosForaPlano.filter((item) => item !== aviso); atualizarAvisos(); });
-    linha.append(nome, resolver); painelAvisos.append(linha);
+    linha.append(nome); painelAvisos.append(linha);
   });
 }
 function registrarForaPlano(nome, tipo) {
   if (!nome || !['golpe', 'vitamina'].includes(tipo)) return;
   if (avisosForaPlano.some((item) => item.tipo === tipo && normalizar(item.nome) === normalizar(nome))) return;
-  avisosForaPlano.push({ nome, tipo }); atualizarAvisos();
+  avisosForaPlano.push({ nome, tipo }); inventarioAvisosAnterior = null; atualizarAvisos();
 }
 function verificarAvisoPendente() {
   if (!avisoPendente) return;
@@ -954,6 +961,68 @@ function verificarAvisoPendente() {
   if (botao.isConnected === false || !botao.getClientRects().length || botao.querySelector('h3')?.textContent?.trim() !== nome) {
     avisoPendente = null; registrarForaPlano(nome, tipo);
   }
+}
+
+async function carregarCatalogoVitaminas() {
+  if (catalogoVitaminas || catalogoVitaminasCarregando || typeof performance === 'undefined' || typeof location === 'undefined' ||
+      document.querySelector?.('meta[name="pokebonk-build"]')?.content !== 'mw88813m' || Date.now() - ultimaBuscaVitaminas < 3000) return;
+  ultimaBuscaVitaminas = Date.now(); catalogoVitaminasCarregando = true;
+  try {
+    const urls = [...new Set(performance.getEntriesByType('resource').map((item) => item.name).filter((endereco) => {
+      try { const url = new URL(endereco, location.href); return url.origin === location.origin && /^\/assets\/defineProperty-[A-Za-z0-9_-]+\.js$/.test(url.pathname); } catch (_) { return false; }
+    }))];
+    if (urls.length !== 1) return;
+    const modulo = await import(urls[0]);
+    if (typeof modulo.ao?.get === 'function') { catalogoVitaminas = modulo.ao; inventarioAvisosAnterior = null; agendar(); }
+  } catch (_) { /* Conserva os avisos quando o catálogo não pode ser identificado. */ }
+  finally { catalogoVitaminasCarregando = false; }
+}
+
+function sincronizarAvisosComInventario() {
+  if (!avisosForaPlano.length) { inventarioAvisosAnterior = null; return; }
+  const instancia = mapaInstancia, run = instancia?.run, player = run?.player;
+  if (document.querySelector?.('meta[name="pokebonk-build"]')?.content !== 'mw88813m' ||
+      !instancia || instancia.disposed || run?.interactables !== instancia || !['play', 'modal', 'paused'].includes(run.state) ||
+      !Array.isArray(player?.moves) || !Number.isInteger(player.moveSlots) || player.moveSlots < 1 ||
+      player.moves.length < player.moveSlots || player.moveSlots > 4) { inventarioAvisosAnterior = null; return; }
+  const inventario = { golpe: [], vitamina: null };
+  try {
+    for (const movimento of player.moves) {
+      if (!movimento) continue;
+      if (typeof movimento.def?.name !== 'string' || !movimento.def.name.trim() || !Array.isArray(movimento.parents)) throw new Error();
+      inventario.golpe.push(normalizar(movimento.def.name));
+      if (movimento.link) {
+        if (typeof movimento.link.def?.name !== 'string' || !movimento.link.def.name.trim()) throw new Error();
+        inventario.golpe.push(normalizar(movimento.link.def.name));
+      }
+      for (const id of movimento.parents) {
+        if (document.querySelector?.('meta[name="pokebonk-build"]')?.content !== 'mw88813m' || typeof moduloDadosJogo?.Qi !== 'function') throw new Error();
+        const pai = moduloDadosJogo.Qi(id, player.roster?.id ?? 0);
+        if (!pai || typeof pai.name !== 'string' || !pai.name.trim()) throw new Error();
+        inventario.golpe.push(normalizar(pai.name));
+      }
+    }
+  } catch (_) { inventario.golpe = null; }
+  if (avisosForaPlano.some((aviso) => aviso.tipo === 'vitamina')) {
+    if (!catalogoVitaminas) void carregarCatalogoVitaminas();
+    try {
+      if (typeof player.vitamins?.entries !== 'function' || !Number.isInteger(player.vitamins.size) || !catalogoVitaminas) throw new Error();
+      const vitaminas = [...player.vitamins.entries()];
+      if (vitaminas.length !== player.vitamins.size) throw new Error();
+      inventario.vitamina = vitaminas.map(([key]) => {
+        const nome = catalogoVitaminas.get(key)?.name;
+        if (typeof key !== 'string' || typeof nome !== 'string' || !nome.trim()) throw new Error();
+        return normalizar(nome);
+      });
+    } catch (_) { inventario.vitamina = null; }
+  }
+  const assinatura = JSON.stringify(inventario), agora = Date.now();
+  if (!inventarioAvisosAnterior || inventarioAvisosAnterior.run !== run || inventarioAvisosAnterior.player !== player || inventarioAvisosAnterior.assinatura !== assinatura) {
+    inventarioAvisosAnterior = { run, player, assinatura, inicio: agora }; return;
+  }
+  if (agora - inventarioAvisosAnterior.inicio < 500) return;
+  const restantes = reconciliarAvisos(avisosForaPlano, inventario);
+  if (restantes.length !== avisosForaPlano.length) { avisosForaPlano = restantes; atualizarAvisos(); }
 }
 atualizarAvisos();
 let modalAberto = false;
@@ -1240,6 +1309,7 @@ function observar() {
   reposicionarInterface();
   verificarAvisoPendente();
   observarPickup();
+  sincronizarAvisosComInventario();
   observarFenda();
   observarEntradaFenda();
   if (observarBuildEspecial()) return;

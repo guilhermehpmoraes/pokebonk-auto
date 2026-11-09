@@ -46,7 +46,7 @@ function iniciar({ memoria = new Map(), aceitarNaTentativa = 1, opcoes = ['Toxic
     repetir() { tempo += 600; intervalo(); tarefa(); } };
 }
 
-test('avisa sobre escolha fora da build e mantém o aviso até ser resolvido', () => {
+test('avisa sem botão manual e conserva o aviso quando o inventário é desconhecido', () => {
   const execucao = iniciar();
   execucao.ativar();
   assert.deepEqual(execucao.acoes, ['Toxic']);
@@ -55,9 +55,9 @@ test('avisa sobre escolha fora da build e mantém o aviso até ser resolvido', (
   const reaberto = iniciar({ memoria: execucao.memoria, opcoes: [] });
   const painel = reaberto.body.children.find((elemento) => elemento.children?.[2]?.children?.[0]?.textContent === "Toxic (golpe)");
   assert.equal(painel.children[2].children[0].textContent, 'Toxic (golpe)');
-  painel.children[2].children[1].click();
-  assert.deepEqual(JSON.parse(execucao.memoria.get(chave)), []);
-  assert.equal(painel.style.display, 'none');
+  assert.equal(painel.children[2].children.length, 1);
+  reaberto.repetir();
+  assert.deepEqual(JSON.parse(execucao.memoria.get(chave)), [{ nome: 'Toxic', tipo: 'golpe' }]);
 });
 
 test('avisa sobre o cartão realmente tentado quando a escolha aleatória muda', () => {

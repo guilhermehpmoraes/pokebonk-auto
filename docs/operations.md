@@ -24,7 +24,7 @@ Na escolha de power-ups, o reconhecimento cobre bônus diretos de atributos do c
 
 Banimento individual usa dois cliques no cartão quando o jogo pede confirmação. O banimento de kit depende da leitura de módulos internos do jogo e dos planos armazenados localmente; por precaução, um plano com fusão impede o banimento automático de kit. A verificação tem tempo limitado e recorre ao banimento individual quando falha. A integração real ainda não foi validada.
 
-O aviso de item fora da build permanece na aba e pode sobreviver ao recarregamento por `sessionStorage`. O botão **Resolvido** remove apenas o aviso, não o item. A remoção por Hypno, o início de outra partida e a aquisição efetiva ainda não são detectados automaticamente; o jogador deve conferir e limpar os avisos quando apropriado.
+Os avisos de itens fora da build podem sobreviver ao recarregamento por `sessionStorage`; não há botão de limpeza manual. O script tenta removê-los quando o inventário estável confirma a ausência dos itens. A leitura depende da instância e da compilação reconhecidas; se ela falhar, os avisos permanecem. Ingredientes de fusões e ataques unidos são considerados presentes. A sincronização ainda precisa de confirmação em jogo.
 
 Bill e Hypno exigem Auto Select e Auto Pickup ligados, além da compilação `mw88813m` e dos dados internos reconhecidos. O script pode esquecer um golpe do plano para destravar os espaços quando o modelo identifica uma sequência possível; o golpe esquecido volta ao nível inicial se for aprendido de novo. As ações têm testes simulados, não confirmação em jogo. A atualização do jogo pode desativá-las até que a compatibilidade seja revista.
 

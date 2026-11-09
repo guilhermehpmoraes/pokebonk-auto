@@ -24,7 +24,7 @@ flowchart LR
 
 O adaptador extrai atributos diretos das descrições dos power-ups; a regra pura escolhe por lendário, prioridade e raridade usando o preset ativo.
 
-O adaptador guarda avisos de seleções fora da build em `sessionStorage` da aba, com fallback em memória, até o usuário marcá-los como resolvidos. Ele observa o desaparecimento do cartão, mas não comprova a aquisição ou a remoção pelo Hypno.
+O adaptador guarda avisos de seleções fora da build em `sessionStorage` da aba, com fallback em memória. Após identificar um inventário estável, reconcilia separadamente ataques e vitaminas e remove os avisos dos itens ausentes. Sem dados suficientes para uma categoria, preserva os respectivos avisos.
 
 Para banimento de kit, o adaptador tenta ler os módulos do jogo carregados na mesma origem e os planos de build disponíveis no `localStorage`. `kitPodeSerBanido` compara o kit com todos os planos encontrados, sem transmitir os planos. Se não for possível comprovar a segurança, o adaptador usa banimento individual.
 
