@@ -2,6 +2,8 @@
 
 Os testes de planejamento de fusões e de Bill/Hypno simulam reserva de ingredientes, ocupação de espaços, abertura da máquina, escolha de fusão, remoção de ataque e recusa de dados desconhecidos. Não comprovam as APIs internas nem as interações em partida real.
 
+Após a falha relatada diante de Bill, um teste do planejador reproduz uma estrutura equivalente com uma fusão concluída; outro testa uma implementação de `has` que não pertence à classe `Set` do mesmo contexto. Os motivos de espera também têm simulação parcial.
+
 O teste de Alfa inclui a equipe com Arcanine e dano de status mostrada pelo usuário, em ordens diferentes de prioridade; a interação real ainda requer confirmação.
 
 ## Ambiente

@@ -21,6 +21,12 @@ test('só libera espaço ao provar que a retirada destrava o plano', () => {
   assert.deepEqual(golpesParaAbrirEspaco({ ...estado, receitas: [], equipados: [1, 3, 5, 7] }), []);
 });
 
+test('fusão pronta permanece possível após outra fusão do plano', () => {
+  const estado = { golpes: [1, 2, 3, 4, 5, 6, 7], equipados: [1, 2, 5], consumidos: [3, 4], concluidas: ['b'], espacos: 4,
+    receitas: [{ id: 'a', pares: [[1, 2]] }, { id: 'b', pares: [[3, 4]] }, { id: 'c', pares: [[5, 6]] }] };
+  assert.deepEqual(planejarFusoes(estado).fundir, [{ id: 'a', par: [1, 2] }]);
+});
+
 test('prioriza parceiro equipado e ingrediente com menos alternativas', () => {
   const base = { receitas: [{ id: 'a', pares: [[1, 2]] }, { id: 'b', pares: [[3, 4], [3, 5]] }], concluidas: [], equipados: [1, 3] };
   assert.ok(prioridadeGolpePlano({ ...base, id: 2 }) > prioridadeGolpePlano({ ...base, id: 4 }));

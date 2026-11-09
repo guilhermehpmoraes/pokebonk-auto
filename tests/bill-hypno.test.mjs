@@ -19,7 +19,7 @@ function preparar() {
   const codigo = readFileSync(new URL('../pokebonk-autoselect.user.js', import.meta.url), 'utf8').replace('new MutationObserver(agendar).observe', 'globalThis.testeBuild = { iniciar(i, m) { mapaInstancia = i; moduloDadosJogo = m; ativo = true; pickupAtivo = true; }, estadoPlanoPartida, observarBuildEspecial, observarPickup, observar };\nnew MutationObserver(agendar).observe');
   const ctx = { document, localStorage: { getItem: () => null }, sessionStorage: { getItem: () => null, setItem() {} }, MutationObserver, KeyboardEvent, window: { dispatchEvent(e) { eventos.push(e.type); } }, setTimeout(fn) { tarefas.push(fn); }, setInterval() {}, Date, Math, Set };
   vm.runInNewContext(codigo, ctx); ctx.testeBuild.iniciar(instancia, modulo);
-  return { api: ctx.testeBuild, player, run, defs, pares, eventos, setOfertas: (o) => { ofertas = o; }, setPrompt: (p) => { prompt = p; }, setModal: (m) => { modal = m; }, setBuild: (b) => { build = b; } };
+  return { api: ctx.testeBuild, player, run, defs, pares, eventos, controles, setOfertas: (o) => { ofertas = o; }, setPrompt: (p) => { prompt = p; }, setModal: (m) => { modal = m; }, setBuild: (b) => { build = b; } };
 }
 
 test('ao subir de nível prioriza ingrediente específico e espera se a build do jogo for desconhecida', () => {
@@ -33,8 +33,18 @@ test('ao subir de nível prioriza ingrediente específico e espera se a build do
 test('pickup abre Bill só com fusão segura pronta e identifica versão incompatível', () => {
   const t = preparar();
   t.setPrompt({ getClientRects: () => [1], textContent: 'EMáquina do Bill · uma fusão, a escolher entre 3 pares', querySelector: () => ({ textContent: 'E' }) });
-  t.setBuild('outra'); t.api.observarPickup(); assert.deepEqual(t.eventos, []);
+  t.setBuild('outra'); t.api.observarPickup(); assert.deepEqual(t.eventos, []); assert.match(t.controles[2].textContent, /Bill: versão do jogo não reconhecida/);
   t.setBuild('mw88813m'); t.api.observarPickup(); assert.deepEqual(t.eventos, ['keydown']);
+});
+
+test('uma fusão concluída preserva o reconhecimento das outras receitas', () => {
+  const t = preparar();
+  t.run.fusions = ['terceira'];
+  t.run.banished = { has: () => false };
+  t.player.moves = [{ def: { id: 90, key: 'terceira', fusion: {} }, level: 5, parents: [5, 6] }, ...[1, 2, 3].map((id) => ({ def: t.defs[id - 1], level: 8, parents: [] }))];
+  const estado = t.api.estadoPlanoPartida();
+  assert.ok(estado);
+  assert.ok(estado.decisao.fundir.some((f) => f.id === 'assinatura'));
 });
 
 test('reconhece o plano da partida e bloqueia compilação desconhecida', () => {

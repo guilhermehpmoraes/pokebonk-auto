@@ -2,6 +2,8 @@
 
 Uma base de planejamento de fusões foi adicionada com teste de decisão. Posteriormente, Bill, Hypno e priorização de golpes foram ligados ao planejador, com cenários simulados. A integração ainda não foi validada no jogo.
 
+Após relato de que Bill não foi acionada com a 0.2.40, a combinação do plano salvo do Hitmonlee foi reproduzida no planejador e indicou Chute Furacão. Não foi possível identificar a condição exata da partida; foram adicionados motivos visíveis de espera e removida a dependência de `instanceof Set` para banimentos. Ainda é necessária confirmação em jogo.
+
 Após relato de parada na escolha de Alfa com Arcanine, dano de status passou a ser reconhecido no catálogo. O cenário da imagem foi simulado; a causa e a correção ainda precisam de confirmação em jogo.
 
 Após o usuário mostrar a opção de até dez giros, o pickup passou a avaliar o preço do lote e a confirmar o resumo reconhecido. A implementação tem teste simulado e precisa de confirmação na partida real.
