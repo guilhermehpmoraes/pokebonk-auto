@@ -180,8 +180,10 @@ async function instalarLeituraMapa() {
     }))];
     // A entrada de performance pode ter sido descartada quando o navegador
     // atingiu o limite do buffer. Esta URL foi conferida na build indicada.
-    if (!urls.length && document.querySelector('meta[name="pokebonk-build"]')?.content === 'mw88813m') {
-      urls.push(new URL('/assets/menus-DqU5mYee-mw88813m.js', location.href).href);
+    if (!urls.length) {
+      const arquivos = { mw88813m: 'menus-DqU5mYee-mw88813m.js', mwaj5w8h: 'menus-CchmOi1N-mwaj5w8h.js' };
+      const arquivo = arquivos[document.querySelector('meta[name="pokebonk-build"]')?.content];
+      if (arquivo) urls.push(new URL(`/assets/${arquivo}`, location.href).href);
     }
     if (urls.length !== 1) return;
     const modulo = await import(urls[0]);
@@ -847,9 +849,12 @@ function estadoPlanoPartida() {
   try {
     const instancia = mapaInstancia, run = instancia?.run, player = run?.player, plano = run?.planSnap;
     const compilacao = document.querySelector?.('meta[name="pokebonk-build"]')?.content;
-    if (compilacao !== 'mw88813m') return falhaPlano('versão do jogo não reconhecida');
+    const exportsPorBuild = { mw88813m: ['Qi', 'Dr'], mwaj5w8h: ['$i', 'Or'] };
+    const exports = exportsPorBuild[compilacao];
+    if (!exports) return falhaPlano('versão do jogo não reconhecida');
     if (!instancia || instancia.disposed || run?.interactables !== instancia) return falhaPlano('aguardando dados da partida');
-    if (!moduloDadosJogo || typeof moduloDadosJogo.Qi !== 'function' || typeof moduloDadosJogo.Dr !== 'function') return falhaPlano('catálogo do jogo indisponível');
+    const definirGolpe = moduloDadosJogo?.[exports[0]], combinarGolpes = moduloDadosJogo?.[exports[1]];
+    if (typeof definirGolpe !== 'function' || typeof combinarGolpes !== 'function') return falhaPlano('catálogo do jogo indisponível');
     if (!plano || !Array.isArray(plano.moves) || !Array.isArray(plano.fus) || !Array.isArray(plano.links)) return falhaPlano('plano da partida indisponível');
     if (!Array.isArray(player?.moves) || !Array.isArray(run.fusions) || typeof run.banished?.has !== 'function' ||
         !Number.isInteger(player.moveSlots) || player.moveSlots < 1 || player.moveSlots > 4) return falhaPlano('ataques equipados não reconhecidos');
@@ -859,11 +864,11 @@ function estadoPlanoPartida() {
     if (plano.moves.some((id) => run.banished.has(`m${id}`))) return falhaPlano('plano contém ataque banido');
     const assinatura = JSON.stringify([plano.moves, plano.fus, plano.links, player.roster?.id]);
     if (!cacheReceitasBill || cacheReceitasBill.run !== run || cacheReceitasBill.assinatura !== assinatura) {
-      const defs = plano.moves.map((id) => moduloDadosJogo.Qi(id, player.roster?.id ?? 0));
+      const defs = plano.moves.map((id) => definirGolpe(id, player.roster?.id ?? 0));
       if (defs.some((def, i) => !def || def.id !== plano.moves[i] || !def.key || !def.name || !def.type)) return falhaPlano('catálogo de ataques incompleto');
       const falso = Object.create(player);
       Object.defineProperty(falso, 'moves', { value: defs.map((def) => ({ def, level: 8, parents: [], link: null })) });
-      const pares = moduloDadosJogo.Dr({ player: falso, banished: new Set() });
+      const pares = combinarGolpes({ player: falso, banished: new Set() });
       if (!Array.isArray(pares)) return falhaPlano('combinações de ataque indisponíveis');
       const receitas = plano.fus.map((id) => { const encontrados = pares.filter((p) => p?.r?.key === id && p.a >= 0 && p.b >= 0 && p.a < defs.length && p.b < defs.length); return { id, nome: encontrados[0]?.r?.name, pares: encontrados.map((p) => [defs[p.a].id, defs[p.b].id]) }; });
       if (receitas.some((r) => !r.pares.length)) return falhaPlano('receita do plano sem par reconhecido');
@@ -896,7 +901,7 @@ function estadoPlanoPartida() {
     if (normais.some((m) => { const def = cacheReceitasBill.defs.find((d) => d.id === m.def.id); return def && (def.key !== m.def.key || def.type !== m.def.type); })) return falhaPlano('ataques divergem do catálogo');
     const assinaturaAtuais = JSON.stringify(player.moves.map((m) => m ? [m.def?.id, m.level, !!m.link, !!m.def?.fusion] : null));
     if (cacheReceitasBill.atual !== assinaturaAtuais) {
-      const atuais = moduloDadosJogo.Dr(run);
+      const atuais = combinarGolpes(run);
       if (!Array.isArray(atuais)) return falhaPlano('combinações equipadas indisponíveis');
       for (const par of atuais) {
         if (par.a < 0 || par.b < 0) continue;

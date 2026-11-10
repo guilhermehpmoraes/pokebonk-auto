@@ -83,3 +83,5 @@ O mesmo teste simula chamadas de ondas sucessivas e o pickup desligado; `tests/p
 O teste de item único simula clique ignorado, limite de tentativas e outro prêmio igual com botão novo. Não confirma o DOM nem os cliques no jogo.
 
 O teste de brilhantes simula Seel e Jolteon com `vel. de ataque` nas duas ordens de prioridade; o HTML e o clique real ainda precisam de confirmação.
+
+O cenário de Bill verifica a compilação `mwaj5w8h` com exports simulados e mantém a recusa de versões desconhecidas. A interação real ainda não foi verificada.

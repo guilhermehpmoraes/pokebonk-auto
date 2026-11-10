@@ -30,7 +30,7 @@ Os avisos de itens fora da build podem sobreviver ao recarregamento por `session
 
 Os avisos ficam ocultos quando a carteira do HUD não está visível, por exemplo na sala cooperativa. Ocultar não os apaga; eles podem reaparecer até que o inventário da partida seja reconhecido.
 
-Bill e Hypno exigem Auto Select e Auto Pickup ligados, além da compilação `mw88813m` e dos dados internos reconhecidos. O script pode esquecer um golpe do plano para destravar os espaços quando o modelo identifica uma sequência possível; o golpe esquecido volta ao nível inicial se for aprendido de novo. As ações têm testes simulados, não confirmação em jogo. A atualização do jogo pode desativá-las até que a compatibilidade seja revista.
+Bill e Hypno exigem Auto Select e Auto Pickup ligados, além de uma compilação reconhecida (`mw88813m` ou `mwaj5w8h`) e dos dados internos reconhecidos. O script pode esquecer um golpe do plano para destravar os espaços quando o modelo identifica uma sequência possível; o golpe esquecido volta ao nível inicial se for aprendido de novo. As ações têm testes simulados, não confirmação em jogo. A atualização do jogo pode desativá-las até que a compatibilidade seja revista.
 
 Bill pode realizar uniões explícitas do plano ou completar vagas de operações com pares seguros de golpes planejados. Quando uma fusão segura e uma união estão prontas, escolhe a fusão. Uniões impedem que seus golpes sejam fundidos depois; o modelo conserva uma sequência para as fusões restantes. O resultado real ainda requer teste em partida.
 

@@ -131,3 +131,5 @@ Após relato de parada na loja com três cartões, o pickup passou a avaliar est
 Após relato de sobreposição do minimapa e do inventário, os controles e a lista foram deslocados para o lado esquerdo e o aviso de itens para uma posição superior. A disposição ainda precisa de confirmação visual em jogo.
 
 Na versão 0.2.36, o aviso de chamada de onda fornecido pelo usuário passou a ser reconhecido pelo Auto Pickup. A numeração variável e o envio de E têm testes simulados; falta validação em partida.
+
+A versão 0.2.59 reconhece a compilação `mwaj5w8h` para o planejamento de Bill e Hypno, com nomes de exports conferidos no código público e teste simulado. A integração em partida continua sem confirmação; a sincronização de avisos de inventário permanece restrita à compilação anterior.

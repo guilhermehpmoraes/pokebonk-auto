@@ -13,6 +13,7 @@ function preparar() {
     const receita = pares.find((r) => r.pares.some((par) => par.includes(m.def.id) && par.includes(n.def.id)));
     return [{ a, b, boon: {}, r: { key: receita?.id ?? 'glitch', name: receita?.nome ?? 'MissingNo.' } }];
   })) };
+  modulo['$i'] = modulo.Qi; modulo.Or = modulo.Dr;
   const player = { moveSlots: 4, roster: { id: 106 }, moves: [1, 2, 3, 4].map((id) => ({ def: defs[id - 1], level: 8, parents: [] })) };
   const run = { player, planSnap: { moves: defs.map((d) => d.id), fus: pares.map((p) => p.id), links: [] }, fusions: [], banished: new Set(), state: 'play' };
   const instancia = { run }; run.interactables = instancia;
@@ -132,7 +133,7 @@ test('pickup abre Bill só com fusão segura pronta e identifica versão incompa
   const t = preparar();
   t.setPrompt({ getClientRects: () => [1], textContent: 'EMáquina do Bill · uma fusão, a escolher entre 3 pares', querySelector: () => ({ textContent: 'E' }) });
   t.setBuild('outra'); t.api.observarPickup(); assert.deepEqual(t.eventos, []); assert.match(t.controles[2].textContent, /Bill: versão do jogo não reconhecida/);
-  t.setBuild('mw88813m'); t.api.observarPickup(); assert.deepEqual(t.eventos, ['keydown']);
+  t.setBuild('mwaj5w8h'); t.api.observarPickup(); assert.deepEqual(t.eventos, ['keydown']);
 });
 
 test('uma fusão concluída preserva o reconhecimento das outras receitas', () => {
