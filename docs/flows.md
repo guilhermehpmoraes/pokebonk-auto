@@ -75,6 +75,8 @@ A comparação reconhece dano de status como prioridade própria, separada de ch
 
 Na tela reconhecida de um único brilhante, o adaptador exige exatamente dois cartões, um existente e um novo, e aplica a mesma comparação de prioridades usada para Alfa. Se faltar informação ou houver ambiguidade, aguarda.
 
+O bônus abreviado `vel. de ataque` participa da comparação como velocidade de ataque.
+
 Quando o Auto Fenda está ligado, a Fenda é aberta com C se o HUD e o estado do jogo confirmarem a disponibilidade. O script aguarda situações bloqueadas e tenta novamente; ao passar pela entrada confirmada da Fenda, interage com E. O botão começa desligado e funciona independentemente do Auto Pickup.
 
 Se a instância interna não estiver disponível, o script pode tentar pelo indicador de incenso pronto e pelo aviso específico de entrada, deixando ao jogo a decisão final sobre bloqueios. No cooperativo, a Fenda de equipe aparece no mapa e o combate ocorre ali, sem a entrada solo.

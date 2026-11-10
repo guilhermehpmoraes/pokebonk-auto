@@ -69,3 +69,10 @@ test('na troca de brilhantes com dano em elites igual mantém o existente', () =
   const dados = [['Machop', 'Vínculo 2', '+20% de dano em elites', 'Libertar'], ['Tyrogue', 'NOVO', '+20% de dano em elites', 'Libertar o novo']];
   assert.deepEqual(simularTela(null, { dados, ordem: ['dano elites'], titulo: 'Tyrogue brilhante quer te acompanhar!', ajuda: 'Só um brilhante pode te acompanhar: escolha qual libertar. O registro na Pokédex e os 120 de Stardust você ganha de qualquer jeito' }), ['Tyrogue']);
 });
+
+test('reconhece velocidade de ataque abreviada na troca de brilhantes', () => {
+  const dados = [['Seel', 'Vínculo 3', '+30% de cura', 'Libertar'], ['Jolteon', 'NOVO', '+10% de vel. de ataque', 'Libertar o novo']];
+  const tela = { dados, titulo: 'Jolteon brilhante quer te acompanhar!', ajuda: 'Só um brilhante pode te acompanhar: escolha qual libertar. O registro na Pokédex e os 120 de Stardust você ganha de qualquer jeito' };
+  assert.deepEqual(simularTela(null, { ...tela, ordem: ['velocidade ataque', 'cura'] }), ['Seel']);
+  assert.deepEqual(simularTela(null, { ...tela, ordem: ['cura', 'velocidade ataque'] }), ['Jolteon']);
+});

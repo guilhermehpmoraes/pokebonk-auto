@@ -1,5 +1,7 @@
 # Histórico
 
+Na versão 0.2.58, `vel. de ataque` passa a ser reconhecido como velocidade de ataque após relato de parada na escolha entre Seel e Jolteon brilhante. A causa é provável; o DOM e a interação real ainda precisam de confirmação.
+
 Após relato de parada no prêmio Lucky Egg do cassino, o botão Pegar passou a ter tentativas limitadas. A causa exata da parada não foi confirmada; o cenário foi simulado e precisa de validação no jogo.
 
 Uma base de planejamento de fusões foi adicionada com teste de decisão. Posteriormente, Bill, Hypno e priorização de golpes foram ligados ao planejador, com cenários simulados. A integração ainda não foi validada no jogo.

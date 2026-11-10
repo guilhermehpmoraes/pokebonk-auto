@@ -54,6 +54,8 @@ O catálogo também reconhece `dano status` para textos como `dano de status`, d
 
 O texto `dano em elites` é reconhecido como `dano elites`, inclusive nos bônus dos companheiros Alfa.
 
+O texto abreviado `vel. de ataque` é reconhecido como velocidade de ataque, inclusive nos bônus de companheiros brilhantes.
+
 Os metadados `@updateURL` e `@downloadURL` no script gerado apontam para o arquivo público na `main`; `@version` determina a versão anunciada ao gerenciador de userscripts. O gerador é a fonte desses campos.
 
 Após selecionar um cartão de build, bênção ou item, o adaptador pode repetir o clique no mesmo elemento enquanto a tela permanecer igual, até o limite em `selecionarComTentativa`.

@@ -81,3 +81,5 @@ O mesmo teste simula chamadas de ondas sucessivas e o pickup desligado; `tests/p
 `tests/decisao.test.mjs` e `tests/integracao.test.mjs` verificam a precedência de lendários e a ordem de atributos e raridade em power-ups, incluindo os cartões fornecidos pelo usuário. Isso não substitui teste em jogo.
 
 O teste de item único simula clique ignorado, limite de tentativas e outro prêmio igual com botão novo. Não confirma o DOM nem os cliques no jogo.
+
+O teste de brilhantes simula Seel e Jolteon com `vel. de ataque` nas duas ordens de prioridade; o HTML e o clique real ainda precisam de confirmação.
